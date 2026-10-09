@@ -303,7 +303,7 @@ export async function getCoachDashboard(
     users,
     groups: Array.from(groupsById.values()),
     availableCoaches: usersResult.rows
-      .filter((row) => row.role === "coach")
+      .filter((row) => row.role === "coach" || row.role === "admin")
       .map((row) => {
         const coachId = toNumericId(row.id);
         if (coachId === null) return null;

@@ -23,7 +23,6 @@ import { CoachGroupSummary, CoachUserSummary } from "@/types/coach";
 interface AdminClassesSectionProps {
   groups: CoachGroupSummary[];
   users: CoachUserSummary[];
-  coaches: CoachUserSummary[];
   isLoading: boolean;
   onRefresh: () => Promise<void> | void;
 }
@@ -31,7 +30,6 @@ interface AdminClassesSectionProps {
 export function AdminClassesSection({
   groups,
   users,
-  coaches,
   isLoading,
   onRefresh,
 }: AdminClassesSectionProps) {
@@ -56,11 +54,16 @@ export function AdminClassesSection({
     return beneficiaries.filter((entry) => !existing.has(entry.id));
   }, [beneficiaries, memberGroup]);
 
+  const assignableCoaches = useMemo(
+    () => users.filter((entry) => entry.role === "coach" || entry.role === "admin"),
+    [users]
+  );
+
   const coachCandidates = useMemo(() => {
     if (!coachGroup) return [];
     const existing = new Set(coachGroup.coaches.map((coach) => coach.id));
-    return coaches.filter((entry) => !existing.has(entry.id));
-  }, [coaches, coachGroup]);
+    return assignableCoaches.filter((entry) => !existing.has(entry.id));
+  }, [assignableCoaches, coachGroup]);
 
   const closeMemberDialog = (open: boolean) => {
     if (!open) {

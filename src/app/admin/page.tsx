@@ -279,7 +279,6 @@ export default function AdminPage() {
         <AdminClassesSection
           groups={page.dashboard?.groups ?? []}
           users={page.dashboard?.users ?? []}
-          coaches={page.managedCoaches}
           isLoading={page.isLoading}
           onRefresh={() => void page.loadDashboard()}
         />

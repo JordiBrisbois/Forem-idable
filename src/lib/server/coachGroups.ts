@@ -121,10 +121,10 @@ export async function createCoachGroup(name: string, actor: CoachCapableUser) {
     `INSERT INTO coach_groups (name, created_by, manager_coach_user_id)
      VALUES ($1, $2, $3)
      RETURNING id`,
-    [trimmed, actor.id, actor.role === "coach" ? actor.id : null]
+    [trimmed, actor.id, actor.role === "coach" || actor.role === "admin" ? actor.id : null]
   );
 
-  if (actor.role === "coach") {
+  if (actor.role === "coach" || actor.role === "admin") {
     await db.query(
       `INSERT INTO coach_group_coaches (group_id, user_id)
        VALUES ($1, $2)
@@ -250,7 +250,7 @@ export async function addCoachToGroup(
   );
 
   const role = userResult.rows[0]?.role;
-  if (role !== "coach") {
+  if (role !== "coach" && role !== "admin") {
     throw new Error("Coach required");
   }
 
@@ -323,7 +323,7 @@ export async function setCoachGroupManager(
        INNER JOIN users ON users.id = coach_group_coaches.user_id
        WHERE coach_group_coaches.group_id = $1
          AND coach_group_coaches.user_id = $2
-         AND users.role = 'coach'
+         AND users.role IN ('coach', 'admin')
      ) AS exists`,
     [groupId, coachUserId]
   );
