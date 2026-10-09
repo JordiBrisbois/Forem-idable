@@ -1,4 +1,5 @@
 import { runtimeConfig } from "@/config/runtime";
+import { normalizeContractType } from "@/lib/contractType";
 import { ForemSearchParams } from '../api/foremClient';
 import { Job } from '@/types/job';
 import { adzunaProvider } from './providers/adzunaProvider';
@@ -30,9 +31,16 @@ export const jobService = {
 
         const merged = dedupeAndSortJobs(results.flatMap((result) => result.jobs));
 
+        // Contract-type filtering is done on normalized values so free-form
+        // dataset labels ("Stage étudiant", "STAGE - 6 mois"…) still match.
+        const contractTypes = params.contractTypes ?? [];
+        const filtered = contractTypes.length > 0
+            ? merged.filter((job) => contractTypes.includes(normalizeContractType(job.contractType)))
+            : merged;
+
         return {
-            jobs: merged,
-            total: merged.length,
+            jobs: filtered,
+            total: filtered.length,
         };
     }
 };

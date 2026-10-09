@@ -44,6 +44,7 @@ export function useJobSearch() {
         locations: query.locations,
         booleanMode: query.booleanMode,
         goal: query.goal,
+        contractTypes: query.contractTypes,
         limit: INITIAL_FETCH_LIMIT,
         offset: 0,
       });
@@ -78,6 +79,7 @@ export function useJobSearch() {
         locations: lastSearchQuery.locations,
         booleanMode: lastSearchQuery.booleanMode,
         goal: lastSearchQuery.goal,
+        contractTypes: lastSearchQuery.contractTypes,
         limit: FETCH_CHUNK_SIZE,
         offset: nextOffset,
       });

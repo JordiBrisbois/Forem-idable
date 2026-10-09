@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export const CONTRACT_TYPES = [
   "STAGE",
   "CDI",
@@ -11,6 +13,26 @@ export const CONTRACT_TYPES = [
 ] as const;
 
 export type ContractType = (typeof CONTRACT_TYPES)[number];
+
+export const contractTypeSchema = z.enum(CONTRACT_TYPES);
+
+/** Human-readable French labels for contract types. */
+export const CONTRACT_TYPE_LABELS: Record<ContractType, string> = {
+  STAGE: "Stage",
+  CDI: "CDI",
+  CDD: "CDD",
+  ALTERNANCE: "Alternance",
+  INTERIM: "Intérim",
+  FREELANCE: "Freelance",
+  VIE: "VIE",
+  CONTRAT_PRO: "Contrat pro",
+  AUTRE: "Autre",
+};
+
+/** Contract types exposed as search filters (AUTRE is not a useful filter). */
+export const FILTERABLE_CONTRACT_TYPES = CONTRACT_TYPES.filter(
+  (type) => type !== "AUTRE"
+);
 
 export function normalizeContractType(value: string | null | undefined): ContractType {
   if (!value) return "AUTRE";

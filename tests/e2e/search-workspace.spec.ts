@@ -157,7 +157,7 @@ async function mockSearchWorkspace(page: Page) {
     });
   });
 
-  await page.route("https://www.odwb.be/api/explore/v2.1/**", async (route: Route) => {
+  await page.route("**/api/offers/odwb**", async (route: Route) => {
     await route.fulfill({
       json: {
         total_count: 2,

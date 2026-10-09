@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { appendForemTrackingParam } from "@/lib/forem";
-import { normalizeContractType } from "@/lib/contractType";
+import { normalizeContractType, type ContractType } from "@/lib/contractType";
 import { appendOdwbApiKey } from "@/lib/odwbApiKey";
 import { Job } from '@/types/job';
 import { LocationEntry, locationCache } from '@/services/location/locationCache';
@@ -31,6 +31,8 @@ export interface ForemSearchParams {
     offset?: number;
     booleanMode?: 'AND' | 'OR';
     goal?: SearchGoal;
+    /** Selected contract types (e.g. STAGE, ALTERNANCE); filtering is applied client-side. */
+    contractTypes?: ContractType[];
 }
 
 const foremRecordSchema = z
@@ -146,10 +148,9 @@ function clampRequestedLimit(limit?: number): number {
 async function buildWhereClause(params: ForemSearchParams): Promise<string | null> {
     const filters: string[] = [];
 
-    if (params.goal === "internship") {
-        filters.push(`typecontrat in ("Stage","STAGE")`);
-    }
-
+    // Contract-type selection is applied client-side (normalizeContractType),
+    // because the dataset's `typecontrat` values are free-form and a strict
+    // `in (...)` match would miss most "stage"-like offers.
     if (params.keywords && params.keywords.length > 0) {
         const joiner = params.booleanMode === 'AND' ? ' AND ' : ' OR ';
         const keywordQuery = params.keywords.map(kw => `search("${kw}")`).join(joiner);

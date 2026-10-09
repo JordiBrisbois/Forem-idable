@@ -33,7 +33,7 @@ test("runs a featured search from the homepage", async ({ page }) => {
     });
   });
 
-  await page.route("https://www.odwb.be/api/explore/v2.1/**", async (route) => {
+  await page.route("**/api/offers/odwb**", async (route) => {
     await route.fulfill({
       json: {
         total_count: 1,

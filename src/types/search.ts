@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LocationEntry } from "@/services/location/locationCache";
+import { ContractType, contractTypeSchema } from "@/lib/contractType";
 import { searchGoalSchema } from "@/types/preferences";
 
 export type BooleanMode = "AND" | "OR";
@@ -9,6 +10,8 @@ export interface SearchQuery {
   locations: LocationEntry[];
   booleanMode: BooleanMode;
   goal: "internship" | "job";
+  /** Selected contract types; empty/undefined means "all contracts". */
+  contractTypes?: ContractType[];
 }
 
 export const booleanModeSchema = z.enum(["AND", "OR"]);
@@ -35,4 +38,5 @@ export const searchQuerySchema = z.object({
   locations: z.array(locationEntrySchema).max(10),
   booleanMode: booleanModeSchema,
   goal: searchGoalSchema.default("job"),
+  contractTypes: z.array(contractTypeSchema).max(9).default([]),
 });

@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CONTRACT_TYPES, normalizeContractType, type ContractType } from "@/lib/contractType";
+import { CONTRACT_TYPES, CONTRACT_TYPE_LABELS, normalizeContractType, type ContractType } from "@/lib/contractType";
 
 interface ContractTypeSelectProps {
   value: string;
@@ -32,7 +32,7 @@ export function ContractTypeSelect({
       <SelectContent>
         {CONTRACT_TYPES.map((type) => (
           <SelectItem key={type} value={type}>
-            {type === "CONTRAT_PRO" ? "Contrat pro" : type.charAt(0) + type.slice(1).toLowerCase()}
+            {CONTRACT_TYPE_LABELS[type]}
           </SelectItem>
         ))}
       </SelectContent>

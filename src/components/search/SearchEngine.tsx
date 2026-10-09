@@ -13,6 +13,11 @@ import { LocationEntry } from "@/services/location/locationCache";
 import { BooleanMode, SearchQuery } from "@/types/search";
 import { FeaturedSearch } from "@/types/featuredSearch";
 import { SearchGoal } from "@/types/preferences";
+import {
+  CONTRACT_TYPE_LABELS,
+  FILTERABLE_CONTRACT_TYPES,
+  type ContractType,
+} from "@/lib/contractType";
 
 export type SearchState = SearchQuery;
 
@@ -49,8 +54,14 @@ export function SearchEngine({
   const [booleanMode, setBooleanMode] = useState<BooleanMode>(
     initialState?.booleanMode || "OR"
   );
-  const [goal, setGoal] = useState<SearchGoal>(
-    initialState?.goal ?? runtimeConfig.defaults.searchGoal
+
+  // The objective is kept in the query (URL, history, coaching) but no longer
+  // hard-filters the search. For an internship objective we simply pre-select
+  // the relevant contract types, while everything stays visible/selectable.
+  const goal: SearchGoal = initialState?.goal ?? runtimeConfig.defaults.searchGoal;
+  const [contractTypes, setContractTypes] = useState<ContractType[]>(
+    initialState?.contractTypes ??
+      (goal === "internship" ? ["STAGE", "ALTERNANCE"] : [])
   );
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +72,7 @@ export function SearchEngine({
 
   const triggerSearch = () => {
     const finalKeywords = flushPendingInput();
-    onSearch({ keywords: finalKeywords, locations: selectedLocations, booleanMode, goal });
+    onSearch({ keywords: finalKeywords, locations: selectedLocations, booleanMode, goal, contractTypes });
   };
 
   return (
@@ -96,31 +107,47 @@ export function SearchEngine({
         </Button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <ToggleGroup
-          type="single"
-          variant="outline"
-          size="sm"
-          value={goal}
-          onValueChange={(value) => {
-            if (value) setGoal(value as SearchGoal);
-          }}
-        >
-          <ToggleGroupItem value="internship" className="px-3">
-            Stage
-          </ToggleGroupItem>
-          <ToggleGroupItem value="job" className="px-3">
-            Emploi
-          </ToggleGroupItem>
-        </ToggleGroup>
-        <BooleanModeToggle
-          booleanMode={booleanMode}
-          onToggle={() => setBooleanMode((prev) => (prev === "OR" ? "AND" : "OR"))}
-        />
-        <p className="text-xs text-muted-foreground">
-          <span className="font-medium text-foreground">OU</span> = au moins un mot-clé ·{" "}
-          <span className="font-medium text-foreground">ET</span> = tous les mots-clés
-        </p>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-medium text-muted-foreground">Type de contrat</span>
+          <ToggleGroup
+            type="multiple"
+            variant="outline"
+            size="sm"
+            value={contractTypes}
+            onValueChange={(value) => setContractTypes(value as ContractType[])}
+            className="flex-wrap"
+          >
+            {FILTERABLE_CONTRACT_TYPES.map((type) => (
+              <ToggleGroupItem key={type} value={type} className="px-3">
+                {CONTRACT_TYPE_LABELS[type]}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+          {contractTypes.length > 0 ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-7 px-2 text-xs"
+              onClick={() => setContractTypes([])}
+            >
+              Réinitialiser
+            </Button>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          <BooleanModeToggle
+            booleanMode={booleanMode}
+            onToggle={() => setBooleanMode((prev) => (prev === "OR" ? "AND" : "OR"))}
+          />
+          <p className="text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">OU</span> = au moins un mot-clé ·{" "}
+            <span className="font-medium text-foreground">ET</span> = tous les mots-clés ·
+            aucun type coché = tous les contrats
+          </p>
+        </div>
       </div>
 
       <SearchHints

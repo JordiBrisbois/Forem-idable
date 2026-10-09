@@ -369,7 +369,7 @@ test("user can add a job to tracking and the coach can see it", async ({ page })
     await route.fulfill({ json: { history: [] } });
   });
 
-  await page.route("https://www.odwb.be/api/explore/**", async (route: Route) => {
+  await page.route("**/api/offers/odwb**", async (route: Route) => {
     await route.fulfill({
       json: {
         results: [

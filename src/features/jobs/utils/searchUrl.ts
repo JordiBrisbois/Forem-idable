@@ -1,4 +1,5 @@
 import { LocationEntry } from "@/services/location/locationCache";
+import { CONTRACT_TYPES, ContractType } from "@/lib/contractType";
 import { SearchQuery } from "@/types/search";
 import { SearchGoal } from "@/types/preferences";
 import { runtimeConfig } from "@/config/runtime";
@@ -11,6 +12,16 @@ const LOCATION_TYPES = new Set([
   "Communes",
   "Localités",
 ]);
+
+const CONTRACT_TYPE_VALUES = new Set<string>(CONTRACT_TYPES);
+
+function parseContractTypes(raw: string | null): ContractType[] {
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((value) => value.trim().toUpperCase())
+    .filter((value): value is ContractType => CONTRACT_TYPE_VALUES.has(value));
+}
 
 type SearchParamsLike = Pick<URLSearchParams, "get" | "getAll">;
 
@@ -36,6 +47,10 @@ export function toSearchParams(query: SearchQuery): URLSearchParams {
 
   params.set("bm", query.booleanMode);
   params.set("goal", query.goal);
+
+  if (query.contractTypes && query.contractTypes.length > 0) {
+    params.set("ct", query.contractTypes.join(","));
+  }
 
   if (query.locations.length > 0) {
     params.set("loc", JSON.stringify(normalizeLocations(query.locations)));
@@ -94,10 +109,18 @@ export function fromSearchParams(params: SearchParamsLike): SearchQuery | null {
 
   if (keywords.length === 0 && locations.length === 0) return null;
 
-  return {
+  const contractTypes = parseContractTypes(params.get("ct"));
+
+  const query: SearchQuery = {
     keywords,
     locations,
     booleanMode,
     goal,
   };
+
+  if (contractTypes.length > 0) {
+    query.contractTypes = contractTypes;
+  }
+
+  return query;
 }

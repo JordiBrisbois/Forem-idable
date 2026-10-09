@@ -43,4 +43,26 @@ describe("searchUrl utils", () => {
     const parsed = fromSearchParams(toSearchParams(query));
     expect(parsed).toEqual(query);
   });
+
+  it("round-trips selected contract types", () => {
+    const query: SearchQuery = {
+      keywords: ["dev"],
+      booleanMode: "OR",
+      locations: [],
+      goal: "internship",
+      contractTypes: ["STAGE", "ALTERNANCE"],
+    };
+
+    const parsed = fromSearchParams(toSearchParams(query));
+    expect(parsed).toEqual(query);
+  });
+
+  it("drops unknown contract types from the URL", () => {
+    const params = new URLSearchParams();
+    params.set("kw", "dev");
+    params.set("ct", "STAGE,BOGUS,ALTERNANCE");
+
+    const parsed = fromSearchParams(params);
+    expect(parsed?.contractTypes).toEqual(["STAGE", "ALTERNANCE"]);
+  });
 });
