@@ -8,6 +8,7 @@ const PUBLIC_EXACT = [
   "/privacy",
   "/applications",
   "/setup",
+  "/reset-password",
   "/favicon.ico",
   "/sitemap.xml",
   "/robots.txt",

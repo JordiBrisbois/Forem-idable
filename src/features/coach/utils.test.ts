@@ -38,6 +38,7 @@ function makeUser(overrides: Partial<CoachUserSummary>): CoachUserSummary {
     lastName: overrides.lastName ?? "Doe",
     role: overrides.role ?? "user",
     searchGoal: overrides.searchGoal ?? "internship",
+    beneficiaryStage: overrides.beneficiaryStage ?? "internship_search",
     groupIds: overrides.groupIds ?? [1],
     groupNames: overrides.groupNames ?? ["Groupe A"],
     applicationCount: overrides.applicationCount ?? 1,

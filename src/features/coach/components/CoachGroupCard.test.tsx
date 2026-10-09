@@ -79,6 +79,7 @@ function buildGroup(overrides: Partial<CoachGroupedUserGroup> = {}): CoachGroupe
         lastName: "Dupont",
         role: "user",
         searchGoal: "job",
+        beneficiaryStage: "job_search",
         groupIds: [1],
         groupNames: ["Groupe Test"],
         applicationCount: 2,

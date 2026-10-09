@@ -124,6 +124,22 @@ Met à jour l'objectif de recherche d'un bénéficiaire.
 
 **Erreurs possibles :** `400` (paramètres invalides), `403` (accès interdit), `500` (erreur serveur).
 
+### `PATCH /api/external/users/:userId/stage`
+Met à jour l'étape du parcours d'un bénéficiaire (recherche stage → en stage → recherche emploi → en emploi → sortie). L'objectif de recherche est ajusté automatiquement.
+
+**Body :**
+```json
+{
+  "stage": "internship_search|internship_ongoing|job_search|employed|exited",
+  "reason": "optionnel"
+}
+```
+
+**Réponse :**
+```json
+{ "ok": true }
+```
+
 ### `GET /api/external/groups`
 Liste les classes de suivi. Permet d'extraire la liste des membres et leurs statistiques globales.
 

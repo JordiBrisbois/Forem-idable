@@ -17,23 +17,23 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { CoachGoalFilter, CoachUserFilter } from "@/features/coach/types";
+import { CoachStageFilter, CoachUserFilter } from "@/features/coach/types";
+import { BENEFICIARY_STAGE_LABELS } from "@/types/beneficiaryStage";
 
 interface CoachGroupToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
-  goalFilter: CoachGoalFilter;
-  onGoalFilterChange: (value: CoachGoalFilter) => void;
-  goalCounts: Record<CoachGoalFilter, number>;
+  stageFilter: CoachStageFilter;
+  onStageFilterChange: (value: CoachStageFilter) => void;
+  stageCounts: Record<CoachStageFilter, number>;
   userFilter: CoachUserFilter;
   onUserFilterChange: (value: CoachUserFilter) => void;
   filterOptions: Array<{ value: CoachUserFilter; label: string }>;
 }
 
-const GOAL_LABELS: Record<CoachGoalFilter, string> = {
-  all: "Tous",
-  internship: "Stage",
-  job: "Emploi",
+const STAGE_LABELS: Record<CoachStageFilter, string> = {
+  all: "Toutes",
+  ...BENEFICIARY_STAGE_LABELS,
 };
 
 const QUICK_CHIPS: Array<{ value: CoachUserFilter; label: string; variant: "default" | "destructive" | "warning" }> = [
@@ -47,9 +47,9 @@ const QUICK_CHIPS: Array<{ value: CoachUserFilter; label: string; variant: "defa
 export function CoachGroupToolbar({
   search,
   onSearchChange,
-  goalFilter,
-  onGoalFilterChange,
-  goalCounts,
+  stageFilter,
+  onStageFilterChange,
+  stageCounts,
   userFilter,
   onUserFilterChange,
   filterOptions,
@@ -78,14 +78,14 @@ export function CoachGroupToolbar({
           )}
         </div>
 
-        <Select value={goalFilter} onValueChange={(v) => onGoalFilterChange(v as CoachGoalFilter)}>
-          <SelectTrigger className="w-[120px] sm:w-[150px]">
-            <SelectValue placeholder="Objectif" />
+        <Select value={stageFilter} onValueChange={(v) => onStageFilterChange(v as CoachStageFilter)}>
+          <SelectTrigger className="w-[150px] sm:w-[180px]">
+            <SelectValue placeholder="Étape" />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(GOAL_LABELS) as CoachGoalFilter[]).map((key) => (
+            {(Object.keys(STAGE_LABELS) as CoachStageFilter[]).map((key) => (
               <SelectItem key={key} value={key}>
-                {GOAL_LABELS[key]} ({goalCounts[key]})
+                {STAGE_LABELS[key]} ({stageCounts[key]})
               </SelectItem>
             ))}
           </SelectContent>

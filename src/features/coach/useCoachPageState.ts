@@ -65,17 +65,17 @@ export function useCoachPageState() {
     });
   }, [coach]);
 
-  const closeGoalDialog = useCallback(
+  const closeStageDialog = useCallback(
     (open: boolean) => {
       if (open) return;
-      coach.setGoalDialogUser(null);
+      coach.setStageDialogUser(null);
     },
     [coach]
   );
 
-  const openSelectedUserGoalChange = useCallback(() => {
+  const openSelectedUserStageChange = useCallback(() => {
     if (!coach.selectedUser) return;
-    coach.setGoalDialogUser(coach.selectedUser);
+    coach.setStageDialogUser(coach.selectedUser);
   }, [coach]);
 
   const resetApiKeysDialog = useCallback(
@@ -121,8 +121,8 @@ export function useCoachPageState() {
     openUserFromActivity,
     openSelectedUserEditor,
     openSelectedUserDeletion,
-    closeGoalDialog,
-    openSelectedUserGoalChange,
+    closeStageDialog,
+    openSelectedUserStageChange,
     resetApiKeysDialog,
     requestRevokeApiKey,
     closeImportDialog,

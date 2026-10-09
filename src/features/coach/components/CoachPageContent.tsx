@@ -64,9 +64,9 @@ export function CoachPageContent({
               onSearchChange={page.setSearch}
               userFilter={page.userFilter}
               onUserFilterChange={page.setUserFilter}
-              goalFilter={page.goalFilter}
-              onGoalFilterChange={page.setGoalFilter}
-              goalCounts={page.goalCounts}
+              stageFilter={page.stageFilter}
+              onStageFilterChange={page.setStageFilter}
+              stageCounts={page.stageCounts}
               groupedUsers={page.groupedUsers}
               canRegenerateCalendars={currentUserRole === "admin"}
               onCreateGroup={() => page.setIsCreateGroupOpen(true)}

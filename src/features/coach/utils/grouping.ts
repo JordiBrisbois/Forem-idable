@@ -1,8 +1,8 @@
 import {
-  CoachGoalFilter,
   CoachGroupedUserGroup,
   CoachManagerPickerGroup,
   CoachMemberPickerGroup,
+  CoachStageFilter,
   CoachUserFilter,
 } from "@/features/coach/types";
 import { CoachGroupSummary, CoachUserSummary } from "@/types/coach";
@@ -75,9 +75,9 @@ function matchesFilter(user: CoachUserSummary, userFilter: CoachUserFilter) {
   }
 }
 
-function matchesGoal(user: CoachUserSummary, goalFilter: CoachGoalFilter) {
-  if (goalFilter === "all") return true;
-  return user.searchGoal === goalFilter;
+function matchesStage(user: CoachUserSummary, stageFilter: CoachStageFilter) {
+  if (stageFilter === "all") return true;
+  return user.beneficiaryStage === stageFilter;
 }
 
 function sortMembers(members: CoachUserSummary[]) {
@@ -101,9 +101,9 @@ export function buildGroupedUsers(input: {
   users: CoachUserSummary[];
   normalizedSearch: string;
   userFilter: CoachUserFilter;
-  goalFilter?: CoachGoalFilter;
+  stageFilter?: CoachStageFilter;
 }): CoachGroupedUserGroup[] {
-  const { groups, users, normalizedSearch, userFilter, goalFilter = "all" } = input;
+  const { groups, users, normalizedSearch, userFilter, stageFilter = "all" } = input;
 
   const standardGroups = groups.map((group) => {
     const members = users.filter(
@@ -116,7 +116,7 @@ export function buildGroupedUsers(input: {
         (entry) =>
           matchesSearch(entry, normalizedSearch) &&
           matchesFilter(entry, userFilter) &&
-          matchesGoal(entry, goalFilter)
+          matchesStage(entry, stageFilter)
       )
     );
 
@@ -146,7 +146,7 @@ export function buildGroupedUsers(input: {
       entry.groupIds.length === 0 &&
       matchesSearch(entry, normalizedSearch) &&
       matchesFilter(entry, userFilter) &&
-      matchesGoal(entry, goalFilter)
+      matchesStage(entry, stageFilter)
   );
   const allUngroupedMembers = users.filter(
     (entry) => entry.role === "user" && entry.groupIds.length === 0
@@ -174,6 +174,6 @@ export function buildGroupedUsers(input: {
   ];
 
   return [...standardGroups, ...syntheticGroups].filter(
-    (group) => group.members.length > 0 || (!normalizedSearch && userFilter === "all" && goalFilter === "all")
+    (group) => group.members.length > 0 || (!normalizedSearch && userFilter === "all" && stageFilter === "all")
   );
 }

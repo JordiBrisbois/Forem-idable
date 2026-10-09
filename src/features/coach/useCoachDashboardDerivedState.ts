@@ -4,10 +4,10 @@ import { useDeferredValue, useMemo } from "react";
 import { CoachDashboardData } from "@/types/coach";
 import { AuthUser } from "@/types/auth";
 import {
-  CoachGoalFilter,
   CoachGroupedUserGroup,
   CoachManagerPickerGroup,
   CoachMemberPickerGroup,
+  CoachStageFilter,
   CoachUserFilter,
 } from "@/features/coach/types";
 import {
@@ -27,7 +27,7 @@ type UseCoachDashboardDerivedStateParams = {
   importTargetUserId: number | null;
   search: string;
   userFilter: CoachUserFilter;
-  goalFilter: CoachGoalFilter;
+  stageFilter: CoachStageFilter;
 };
 
 export function useCoachDashboardDerivedState({
@@ -40,7 +40,7 @@ export function useCoachDashboardDerivedState({
   importTargetUserId,
   search,
   userFilter,
-  goalFilter,
+  stageFilter,
 }: UseCoachDashboardDerivedStateParams) {
   const deferredSearch = useDeferredValue(search);
 
@@ -90,9 +90,9 @@ export function useCoachDashboardDerivedState({
       users: dashboard.users,
       normalizedSearch: deferredSearch.trim().toLowerCase(),
       userFilter,
-      goalFilter,
+      stageFilter,
     });
-  }, [dashboard, deferredSearch, userFilter, goalFilter]);
+  }, [dashboard, deferredSearch, userFilter, stageFilter]);
 
   const recentActivity = useMemo(
     () => buildCoachRecentActivity(dashboard?.users ?? []),
@@ -128,17 +128,19 @@ export function useCoachDashboardDerivedState({
   const totalRejected =
     dashboard?.users.reduce((sum, entry) => sum + entry.rejectedCount, 0) ?? 0;
 
-  const goalCounts = useMemo(() => {
-    const counts = {
+  const stageCounts = useMemo<Record<CoachStageFilter, number>>(() => {
+    const counts: Record<CoachStageFilter, number> = {
       all: 0,
-      internship: 0,
-      job: 0,
+      internship_search: 0,
+      internship_ongoing: 0,
+      job_search: 0,
+      employed: 0,
+      exited: 0,
     };
     dashboard?.users.forEach((user) => {
       if (user.role === "coach" || user.role === "admin") return;
       counts.all++;
-      if (user.searchGoal === "internship") counts.internship++;
-      else counts.job++;
+      counts[user.beneficiaryStage]++;
     });
     return counts;
   }, [dashboard?.users]);
@@ -161,6 +163,6 @@ export function useCoachDashboardDerivedState({
     totalDue,
     totalAccepted,
     totalRejected,
-    goalCounts,
+    stageCounts,
   };
 }

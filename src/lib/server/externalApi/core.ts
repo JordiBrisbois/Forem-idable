@@ -81,6 +81,7 @@ export function toExternalUserSummary(
     fullName: `${user.firstName} ${user.lastName}`.trim() || user.email,
     role: user.role,
     searchGoal: user.searchGoal,
+    beneficiaryStage: user.beneficiaryStage,
     groupIds: user.groupIds,
     groupNames: user.groupNames,
     applicationCount: user.applicationCount,

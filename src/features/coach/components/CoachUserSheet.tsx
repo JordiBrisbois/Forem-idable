@@ -29,7 +29,7 @@ interface CoachUserSheetProps {
   onOpenImport: () => void;
   onEdit: () => void;
   onDeleteUser: () => void;
-  onOpenGoalChange: () => void;
+  onOpenStageChange: () => void;
   onSavePrivateCoachNote: (userId: number, jobId: string, content: string) => Promise<boolean>;
   onCreateSharedCoachNote: (userId: number, jobId: string, content: string) => Promise<boolean>;
   onUpdateSharedCoachNote: (
@@ -62,7 +62,7 @@ export function CoachUserSheet({
   onOpenImport,
   onEdit,
   onDeleteUser,
-  onOpenGoalChange,
+  onOpenStageChange,
   onSavePrivateCoachNote,
   onCreateSharedCoachNote,
   onUpdateSharedCoachNote,
@@ -88,7 +88,7 @@ export function CoachUserSheet({
             onOpenImport={onOpenImport}
             onEdit={onEdit}
             onDeleteUser={onDeleteUser}
-            onOpenGoalChange={onOpenGoalChange}
+            onOpenStageChange={onOpenStageChange}
             onSavePrivateCoachNote={onSavePrivateCoachNote}
             onCreateSharedCoachNote={onCreateSharedCoachNote}
             onUpdateSharedCoachNote={onUpdateSharedCoachNote}
@@ -120,7 +120,7 @@ function CoachUserSheetBody({
   onOpenImport,
   onEdit,
   onDeleteUser,
-  onOpenGoalChange,
+  onOpenStageChange,
   onSavePrivateCoachNote,
   onCreateSharedCoachNote,
   onUpdateSharedCoachNote,
@@ -189,7 +189,7 @@ function CoachUserSheetBody({
         onOpenImport={onOpenImport}
         onEdit={onEdit}
         onDeleteUser={onDeleteUser}
-        onOpenGoalChange={onOpenGoalChange}
+        onOpenStageChange={onOpenStageChange}
       />
 
       <div className="space-y-4 overflow-y-auto p-5">

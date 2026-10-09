@@ -18,7 +18,7 @@ import {
   replaceGroupIdInDashboard,
   setGroupManagerInDashboard,
   updateManagedUserInDashboard,
-  updateUserSearchGoalInDashboard,
+  updateUserStageInDashboard,
 } from "@/features/coach/dashboardState";
 import { ApiKeySummary } from "@/types/externalApi";
 import { JobApplication } from "@/types/application";
@@ -39,7 +39,7 @@ import { useCoachApplicationActions } from "@/features/coach/useCoachApplication
 import { useCoachAdminActions } from "@/features/coach/useCoachAdminActions";
 import { useCoachGroupActions } from "@/features/coach/useCoachGroupActions";
 import { useCoachUtilities } from "@/features/coach/useCoachUtilities";
-import { useCoachGoalTabs } from "@/features/coach/useCoachGoalTabs";
+import { useCoachStageTabs } from "@/features/coach/useCoachStageTabs";
 
 export function useCoachDashboard() {
   const { user, isLoading: isAuthLoading } = useAuth();
@@ -66,10 +66,10 @@ export function useCoachDashboard() {
   const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [calendarRegenerationTarget, setCalendarRegenerationTarget] =
     useState<CoachCalendarRegenerationTarget | null>(null);
-  const [goalDialogUser, setGoalDialogUser] = useState<CoachUserSummary | null>(null);
+  const [stageDialogUser, setStageDialogUser] = useState<CoachUserSummary | null>(null);
   const [search, setSearch] = useState("");
   const [userFilter, setUserFilter] = useState<CoachUserFilter>("all");
-  const { goalFilter, setGoalFilter } = useCoachGoalTabs();
+  const { stageFilter, setStageFilter } = useCoachStageTabs();
   const [isDeletingGroup, setIsDeletingGroup] = useState(false);
 
   const applyApplicationUpdate = (userId: number, application: JobApplication) => {
@@ -131,35 +131,35 @@ export function useCoachDashboard() {
     });
   };
 
-  const updateUserSearchGoal = useCallback(
-    async (userId: number, goal: string, reason?: string) => {
-      const previousGoal = dashboard?.users.find((u) => u.id === userId)?.searchGoal;
+  const updateBeneficiaryStage = useCallback(
+    async (userId: number, stage: string, reason?: string) => {
+      const previousStage = dashboard?.users.find((u) => u.id === userId)?.beneficiaryStage;
 
       setDashboard((current) => {
         if (!current) return current;
-        return updateUserSearchGoalInDashboard(
+        return updateUserStageInDashboard(
           current,
           userId,
-          goal as CoachUserSummary["searchGoal"]
+          stage as CoachUserSummary["beneficiaryStage"]
         );
       });
 
-      const response = await fetch(`/api/coach/users/${userId}/goal`, {
+      const response = await fetch(`/api/coach/users/${userId}/stage`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ goal, reason }),
+        body: JSON.stringify({ stage, reason }),
       });
 
       if (!response.ok) {
         setDashboard((current) => {
-          if (!current || !previousGoal) return current;
-          return updateUserSearchGoalInDashboard(current, userId, previousGoal);
+          if (!current || !previousStage) return current;
+          return updateUserStageInDashboard(current, userId, previousStage);
         });
-        toast.error("Changement d'objectif impossible.");
+        toast.error("Changement d'étape impossible.");
         return;
       }
 
-      toast.success("Objectif mis à jour.");
+      toast.success("Étape mise à jour.");
     },
     [dashboard, setDashboard]
   );
@@ -286,7 +286,7 @@ export function useCoachDashboard() {
     totalDue,
     totalAccepted,
     totalRejected,
-    goalCounts,
+    stageCounts,
   } = useCoachDashboardDerivedState({
     dashboard,
     user,
@@ -297,7 +297,7 @@ export function useCoachDashboard() {
     importTargetUserId,
     search,
     userFilter,
-    goalFilter,
+    stageFilter,
   });
 
   const coachAdminActions = useCoachAdminActions({
@@ -378,15 +378,15 @@ export function useCoachDashboard() {
     setDeleteUserTarget,
     calendarRegenerationTarget,
     setCalendarRegenerationTarget,
-    goalDialogUser,
-    setGoalDialogUser,
+    stageDialogUser,
+    setStageDialogUser,
     savingCoachNoteKey: coachApplicationActions.savingCoachNoteKey,
     search,
     setSearch,
     userFilter,
     setUserFilter,
-    goalFilter,
-    setGoalFilter,
+    stageFilter,
+    setStageFilter,
     selectedUser,
     canEditSelectedUser,
     canManageSelectedUserApiKeys,
@@ -403,7 +403,7 @@ export function useCoachDashboard() {
     totalDue,
     totalAccepted,
     totalRejected,
-    goalCounts,
+    stageCounts,
     isDeletingGroup,
     loadDashboard,
     createGroup: coachGroupActions.createGroup,
@@ -418,7 +418,7 @@ export function useCoachDashboard() {
     openManagedUserApiKeys: coachAdminActions.openManagedUserApiKeys,
     revokeManagedApiKey: coachAdminActions.revokeManagedApiKey,
     deleteUser: coachAdminActions.deleteUser,
-    updateUserSearchGoal,
+    updateBeneficiaryStage,
     savePrivateCoachNote: coachApplicationActions.savePrivateCoachNote,
     createSharedCoachNote: coachApplicationActions.createSharedCoachNote,
     updateSharedCoachNote: coachApplicationActions.updateSharedCoachNote,

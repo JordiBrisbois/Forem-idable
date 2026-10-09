@@ -46,6 +46,7 @@ describe("useCoachUtilities", () => {
           lastSeenAt: null,
           lastCoachActionAt: null,
           searchGoal: "job",
+          beneficiaryStage: "job_search",
           hasAcceptedStage: false,
           hasAcceptedJob: false,
           applications: [

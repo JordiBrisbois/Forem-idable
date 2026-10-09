@@ -1,6 +1,7 @@
 import { JobApplication } from "@/types/application";
 import { AuthUser, UserRole } from "@/types/auth";
 import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage } from "@/types/beneficiaryStage";
 
 export interface CoachGroupMember {
   id: number;
@@ -34,6 +35,7 @@ export interface CoachUserSummary {
   lastName: string;
   role: UserRole;
   searchGoal: SearchGoal;
+  beneficiaryStage: BeneficiaryStage;
   groupIds: number[];
   groupNames: string[];
   applicationCount: number;

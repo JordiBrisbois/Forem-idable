@@ -1,6 +1,7 @@
 import { buildCoachApplicationSummary, sortApplicationsByAppliedAtDesc } from "@/features/coach/applicationSummary";
 import { JobApplication } from "@/types/application";
 import { UserRole } from "@/types/auth";
+import { stageToSearchGoal } from "@/types/beneficiaryStage";
 import { CoachDashboardData, CoachUserSummary } from "@/types/coach";
 
 function sortGroupParticipantsByEmail<T extends { email: string }>(entries: T[]) {
@@ -223,20 +224,25 @@ export function setGroupManagerInDashboard(
   };
 }
 
-export function updateUserSearchGoalInDashboard(
+export function updateUserStageInDashboard(
   dashboard: CoachDashboardData,
   userId: number,
-  goal: CoachUserSummary["searchGoal"]
+  stage: CoachUserSummary["beneficiaryStage"]
 ): CoachDashboardData {
+  const goal = stageToSearchGoal(stage);
   return {
     ...dashboard,
     users: dashboard.users.map((entry) =>
-      entry.id === userId ? { ...entry, searchGoal: goal } : entry
+      entry.id === userId
+        ? { ...entry, beneficiaryStage: stage, searchGoal: goal }
+        : entry
     ),
     groups: dashboard.groups.map((group) => ({
       ...group,
       members: group.members.map((entry) =>
-        entry.id === userId ? { ...entry, searchGoal: goal } : entry
+        entry.id === userId
+          ? { ...entry, beneficiaryStage: stage, searchGoal: goal }
+          : entry
       ),
     })),
   };

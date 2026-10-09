@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { updateUserSearchGoalInDashboard } from "@/features/coach/dashboardState";
+import { updateUserStageInDashboard } from "@/features/coach/dashboardState";
 import { CoachDashboardData } from "@/types/coach";
 
 function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashboardData {
@@ -19,6 +19,7 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
         lastName: "Durand",
         role: "user",
         searchGoal: "internship",
+        beneficiaryStage: "internship_search",
         groupIds: [1],
         groupNames: ["Groupe A"],
         applicationCount: 2,
@@ -41,6 +42,7 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
         lastName: "Martin",
         role: "user",
         searchGoal: "job",
+        beneficiaryStage: "job_search",
         groupIds: [1],
         groupNames: ["Groupe A"],
         applicationCount: 1,
@@ -77,24 +79,25 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
   };
 }
 
-describe("updateUserSearchGoalInDashboard", () => {
-  it("updates the user's searchGoal in both users and group members", () => {
+describe("updateUserStageInDashboard", () => {
+  it("updates the beneficiary stage (and derived goal) in users and group members", () => {
     const dashboard = makeDashboard();
-    const next = updateUserSearchGoalInDashboard(dashboard, 1, "job");
+    const next = updateUserStageInDashboard(dashboard, 1, "internship_ongoing");
 
-    expect(next.users[0]?.searchGoal).toBe("job");
-    expect(next.users[1]?.searchGoal).toBe("job"); // Bob unchanged
+    expect(next.users[0]?.beneficiaryStage).toBe("internship_ongoing");
+    expect(next.users[0]?.searchGoal).toBe("internship");
+    expect(next.users[1]?.beneficiaryStage).toBe("job_search"); // Bob unchanged
 
-    // Group members are updated via spread; we verify by checking the user list was synced
     const updatedGroupMember = next.groups[0]?.members.find((m) => m.id === 1);
     expect(updatedGroupMember).toBeDefined();
   });
 
   it("does not mutate the original dashboard", () => {
     const dashboard = makeDashboard();
-    const next = updateUserSearchGoalInDashboard(dashboard, 1, "job");
+    const next = updateUserStageInDashboard(dashboard, 1, "job_search");
 
-    expect(dashboard.users[0]?.searchGoal).toBe("internship");
+    expect(dashboard.users[0]?.beneficiaryStage).toBe("internship_search");
+    expect(next.users[0]?.beneficiaryStage).toBe("job_search");
     expect(next.users[0]?.searchGoal).toBe("job");
   });
 });

@@ -48,6 +48,7 @@ function buildUser(overrides: Partial<CoachUserSummary> = {}): CoachUserSummary 
     lastName: "Lovelace",
     role: "user",
     searchGoal: "job",
+    beneficiaryStage: "job_search",
     groupIds: [1],
     groupNames: ["Groupe A"],
     applicationCount: 3,

@@ -9,7 +9,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CoachGoalFilter } from "@/features/coach/types";
+import { CoachStageFilter } from "@/features/coach/types";
+import { BENEFICIARY_STAGE_LABELS, BENEFICIARY_STAGE_ORDER, BeneficiaryStage } from "@/types/beneficiaryStage";
 
 interface CoachSummaryCardsProps {
   userCount: number;
@@ -18,8 +19,19 @@ interface CoachSummaryCardsProps {
   totalDue: number;
   totalAccepted: number;
   totalRejected: number;
-  goalCounts?: Record<CoachGoalFilter, number>;
+  stageCounts?: Record<CoachStageFilter, number>;
 }
+
+const STAGE_BADGE_VARIANTS: Record<
+  BeneficiaryStage,
+  "default" | "secondary" | "success" | "outline" | "info" | "warning" | "error"
+> = {
+  internship_search: "info",
+  internship_ongoing: "warning",
+  job_search: "secondary",
+  employed: "success",
+  exited: "outline",
+};
 
 export function CoachSummaryCards({
   userCount,
@@ -28,7 +40,7 @@ export function CoachSummaryCards({
   totalDue,
   totalAccepted,
   totalRejected,
-  goalCounts,
+  stageCounts,
 }: CoachSummaryCardsProps) {
   const primaryCards = [
     {
@@ -75,18 +87,20 @@ export function CoachSummaryCards({
     },
   ];
 
-  const goalBadges = goalCounts
-    ? [
-        { key: "internship" as const, label: "Recherche stage", count: goalCounts.internship, variant: "info" as const },
-        { key: "job" as const, label: "Recherche emploi", count: goalCounts.job, variant: "secondary" as const },
-      ].filter((b) => b.count > 0)
+  const stageBadges = stageCounts
+    ? BENEFICIARY_STAGE_ORDER.map((stage) => ({
+        key: stage,
+        label: BENEFICIARY_STAGE_LABELS[stage],
+        count: stageCounts[stage],
+        variant: STAGE_BADGE_VARIANTS[stage],
+      })).filter((b) => b.count > 0)
     : [];
 
   return (
     <div className="flex flex-col gap-3">
-      {goalBadges.length > 0 && (
+      {stageBadges.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {goalBadges.map((badge) => (
+          {stageBadges.map((badge) => (
             <Badge key={badge.key} variant={badge.variant} className="text-xs">
               {badge.label}
               <span className="ml-1.5 rounded-full bg-background/20 px-1.5 py-0.5 tabular-nums">{badge.count}</span>

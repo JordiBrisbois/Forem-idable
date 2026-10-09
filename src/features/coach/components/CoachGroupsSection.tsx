@@ -22,10 +22,10 @@ import { CoachGroupCard } from "@/features/coach/components/CoachGroupCard";
 import { CoachGroupToolbar } from "@/features/coach/components/CoachGroupToolbar";
 import { coachUserFilterOptions } from "@/features/coach/filters";
 import {
-  CoachGoalFilter,
   CoachGroupedUserGroup,
   CoachRemoveCoachTarget,
   CoachRemoveMembershipTarget,
+  CoachStageFilter,
   CoachUserFilter,
 } from "@/features/coach/types";
 import { runtimeConfig } from "@/config/runtime";
@@ -58,9 +58,9 @@ interface CoachGroupsSectionProps {
   onSearchChange: (value: string) => void;
   userFilter: CoachUserFilter;
   onUserFilterChange: (value: CoachUserFilter) => void;
-  goalFilter: CoachGoalFilter;
-  onGoalFilterChange: (value: CoachGoalFilter) => void;
-  goalCounts: Record<CoachGoalFilter, number>;
+  stageFilter: CoachStageFilter;
+  onStageFilterChange: (value: CoachStageFilter) => void;
+  stageCounts: Record<CoachStageFilter, number>;
   groupedUsers: CoachGroupedUserGroup[];
   canRegenerateCalendars: boolean;
   onCreateGroup: () => void;
@@ -86,9 +86,9 @@ export function CoachGroupsSection({
   onSearchChange,
   userFilter,
   onUserFilterChange,
-  goalFilter,
-  onGoalFilterChange,
-  goalCounts,
+  stageFilter,
+  onStageFilterChange,
+  stageCounts,
   groupedUsers,
   canRegenerateCalendars,
   onCreateGroup,
@@ -192,9 +192,9 @@ export function CoachGroupsSection({
         <CoachGroupToolbar
           search={search}
           onSearchChange={onSearchChange}
-          goalFilter={goalFilter}
-          onGoalFilterChange={onGoalFilterChange}
-          goalCounts={goalCounts}
+          stageFilter={stageFilter}
+          onStageFilterChange={onStageFilterChange}
+          stageCounts={stageCounts}
           userFilter={userFilter}
           onUserFilterChange={onUserFilterChange}
           filterOptions={coachUserFilterOptions}
@@ -218,7 +218,7 @@ export function CoachGroupsSection({
               <p className="mt-2 text-sm text-muted-foreground">
                 {search.trim()
                   ? "Essayez un autre nom, prénom ou email, ou retirez un filtre rapide."
-                  : userFilter === "all" && goalFilter === "all"
+                  : userFilter === "all" && stageFilter === "all"
                     ? "Ajoutez une classe ou un bénéficiaire pour commencer le suivi coach."
                     : "Aucun bénéficiaire ne correspond à ce filtre pour l'instant."}
               </p>

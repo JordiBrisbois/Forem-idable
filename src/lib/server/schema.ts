@@ -14,6 +14,7 @@ import {
 } from "drizzle-orm/pg-core";
 import { UserRole } from "@/types/auth";
 import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage } from "@/types/beneficiaryStage";
 
 /** Core user accounts with role-based access control (user / coach / admin). */
 export const users = pgTable("users", {
@@ -26,6 +27,10 @@ export const users = pgTable("users", {
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   lastCoachActionAt: timestamp("last_coach_action_at", { withTimezone: true }),
   searchGoal: text("search_goal").$type<SearchGoal>().notNull().default("job"),
+  beneficiaryStage: text("beneficiary_stage")
+    .$type<BeneficiaryStage>()
+    .notNull()
+    .default("internship_search"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -360,6 +365,26 @@ export const coachGroupCoaches = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.groupId, table.userId] }),
     userIdIdx: index("coach_group_coaches_user_id_idx").on(table.userId),
+  })
+);
+
+/** Historical parcours stage transitions for a beneficiary. */
+export const userStageHistory = pgTable(
+  "user_stage_history",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    stage: text("stage").$type<BeneficiaryStage>().notNull(),
+    reason: text("reason"),
+    createdByUserId: bigint("created_by_user_id", { mode: "number" }).references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index("user_stage_history_user_id_idx").on(table.userId, table.createdAt),
   })
 );
 

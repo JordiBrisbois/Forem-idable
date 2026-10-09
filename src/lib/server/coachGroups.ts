@@ -4,6 +4,7 @@ import { logServerEvent } from "@/lib/server/observability";
 import { toNumericId } from "@/lib/server/common";
 import { AuthUser, UserRole } from "@/types/auth";
 import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage, stageToSearchGoal } from "@/types/beneficiaryStage";
 
 export type CoachCapableUser = AuthUser & { role: "coach" | "admin" };
 
@@ -384,6 +385,28 @@ export async function archiveCoachGroup(
   });
 }
 
+async function assertCanEditBeneficiary(actor: CoachCapableUser, userId: number) {
+  // Admin can edit anyone; a coach only users from a class they manage.
+  if (actor.role === "admin") return;
+
+  const managedResult = await db.query<{ group_id: number }>(
+    `SELECT coach_group_coaches.group_id
+     FROM coach_group_coaches
+     WHERE coach_group_coaches.user_id = $1`,
+    [actor.id]
+  );
+  const managedGroupIds = new Set(managedResult.rows.map((r) => r.group_id));
+
+  const membershipResult = await db.query<{ group_id: number }>(
+    `SELECT group_id FROM coach_group_members WHERE user_id = $1`,
+    [userId]
+  );
+  const hasSharedGroup = membershipResult.rows.some((r) => managedGroupIds.has(r.group_id));
+  if (!hasSharedGroup) {
+    throw new Error("Forbidden");
+  }
+}
+
 export async function setUserSearchGoal(
   userId: number,
   goal: SearchGoal,
@@ -391,26 +414,7 @@ export async function setUserSearchGoal(
   actor: CoachCapableUser
 ): Promise<void> {
   await ensureDatabase();
-  // Authorization: admin can edit anyone; coach can edit users in groups they manage
-  if (actor.role !== "admin") {
-    const managedResult = await db.query<{ group_id: number }>(
-      `SELECT coach_group_coaches.group_id
-       FROM coach_group_coaches
-       WHERE coach_group_coaches.user_id = $1`,
-      [actor.id]
-    );
-    const managedGroupIds = new Set(managedResult.rows.map((r) => r.group_id));
-
-    const membershipResult = await db.query<{ group_id: number }>(
-      `SELECT group_id FROM coach_group_members WHERE user_id = $1`,
-      [userId]
-    );
-    const userGroupIds = membershipResult.rows.map((r) => r.group_id);
-    const hasSharedGroup = userGroupIds.some((id) => managedGroupIds.has(id));
-    if (!hasSharedGroup) {
-      throw new Error("Forbidden");
-    }
-  }
+  await assertCanEditBeneficiary(actor, userId);
 
   await db.query(`UPDATE users SET search_goal = $1 WHERE id = $2`, [goal, userId]);
 
@@ -420,5 +424,39 @@ export async function setUserSearchGoal(
     action: "user_goal_changed",
     targetUserId: userId,
     payload: { goal, reason, actorRole: actor.role },
+  });
+}
+
+/**
+ * Sets the beneficiary parcours step. The search goal is kept coherent with the
+ * new step; the transition is recorded in the history.
+ */
+export async function setBeneficiaryStage(
+  userId: number,
+  stage: BeneficiaryStage,
+  reason: string | undefined,
+  actor: CoachCapableUser
+): Promise<void> {
+  await ensureDatabase();
+  await assertCanEditBeneficiary(actor, userId);
+
+  const goal = stageToSearchGoal(stage);
+
+  await db.query(
+    `UPDATE users SET beneficiary_stage = $1, search_goal = $2 WHERE id = $3`,
+    [stage, goal, userId]
+  );
+  await db.query(
+    `INSERT INTO user_stage_history (user_id, stage, reason, created_by_user_id)
+     VALUES ($1, $2, $3, $4)`,
+    [userId, stage, reason ?? null, actor.id]
+  );
+
+  await markCoachAction(actor.id);
+  await recordAuditEvent({
+    actorUserId: actor.id,
+    action: "user_stage_changed",
+    targetUserId: userId,
+    payload: { stage, goal, reason, actorRole: actor.role },
   });
 }

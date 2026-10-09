@@ -1,6 +1,6 @@
 import { CoachGroupSummary, CoachUserSummary } from "@/types/coach";
 import { CalendarSubscriptionScope } from "@/types/calendar";
-import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage } from "@/types/beneficiaryStage";
 
 export type CoachGroupedGroupKind = "standard" | "ungrouped";
 export type CoachUserFilter =
@@ -11,7 +11,7 @@ export type CoachUserFilter =
   | "inactive"
   | "accepted"
   | "rejected";
-export type CoachGoalFilter = SearchGoal | "all";
+export type CoachStageFilter = BeneficiaryStage | "all";
 
 export interface CoachRemoveMembershipTarget {
   groupId: number;

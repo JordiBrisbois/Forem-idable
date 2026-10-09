@@ -16,6 +16,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { CoachGoalBadge } from "@/features/coach/components/CoachGoalBadge";
+import { CoachStageBadge } from "@/features/coach/components/CoachStageBadge";
 import { CoachStatGrid } from "@/features/coach/components/CoachStatGrid";
 import { CoachUserActivityMeta } from "@/features/coach/components/CoachUserActivityMeta";
 import { getCoachUserDisplayName } from "@/features/coach/utils";
@@ -32,7 +33,7 @@ interface CoachUserSheetHeaderProps {
   onOpenImport: () => void;
   onEdit: () => void;
   onDeleteUser: () => void;
-  onOpenGoalChange: () => void;
+  onOpenStageChange: () => void;
 }
 
 export function CoachUserSheetHeader({
@@ -46,7 +47,7 @@ export function CoachUserSheetHeader({
   onOpenImport,
   onEdit,
   onDeleteUser,
-  onOpenGoalChange,
+  onOpenStageChange,
 }: CoachUserSheetHeaderProps) {
   return (
     <SheetHeader className="border-b bg-muted/30 p-5 pr-12">
@@ -64,12 +65,14 @@ export function CoachUserSheetHeader({
               {user.groupNames.length > 0 ? user.groupNames.join(" • ") : "Aucune classe assignée"}
             </span>
             <CoachUserActivityMeta user={user} as="span" className="block" />
-            <CoachGoalBadge
-              goal={user.searchGoal}
-              hasAcceptedStage={user.hasAcceptedStage}
-              hasAcceptedJob={user.hasAcceptedJob}
-              className="mt-1"
-            />
+            <span className="mt-1 flex flex-wrap items-center gap-2">
+              <CoachStageBadge stage={user.beneficiaryStage} />
+              <CoachGoalBadge
+                goal={user.searchGoal}
+                hasAcceptedStage={user.hasAcceptedStage}
+                hasAcceptedJob={user.hasAcceptedJob}
+              />
+            </span>
           </SheetDescription>
         </div>
 
@@ -101,9 +104,9 @@ export function CoachUserSheetHeader({
                   <FileSpreadsheet className="h-4 w-4" />
                   Importer un suivi (CSV)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={onOpenGoalChange}>
+                <DropdownMenuItem onClick={onOpenStageChange}>
                   <GitBranch className="h-4 w-4" />
-                  Objectif de recherche
+                  Étape du parcours
                 </DropdownMenuItem>
                 {canEditUser && (
                   <DropdownMenuItem onClick={onEdit}>

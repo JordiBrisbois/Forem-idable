@@ -1,5 +1,6 @@
 import { ApplicationStatus, JobApplication } from "@/types/application";
 import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage } from "@/types/beneficiaryStage";
 import { UserRole } from "@/types/auth";
 
 export interface ApiKeySummary {
@@ -70,6 +71,7 @@ export interface ExternalApiUserSummary {
   fullName: string;
   role: UserRole;
   searchGoal: SearchGoal;
+  beneficiaryStage: BeneficiaryStage;
   groupIds: number[];
   groupNames: string[];
   applicationCount: number;

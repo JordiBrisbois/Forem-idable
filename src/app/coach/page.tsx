@@ -7,7 +7,7 @@ import { CoachImportApplicationsDialog } from "@/features/coach/components/Coach
 import { CoachPageContent } from "@/features/coach/components/CoachPageContent";
 import { CoachPageHeader } from "@/features/coach/components/CoachPageHeader";
 import { CoachSummaryCards } from "@/features/coach/components/CoachSummaryCards";
-import { CoachUserGoalDialog } from "@/features/coach/components/CoachUserGoalDialog";
+import { CoachUserStageDialog } from "@/features/coach/components/CoachUserStageDialog";
 import { CoachUserSheet } from "@/features/coach/components/CoachUserSheet";
 import { useCoachPageState } from "@/features/coach/useCoachPageState";
 import { useToastFeedback } from "@/hooks/useToastFeedback";
@@ -126,7 +126,7 @@ export default function CoachPage() {
         totalDue={page.totalDue}
         totalAccepted={page.totalAccepted}
         totalRejected={page.totalRejected}
-        goalCounts={page.goalCounts}
+        stageCounts={page.stageCounts}
       />
 
       <CoachPageContent
@@ -151,7 +151,7 @@ export default function CoachPage() {
         onOpenImport={() => page.setImportTargetUserId(page.selectedUser?.id ?? null)}
         onEdit={page.openSelectedUserEditor}
         onDeleteUser={page.openSelectedUserDeletion}
-        onOpenGoalChange={page.openSelectedUserGoalChange}
+        onOpenStageChange={page.openSelectedUserStageChange}
         onSavePrivateCoachNote={(userId, jobId, content) =>
           page.savePrivateCoachNote(userId, jobId, content)
         }
@@ -172,16 +172,16 @@ export default function CoachPage() {
         }
       />
 
-      <CoachUserGoalDialog
-        open={Boolean(page.goalDialogUser)}
-        userName={page.goalDialogUser ? `${page.goalDialogUser.firstName} ${page.goalDialogUser.lastName}`.trim() || page.goalDialogUser.email : ""}
-        currentGoal={page.goalDialogUser?.searchGoal ?? "job"}
-        onOpenChange={page.closeGoalDialog}
-        onConfirm={(goal, reason) => {
-          if (page.goalDialogUser) {
-            page.updateUserSearchGoal(page.goalDialogUser.id, goal, reason);
+      <CoachUserStageDialog
+        open={Boolean(page.stageDialogUser)}
+        userName={page.stageDialogUser ? `${page.stageDialogUser.firstName} ${page.stageDialogUser.lastName}`.trim() || page.stageDialogUser.email : ""}
+        currentStage={page.stageDialogUser?.beneficiaryStage ?? "internship_search"}
+        onOpenChange={page.closeStageDialog}
+        onConfirm={(stage, reason) => {
+          if (page.stageDialogUser) {
+            page.updateBeneficiaryStage(page.stageDialogUser.id, stage, reason);
           }
-          page.setGoalDialogUser(null);
+          page.setStageDialogUser(null);
         }}
       />
 

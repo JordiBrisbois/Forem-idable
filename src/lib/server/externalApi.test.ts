@@ -51,6 +51,7 @@ const dashboardFixture: CoachDashboardData = {
       lastSeenAt: "2026-03-18T09:00:00.000Z",
       lastCoachActionAt: null,
       searchGoal: "job",
+      beneficiaryStage: "job_search",
       hasAcceptedStage: false,
       hasAcceptedJob: false,
       applications: [],

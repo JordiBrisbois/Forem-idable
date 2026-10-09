@@ -3,6 +3,7 @@ import { normalizeContractType } from "@/lib/contractType";
 import { searchHistoryEntrySchema } from "@/features/jobs/types/searchHistory";
 import { Job } from "@/types/job";
 import { searchGoalSchema } from "@/types/preferences";
+import { beneficiaryStageSchema } from "@/types/beneficiaryStage";
 
 export const applicationStatusSchema = z.enum([
   "in_progress",
@@ -177,6 +178,13 @@ export const adminCoachCreateBodySchema = z.union([
   positiveIntegerBodySchema,
   coachCreateRequestSchema,
 ]);
+
+export const beneficiaryStageUpdateSchema = z
+  .object({
+    stage: beneficiaryStageSchema,
+    reason: z.string().trim().max(2000, "Note trop longue.").optional(),
+  })
+  .strict();
 
 export const positiveIntegerParamSchema = z.coerce.number().int().positive("Identifiant invalide.");
 

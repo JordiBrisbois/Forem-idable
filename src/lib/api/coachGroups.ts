@@ -1,5 +1,6 @@
 import { post, patch, put, del } from "@/lib/api/client";
 import { SearchGoal } from "@/types/preferences";
+import { BeneficiaryStage } from "@/types/beneficiaryStage";
 
 export function createCoachGroup(name: string) {
   return post<{ group?: { id: number }; error?: string }>("/api/coach/groups", { name });
@@ -31,6 +32,10 @@ export function deleteCoachGroup(groupId: number) {
 
 export function updateCoachUserGoal(userId: number, goal: SearchGoal, reason?: string) {
   return patch<{ ok?: boolean }>(`/api/coach/users/${userId}/goal`, { goal, reason });
+}
+
+export function updateCoachUserStage(userId: number, stage: BeneficiaryStage, reason?: string) {
+  return patch<{ ok?: boolean }>(`/api/coach/users/${userId}/stage`, { stage, reason });
 }
 
 export function archiveCoachGroup(groupId: number, archived: boolean) {

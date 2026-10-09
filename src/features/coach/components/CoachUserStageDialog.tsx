@@ -19,37 +19,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { SEARCH_GOAL_LABELS, SearchGoal } from "@/types/preferences";
+import {
+  BENEFICIARY_STAGE_LABELS,
+  BENEFICIARY_STAGE_ORDER,
+  BeneficiaryStage,
+} from "@/types/beneficiaryStage";
 
-interface CoachUserGoalDialogProps {
+interface CoachUserStageDialogProps {
   open: boolean;
   userName: string;
-  currentGoal: SearchGoal;
+  currentStage: BeneficiaryStage;
   onOpenChange: (open: boolean) => void;
-  onConfirm: (goal: SearchGoal, reason?: string) => void;
+  onConfirm: (stage: BeneficiaryStage, reason?: string) => void;
 }
 
-const GOAL_OPTIONS: { value: SearchGoal; label: string }[] = [
-  { value: "internship", label: SEARCH_GOAL_LABELS.internship },
-  { value: "job", label: SEARCH_GOAL_LABELS.job },
-];
-
-export function CoachUserGoalDialog({
+export function CoachUserStageDialog({
   open,
   userName,
-  currentGoal,
+  currentStage,
   onOpenChange,
   onConfirm,
-}: CoachUserGoalDialogProps) {
-  const [goal, setGoal] = useState<SearchGoal>(currentGoal);
+}: CoachUserStageDialogProps) {
+  const [stage, setStage] = useState<BeneficiaryStage>(currentStage);
   const [reason, setReason] = useState("");
 
   useEffect(() => {
-    setGoal(currentGoal);
-  }, [currentGoal]);
+    setStage(currentStage);
+  }, [currentStage]);
 
   const handleConfirm = () => {
-    onConfirm(goal, reason.trim() || undefined);
+    onConfirm(stage, reason.trim() || undefined);
     setReason("");
     onOpenChange(false);
   };
@@ -58,34 +57,36 @@ export function CoachUserGoalDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Objectif de {userName}</DialogTitle>
+          <DialogTitle>Étape du parcours de {userName}</DialogTitle>
           <DialogDescription>
-            Définir si cette personne recherche un stage ou un emploi.
+            Où en est cette personne dans l&apos;année (recherche de stage, en
+            stage, recherche d&apos;emploi, en emploi). L&apos;objectif de
+            recherche est ajusté automatiquement.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div className="space-y-2">
-            <Label htmlFor="goal-select">Objectif de recherche</Label>
-            <Select value={goal} onValueChange={(v) => setGoal(v as SearchGoal)}>
-              <SelectTrigger id="goal-select">
-                <SelectValue placeholder="Sélectionner un objectif" />
+            <Label htmlFor="stage-select">Étape</Label>
+            <Select value={stage} onValueChange={(v) => setStage(v as BeneficiaryStage)}>
+              <SelectTrigger id="stage-select">
+                <SelectValue placeholder="Sélectionner une étape" />
               </SelectTrigger>
               <SelectContent>
-                {GOAL_OPTIONS.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
+                {BENEFICIARY_STAGE_ORDER.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {BENEFICIARY_STAGE_LABELS[value]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="goal-reason">Note (optionnel)</Label>
+            <Label htmlFor="stage-reason">Note (optionnel)</Label>
             <Input
-              id="goal-reason"
+              id="stage-reason"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Ex: changement de projet..."
+              placeholder="Ex: stage trouvé chez ACME"
             />
           </div>
         </div>
