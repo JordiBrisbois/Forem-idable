@@ -1,69 +1,81 @@
-# 🔌 API Externe - Documentation
+# API externe
 
 Documentation de l'API externe de la plateforme.
 
 Cette API est strictement réservée aux comptes possédant les rôles `coach` ou `admin`. Elle permet notamment :
-*   📊 **Reporting & BI** : Exportation de données vers Excel, Power Query ou des outils de BI.
-*   🔍 **Consultation** : Lecture des classes, utilisateurs et candidatures au sein de votre périmètre.
-*   🤖 **Automatisation** : Pilotage programmatique des candidatures et des notes coach via JSON.
 
----
+- **Reporting & BI** : exporter des données vers Excel, Power Query ou un outil de BI.
+- **Consultation** : lire les classes, utilisateurs et candidatures de votre périmètre.
+- **Automatisation** : piloter les candidatures et les notes coach en JSON.
 
-## 🔐 Authentification & Accès
+## Authentification & accès
 
 ### Base URL
-*   **Production** : `https://votre-domaine.example` (l'URL publique de votre instance)
+
+L'URL publique de votre instance, par exemple `https://votre-domaine.example`.
 
 ### Authentification
-L'authentification s'effectue via un jeton porteur (Bearer Token) dans le header HTTP :
+
+Jeton porteur (Bearer Token) dans le header HTTP :
+
 ```http
 Authorization: Bearer VOTRE_CLE_API
 ```
 
-### Périmètre (Scope)
-*   **`admin`** : Accès global à l'ensemble des données de la plateforme.
-*   **`coach`** : Accès restreint aux classes assignées et aux bénéficiaires membres de ces classes.
+Les clés se créent depuis **Mon compte** (rôles `coach`/`admin`) et peuvent être révoquées.
+
+### Périmètre (scope)
+
+- **`admin`** : accès global à toutes les données de la plateforme.
+- **`coach`** : accès restreint aux classes assignées et aux bénéficiaires de ces classes.
 
 ### Formats de réponse
-L'API supporte deux formats de sortie selon vos besoins :
-*   **`json`** (par défaut) : Idéal pour l'intégration logicielle et les mutations.
-*   **`csv`** : Disponible sur les endpoints de liste (`?format=csv`) pour une exploitation directe dans Excel.
 
----
+- **`json`** (défaut) : intégration logicielle et mutations.
+- **`csv`** : disponible sur les endpoints de liste via `?format=csv` (Excel, Power Query).
 
-## 📊 Modèle de Données & Statuts
+## Modèle de données & statuts
 
-Il est important de distinguer le **statut métier** des **indicateurs dérivés** :
+Il faut distinguer le **statut métier** des **indicateurs dérivés**.
 
-### Statuts Métier (`status`)
-*   `in_progress` : Candidature en cours.
-*   `follow_up` : Relance à effectuer.
-*   `interview` : Entretien décroché.
-*   `accepted` : Offre acceptée.
-*   `rejected` : Candidature refusée.
+### Statuts métier (`status`)
 
-### Indicateurs Dérivés
-L'API expose des champs calculés pour faciliter le filtrage :
-*   `isFollowUpDue` (booléen) : Indique si une relance est en retard.
-*   `isInterviewScheduled` (booléen) : Indique si un entretien est planifié dans le futur.
+- `in_progress` : candidature en cours.
+- `follow_up` : relance à effectuer.
+- `interview` : entretien décroché.
+- `accepted` : offre acceptée.
+- `rejected` : candidature refusée.
 
-> **Note sur le CSV** : Pour faciliter l'usage dans Excel, les en-têtes sont en français et les booléens dérivés utilisent les valeurs `yes/no`.
+### Indicateurs dérivés
 
----
+Champs calculés, pratiques pour filtrer :
 
-## 🛣️ Endpoints Candidatures (`/applications`)
+- `isFollowUpDue` (booléen) : une relance est en retard.
+- `isInterviewScheduled` (booléen) : un entretien est planifié dans le futur.
+
+> **CSV** : les en-têtes sont en français et les booléens dérivés utilisent `yes` / `no`.
+
+### Terminologie
+
+L'interface parle de **« classes »** ; l'API conserve le nom technique **`groups`**
+(contrat stable pour les intégrations). Voir [`docs/adr/0004`](docs/adr/0004-vocabulaire-classe.md).
+
+## Endpoints — Candidatures
 
 ### `GET /api/external/applications`
+
 Liste les candidatures visibles selon votre périmètre.
 
-**Filtres principaux :**
-*   `search` : Recherche plein texte (Nom, Entreprise, Intitulé, Notes...).
-*   `groupId`, `userId`, `status` : Filtrage par entité ou état.
-*   `dueOnly=1` : Uniquement les relances en retard.
-*   `interviewOnly=1` : Uniquement les entretiens planifiés.
-*   `format=csv` : Export tabulaire.
+Filtres principaux :
 
-**Exemple de réponse JSON :**
+- `search` : recherche plein texte (nom, entreprise, intitulé, notes…).
+- `groupId`, `userId`, `status` : filtrage par entité ou état.
+- `dueOnly=1` : uniquement les relances en retard.
+- `interviewOnly=1` : uniquement les entretiens planifiés.
+- `format=csv` : export tabulaire.
+
+Exemple de réponse JSON :
+
 ```json
 {
   "applicationId": 123,
@@ -79,85 +91,78 @@ Liste les candidatures visibles selon votre périmètre.
 ```
 
 ### `PUT /api/external/applications`
-**Upsert** (Création ou Mise à jour) d'une candidature via la clé métier `userId + jobId`.
+
+**Upsert** (création ou mise à jour) d'une candidature via la clé métier `userId + jobId`.
 
 ### `PATCH /api/external/applications/:id`
-Mise à jour partielle d'une candidature (changement de statut, ajout de notes, dates d'entretien).
+
+Mise à jour partielle (statut, notes, dates d'entretien).
 
 ### `DELETE /api/external/applications/:id`
+
 Suppression d'une candidature.
 
----
+## Notes coach
 
-## 📝 Gestion des Notes Coach
+### Notes privées — `/private-note`
 
-### Notes Privées (`/private-note`)
-*   `PUT /api/external/applications/:id/private-note` : Crée ou remplace la note coach privée (commune aux coachs de la classe).
+- `PUT /api/external/applications/:id/private-note` : crée ou remplace la note coach privée
+  (commune aux coachs de la classe).
 
-### Notes Partagées (`/shared-notes`)
+### Notes partagées — `/shared-notes`
+
 Notes visibles par le bénéficiaire et les autres coachs.
-*   `POST /api/external/applications/:id/shared-notes` : Ajouter une note.
-*   `PATCH` / `DELETE` : Modifier ou supprimer une note existante via son `noteId`.
 
----
+- `POST /api/external/applications/:id/shared-notes` : ajouter une note.
+- `PATCH` / `DELETE …/shared-notes/:noteId` : modifier ou supprimer une note existante.
 
-## 👥 Utilisateurs & Groupes
+## Utilisateurs & classes
 
 ### `GET /api/external/users`
-Liste les bénéficiaires visibles. Inclut des agrégats comme `dueCount` (nombre de relances en retard) ainsi que `searchGoal` (objectif de recherche actuel : `internship` ou `job`).
+
+Liste les bénéficiaires visibles. Inclut des agrégats comme `dueCount` (relances en retard)
+ainsi que `searchGoal` (`internship` ou `job`) et `beneficiaryStage` (étape du parcours).
 
 ### `PATCH /api/external/users/:userId/goal`
+
 Met à jour l'objectif de recherche d'un bénéficiaire.
 
-**Body :**
 ```json
-{
-  "goal": "internship|job",
-  "reason": "optionnel"
-}
+{ "goal": "internship|job", "reason": "optionnel" }
 ```
 
-**Réponse :**
-```json
-{ "ok": true }
-```
-
-**Erreurs possibles :** `400` (paramètres invalides), `403` (accès interdit), `500` (erreur serveur).
+Réponse : `{ "ok": true }`. Erreurs : `400` (paramètres invalides), `403` (accès interdit), `500`.
 
 ### `PATCH /api/external/users/:userId/stage`
-Met à jour l'étape du parcours d'un bénéficiaire (recherche stage → en stage → recherche emploi → en emploi → sortie). L'objectif de recherche est ajusté automatiquement.
 
-**Body :**
+Met à jour l'étape du parcours (recherche stage → en stage → recherche emploi → en emploi → sortie).
+L'objectif de recherche est ajusté automatiquement.
+
 ```json
-{
-  "stage": "internship_search|internship_ongoing|job_search|employed|exited",
-  "reason": "optionnel"
-}
+{ "stage": "internship_search|internship_ongoing|job_search|employed|exited", "reason": "optionnel" }
 ```
 
-**Réponse :**
-```json
-{ "ok": true }
-```
+Réponse : `{ "ok": true }`.
 
 ### `GET /api/external/groups`
-Liste les classes de suivi. Permet d'extraire la liste des membres et leurs statistiques globales.
 
----
+Liste les classes de suivi, avec leurs membres et statistiques globales.
 
-## 🚥 Codes de Réponse
+### `GET /api/external/me`
 
-*   `200 OK` / `201 Created` : Succès.
-*   `400 Bad Request` : Erreur de validation (vérifiez votre payload Zod).
-*   `401 Unauthorized` : Clé API manquante ou invalide.
-*   `403 Forbidden` : Droits insuffisants pour accéder à cette ressource.
-*   `404 Not Found` : Ressource inexistante.
-*   `429 Too Many Requests` : Rate limiting atteint.
+Décrit l'acteur courant et les capacités de l'API (formats, filtres, actions d'écriture).
 
----
+## Codes de réponse
 
-## 💡 Conseils Power Query / Excel
+- `200 OK` / `201 Created` : succès.
+- `400 Bad Request` : erreur de validation.
+- `401 Unauthorized` : clé API manquante ou invalide.
+- `403 Forbidden` : droits insuffisants.
+- `404 Not Found` : ressource inexistante.
+- `429 Too Many Requests` : rate limiting atteint.
 
-1.  **Format CSV** : Utilisez systématiquement `format=csv` pour vos requêtes "Obtenir des données".
-2.  **Indicateurs** : Fiez-vous à `Relance due` (ou `isFollowUpDue`) plutôt qu'à une logique locale complexe basée sur les dates.
-3.  **Encodage** : L'API renvoie du contenu en **UTF-8** pour garantir le support des accents français.
+## Conseils Power Query / Excel
+
+1. **Format CSV** : utilisez `format=csv` pour « Obtenir des données ».
+2. **Indicateurs** : fiez-vous à `Relance due` (ou `isFollowUpDue`) plutôt qu'à une logique de dates locale.
+3. **Encodage** : les réponses sont en **UTF-8** (accents français corrects).

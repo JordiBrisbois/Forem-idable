@@ -41,7 +41,8 @@ Variables d'environnement optionnelles:
 
 ## Sécurité et intégrité
 
-- middleware global d'authentification sur les routes protégées
+- middleware de routage qui vérifie la **présence** du cookie de session sur les routes
+  protégées (la validation de session et l'autorisation réelles sont faites dans les routes API)
 - rate limiting sur les endpoints sensibles (authentification, messages)
 - validation des origines (CSRF) sur les routes mutantes
 - échappement du contenu des messages côté serveur (prévention XSS)

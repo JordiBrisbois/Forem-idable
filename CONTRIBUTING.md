@@ -43,6 +43,12 @@
 - **Secrets** : ne jamais committer de cookie, token ou identifiant de session
   (`tests/e2e/.auth/` est gitignoré). Cibler une base **jetable**, jamais la prod.
 
+### Documentation
+- Toute décision structurante → un **ADR** dans `docs/adr/` (format *Contexte · Décision · Alternatives · Conséquences*).
+- Garder alignés : `README.md`, `SELF_HOSTING.md`, `DOCAPI.md`, `COMPLIANCE.md` et `env.example`
+  (source de vérité des variables d'environnement).
+- **Ne jamais committer de secret** (cookie de session, clé API, identifiant) — voir la section E2E.
+
 ### Commits
 Format : `<type>(<scope>): <description>`
 

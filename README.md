@@ -17,7 +17,9 @@ produit via des variables d'environnement (nom, branding, fonctionnalités).
 - **Bénéficiaire** : objectif de recherche (**stage** ou **emploi** commutable), suivi de candidatures.
 - **Mode autonome** : un utilisateur sans classe utilise la recherche et la sauvegarde d'offres, sans coaching.
 - **Messagerie** : canaux de classe et messages privés (SSE, Redis optionnel).
-- **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, sources pluggables.
+- **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, sources
+  pluggables (ODWB/Forem, Adzuna optionnel), filtre par **type de contrat** (stage, alternance,
+  CDI…), recherche partageable par URL.
 - **API externe** : endpoints JSON/CSV pour reporting (coach/admin).
 
 ## Préparation d'une instance
@@ -112,6 +114,7 @@ npm run lint
 npm test
 npm run test:e2e
 npm run db:generate     # générer une migration
+npm run db:reset        # ⚠️ réinitialise la base (drop + migrations)
 npm run maintenance:purge
 npm run build && npm start
 ```
@@ -138,8 +141,19 @@ changer le nom du produit.
 |---|---|
 | Identité | `APP_NAME`, `APP_TITLE`, `APP_TITLE_SUFFIX`, `APP_TAGLINE` |
 | Fonctionnalités | `FEATURE_JOB_SEARCH`, `ALLOW_PUBLIC_REGISTRATION`, `DEFAULT_SEARCH_GOAL` |
+| Recherche d'offres | `ODWB_API_KEY` (quota), `ADZUNA_ENABLED` (+ `ADZUNA_APP_ID` / `ADZUNA_APP_KEY`) |
 | Conformité | `PRIVACY_CONTROLLER_NAME`, `PRIVACY_CONTACT_EMAIL`, `PRIVACY_SOURCE_URL` |
-| Analytics | `UMAMI_ENABLED`, `NEXT_PUBLIC_UMAMI_WEBSITE_ID` |
+| Analytics | `UMAMI_ENABLED`, `NEXT_PUBLIC_UMAMI_WEBSITE_ID`, `UMAMI_ALLOWED_HOSTS` |
+
+`env.example` fait foi pour la liste complète.
+
+### Source des offres
+
+Les offres proviennent du jeu de données public **ODWB / Opendatasoft**
+« offres-d-emploi-forem », interrogé via un **proxy serveur caché** (`/api/offers/odwb`) :
+toute l'instance partage un même flux d'appels. Le palier anonyme étant plafonné,
+`ODWB_API_KEY` (clé serveur, jamais exposée au client) augmente le quota.
+Voir [SELF_HOSTING.md](SELF_HOSTING.md).
 
 ## Documentation
 
