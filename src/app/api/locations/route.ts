@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { appendOdwbApiKey } from "@/lib/odwbApiKey";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 
 type LocationCategory =
@@ -238,7 +239,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Fallback source: ODWB offers snapshot
-    const odwbResponse = await fetch(ODWB_RECORDS_URL, {
+    const odwbResponse = await fetch(appendOdwbApiKey(new URL(ODWB_RECORDS_URL)).toString(), {
       headers: { Accept: "application/json" },
       next: { revalidate: 60 * 60 * 12 },
     });

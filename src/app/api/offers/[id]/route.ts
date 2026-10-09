@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidForemOfferId } from "@/lib/forem";
+import { appendOdwbApiKey } from "@/lib/odwbApiKey";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 
 interface OfferHighlight {
@@ -272,6 +273,7 @@ export async function GET(
     );
     odwbUrl.searchParams.set("limit", "1");
     odwbUrl.searchParams.set("where", `numerooffreforem="${id}"`);
+    appendOdwbApiKey(odwbUrl);
 
     const odwbResponse = await fetch(odwbUrl.toString(), {
       method: "GET",

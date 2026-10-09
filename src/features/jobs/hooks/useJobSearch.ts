@@ -1,13 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Job } from "@/types/job";
 import { SearchQuery } from "@/types/search";
 import { jobService } from "@/services/jobs/jobService";
+import { ForemRateLimitedError } from "@/services/api/foremClient";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 
-const INITIAL_FETCH_LIMIT = 1000;
-const FETCH_CHUNK_SIZE = 1000;
+// Keep the preload small (1 ODWB request) and page on demand via `loadMore`,
+// to stay well under ODWB's anonymous quota.
+const INITIAL_FETCH_LIMIT = 100;
+const FETCH_CHUNK_SIZE = 100;
+
+const RATE_LIMIT_MESSAGE =
+  "Le service d'offres est momentanément limité (quota du fournisseur atteint). Réessayez plus tard.";
 
 export function useJobSearch() {
   const { history, addEntry, clearHistory, isLoaded: isHistoryLoaded } = useSearchHistory();
@@ -15,6 +22,7 @@ export function useJobSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMoreResults, setHasMoreResults] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [searchSessionId, setSearchSessionId] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState<SearchQuery | null>(null);
@@ -27,6 +35,7 @@ export function useJobSearch() {
     if (persistInHistory) addEntry(query);
     setIsSearching(true);
     setHasSearched(true);
+    setSearchError(null);
     setSearchSessionId((id) => id + 1);
 
     try {
@@ -43,7 +52,13 @@ export function useJobSearch() {
       setHasMoreResults(response.jobs.length >= INITIAL_FETCH_LIMIT);
       return response.jobs;
     } catch (error) {
-      console.error("Erreur lors de la recherche", error);
+      if (error instanceof ForemRateLimitedError) {
+        setSearchError(RATE_LIMIT_MESSAGE);
+        toast.error(RATE_LIMIT_MESSAGE);
+      } else {
+        console.error("Erreur lors de la recherche", error);
+        setSearchError("Impossible de charger les offres pour le moment.");
+      }
       setJobs([]);
       setNextOffset(0);
       setHasMoreResults(false);
@@ -82,7 +97,11 @@ export function useJobSearch() {
       }
       setNextOffset((offset) => offset + FETCH_CHUNK_SIZE);
     } catch (error) {
-      console.error("Erreur lors du chargement supplémentaire", error);
+      if (error instanceof ForemRateLimitedError) {
+        toast.error(RATE_LIMIT_MESSAGE);
+      } else {
+        console.error("Erreur lors du chargement supplémentaire", error);
+      }
       setHasMoreResults(false);
     } finally {
       setIsLoadingMore(false);
@@ -94,6 +113,7 @@ export function useJobSearch() {
     isSearching,
     isLoadingMore,
     hasMoreResults,
+    searchError,
     searchSessionId,
     hasSearched,
     lastSearchQuery,

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { appendForemTrackingParam } from "@/lib/forem";
 import { normalizeContractType } from "@/lib/contractType";
+import { appendOdwbApiKey } from "@/lib/odwbApiKey";
 import { Job } from '@/types/job';
 import { LocationEntry, locationCache } from '@/services/location/locationCache';
 import { SearchGoal } from '@/types/preferences';
@@ -10,6 +11,18 @@ const FOREM_API_PAGE_SIZE = 100;
 const FOREM_DEFAULT_FETCH_LIMIT = 1000;
 const FOREM_MAX_FETCH_LIMIT = 9900;
 const FOREM_API_PARALLEL_REQUESTS = 4;
+const FOREM_PAGE_CACHE_TTL_MS = 60 * 1000;
+
+/** Short-lived page cache to avoid re-hitting ODWB for identical queries. */
+const foremPageCache = new Map<string, { ts: number; jobs: Job[]; total: number }>();
+
+/** Thrown when ODWB rejects the request (anonymous quota / missing key tier). */
+export class ForemRateLimitedError extends Error {
+    constructor() {
+        super("ForemRateLimited");
+        this.name = "ForemRateLimited";
+    }
+}
 
 export interface ForemSearchParams {
     keywords?: string[];
@@ -100,6 +113,9 @@ export async function fetchForemJobs(params: ForemSearchParams): Promise<{ jobs:
             total: totalCount || jobs.length,
         };
     } catch (error) {
+        if (error instanceof ForemRateLimitedError) {
+            throw error;
+        }
         console.error('Error fetching Forem jobs:', error);
         return { jobs: [], total: 0 };
     }
@@ -109,13 +125,17 @@ export async function fetchForemJobByOfferId(offerId: string): Promise<Job | nul
     const normalizedOfferId = offerId.trim();
     if (!normalizedOfferId) return null;
 
-    const page = await fetchForemPage({
-        where: `numerooffreforem = "${escapeOdsString(normalizedOfferId)}"`,
-        limit: 1,
-        offset: 0,
-    });
+    try {
+        const page = await fetchForemPage({
+            where: `numerooffreforem = "${escapeOdsString(normalizedOfferId)}"`,
+            limit: 1,
+            offset: 0,
+        });
 
-    return page?.jobs[0] ?? null;
+        return page?.jobs[0] ?? null;
+    } catch {
+        return null;
+    }
 }
 
 function clampRequestedLimit(limit?: number): number {
@@ -160,12 +180,25 @@ function buildForemSearchUrl(options: { where: string | null; limit: number; off
         url.searchParams.append("where", options.where);
     }
 
-    return url;
+    return appendOdwbApiKey(url);
 }
 
 async function fetchForemPage(options: { where: string | null; limit: number; offset: number }): Promise<{ jobs: Job[]; total: number } | null> {
     const url = buildForemSearchUrl(options);
-    const response = await fetch(url.toString(), { method: "GET" });
+    const cacheKey = url.toString();
+
+    const cached = foremPageCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < FOREM_PAGE_CACHE_TTL_MS) {
+        return { jobs: cached.jobs, total: cached.total };
+    }
+
+    const response = await fetch(cacheKey, { method: "GET" });
+
+    // ODWB rate limit (anonymous quota exhausted): surface it instead of
+    // silently returning an empty result set.
+    if (response.status === 429) {
+        throw new ForemRateLimitedError();
+    }
 
     if (!response.ok) {
         console.error(`Forem API error: ${response.status} ${response.statusText}`);
@@ -181,10 +214,14 @@ async function fetchForemPage(options: { where: string | null; limit: number; of
     const results = parsed.data.results;
     const total = Number.isFinite(parsed.data.total_count) ? parsed.data.total_count ?? 0 : 0;
 
-    return {
+    const page = {
         jobs: results.map(mapForemJobToStandard),
         total,
     };
+
+    foremPageCache.set(cacheKey, { ts: Date.now(), ...page });
+
+    return page;
 }
 
 async function resolveLocations(input: LocationEntry[]): Promise<LocationEntry[]> {

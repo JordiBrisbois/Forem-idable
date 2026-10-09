@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchForemJobByOfferId, fetchForemJobs } from "@/services/api/foremClient";
+import {
+  ForemRateLimitedError,
+  fetchForemJobByOfferId,
+  fetchForemJobs,
+} from "@/services/api/foremClient";
 import { locationCache } from "@/services/location/locationCache";
 
 describe("foremClient", () => {
@@ -182,5 +186,46 @@ describe("foremClient", () => {
     expect(where).toContain('lieuxtravailcodepostal in (');
     expect(where).toContain('"9000"');
     expect(where).toContain('"9030"');
+  });
+
+  it("throws ForemRateLimitedError when ODWB responds with 429", async () => {
+    vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: false,
+      status: 429,
+      statusText: "Too Many Requests",
+    } as Response);
+
+    await expect(
+      fetchForemJobs({ keywords: ["rate-limit-429"], limit: 5, offset: 0 })
+    ).rejects.toBeInstanceOf(ForemRateLimitedError);
+  });
+
+  it("serves identical page requests from the short-lived cache", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        total_count: 1,
+        results: [
+          {
+            numerooffreforem: "424242",
+            titreoffre: "Poste en cache",
+            nomemployeur: "Cache SARL",
+            lieuxtravaillocalite: ["Namur"],
+            typecontrat: "CDI",
+            datedebutdiffusion: "2026-03-20T10:00:00.000Z",
+            url: "https://example.test/offre/424242",
+            metier: null,
+          },
+        ],
+      }),
+    } as Response);
+
+    const params = { keywords: ["cache-hit-unique"], limit: 5, offset: 0 };
+    const first = await fetchForemJobs(params);
+    const second = await fetchForemJobs(params);
+
+    expect(first.jobs).toHaveLength(1);
+    expect(second.jobs).toHaveLength(1);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
