@@ -80,7 +80,7 @@ export function toExternalUserSummary(
     lastName: user.lastName,
     fullName: `${user.firstName} ${user.lastName}`.trim() || user.email,
     role: user.role,
-    trackingPhase: user.trackingPhase,
+    searchGoal: user.searchGoal,
     groupIds: user.groupIds,
     groupNames: user.groupNames,
     applicationCount: user.applicationCount,

@@ -17,6 +17,8 @@ import { CoachAdminSection } from "@/features/coach/components/CoachAdminSection
 import { useAdminPageState } from "@/features/admin/useAdminPageState";
 import { AdminAccountDeletionRequestsSection } from "@/features/admin/components/AdminAccountDeletionRequestsSection";
 import { AdminApiKeysSection } from "@/features/admin/components/AdminApiKeysSection";
+import { AdminClassesSection } from "@/features/admin/components/AdminClassesSection";
+import { AdminCreateCoachDialog } from "@/features/admin/components/AdminCreateCoachDialog";
 import { AdminComplianceSection } from "@/features/admin/components/AdminComplianceSection";
 import { AdminFeaturedSearchesSection } from "@/features/admin/components/AdminFeaturedSearchesSection";
 import { AdminAuditLogsSection } from "@/features/admin/components/AdminAuditLogsSection";
@@ -55,6 +57,7 @@ function SummaryCard({
 }
 
 const ADMIN_SECTIONS = [
+  { id: "classes", label: "Classes", icon: Users },
   { id: "coachs", label: "Coachs", icon: Users },
   { id: "recherches", label: "Recherches", icon: Search },
   { id: "cles-api", label: "Clés API", icon: KeyRound },
@@ -122,6 +125,7 @@ function AdminPageSkeleton() {
 export default function AdminPage() {
   const page = useAdminPageState();
   const [isLegalHoldDialogOpen, setIsLegalHoldDialogOpen] = useState(false);
+  const [isCreateCoachOpen, setIsCreateCoachOpen] = useState(false);
   const [legalHoldDraft, setLegalHoldDraft] = useState<{
     targetType: "user" | "conversation" | "application";
     targetId: number | null;
@@ -271,6 +275,16 @@ export default function AdminPage() {
         />
       </div>
 
+      <div id="classes">
+        <AdminClassesSection
+          groups={page.dashboard?.groups ?? []}
+          users={page.dashboard?.users ?? []}
+          coaches={page.managedCoaches}
+          isLoading={page.isLoading}
+          onRefresh={() => void page.loadDashboard()}
+        />
+      </div>
+
       <div id="coachs">
         <CoachAdminSection
           coaches={page.managedCoaches}
@@ -280,8 +294,15 @@ export default function AdminPage() {
           onPromoteCoachOpenChange={page.setIsPromoteCoachOpen}
           onPromoteCoach={(userId) => void page.promoteCoach(userId)}
           onDemoteCoach={(userId) => void page.demoteCoach(userId)}
+          onOpenCreateCoach={() => setIsCreateCoachOpen(true)}
         />
       </div>
+
+      <AdminCreateCoachDialog
+        open={isCreateCoachOpen}
+        onOpenChange={setIsCreateCoachOpen}
+        onCreated={() => page.loadDashboard()}
+      />
 
       <AdminApiKeysSection
         apiKeys={page.apiKeys}

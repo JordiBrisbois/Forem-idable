@@ -3,6 +3,7 @@ import { appendForemTrackingParam } from "@/lib/forem";
 import { normalizeContractType } from "@/lib/contractType";
 import { Job } from '@/types/job';
 import { LocationEntry, locationCache } from '@/services/location/locationCache';
+import { SearchGoal } from '@/types/preferences';
 
 const FOREM_API_BASE = 'https://www.odwb.be/api/explore/v2.1/catalog/datasets/offres-d-emploi-forem/records';
 const FOREM_API_PAGE_SIZE = 100;
@@ -16,6 +17,7 @@ export interface ForemSearchParams {
     limit?: number;
     offset?: number;
     booleanMode?: 'AND' | 'OR';
+    goal?: SearchGoal;
 }
 
 const foremRecordSchema = z
@@ -123,6 +125,10 @@ function clampRequestedLimit(limit?: number): number {
 
 async function buildWhereClause(params: ForemSearchParams): Promise<string | null> {
     const filters: string[] = [];
+
+    if (params.goal === "internship") {
+        filters.push(`typecontrat in ("Stage","STAGE")`);
+    }
 
     if (params.keywords && params.keywords.length > 0) {
         const joiner = params.booleanMode === 'AND' ? ' AND ' : ' OR ';

@@ -5,7 +5,7 @@ export default {
   schema: "./src/lib/server/schema.ts",
   out: "./drizzle",
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? "postgres://localhost/forem_idable",
+    url: process.env.DATABASE_URL ?? "postgres://localhost/app",
   },
   verbose: true,
   strict: true,

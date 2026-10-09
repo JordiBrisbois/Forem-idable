@@ -5,7 +5,7 @@ import { MessagesSquare, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ForemIdableLogo } from "@/components/branding/ForemIdableLogo";
+import { AppLogo } from "@/components/branding/AppLogo";
 import {
   FOOTER_NAV_ITEMS,
   type AppSidebarNavItem,
@@ -43,11 +43,13 @@ function AppSidebarBrand() {
   return (
     <SidebarHeader className="border-b px-4 py-4">
       <div className="flex items-center">
-        <ForemIdableLogo className="h-8" />
+        <AppLogo className="h-8" />
       </div>
-      <p className="mt-1 text-xs font-medium italic text-muted-foreground">
-        {runtimeConfig.app.tagline}
-      </p>
+      {runtimeConfig.app.tagline ? (
+        <p className="mt-1 text-xs font-medium italic text-muted-foreground">
+          {runtimeConfig.app.tagline}
+        </p>
+      ) : null}
     </SidebarHeader>
   );
 }
@@ -296,16 +298,20 @@ export function AppSidebar() {
           </div>
         </div>
         <p className="mt-2 px-2 text-[11px] leading-4 text-muted-foreground">
-          {runtimeConfig.brand.copyrightName} ·{" "}
-          <a
-            href={runtimeConfig.privacy.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {runtimeConfig.app.name}
-          </a>{" "}
-          · {runtimeConfig.app.currentYear}
+          {runtimeConfig.brand.copyrightName} · {runtimeConfig.app.currentYear}
+          {runtimeConfig.privacy.sourceUrl ? (
+            <>
+              {" · "}
+              <a
+                href={runtimeConfig.privacy.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline-offset-4 hover:text-foreground hover:underline"
+              >
+                {runtimeConfig.app.sourceLinkLabel}
+              </a>
+            </>
+          ) : null}
         </p>
       </SidebarFooter>
 

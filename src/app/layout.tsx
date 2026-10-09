@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AppSidebar } from "@/components/app-sidebar";
 import { ConditionalSiteFooter } from "@/components/conditional-site-footer";
 import { SiteHeader } from "@/components/site-header";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { runtimeConfig } from "@/config/runtime";
+import { runtimeConfig, serializeRuntimeConfig } from "@/config/runtime";
 import { AnalyticsConsent } from "@/components/consent/AnalyticsConsent";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { Toaster } from "@/components/ui/sonner";
@@ -32,41 +33,68 @@ export const metadata: Metadata = {
   description: runtimeConfig.app.metaDescription,
 };
 
-export default function RootLayout({
+function isBareLayout(pathname: string) {
+  return pathname === "/setup" || pathname.startsWith("/setup/");
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const pathname = (await headers()).get("x-pathname") ?? "";
+
   const umamiEnabled =
     runtimeConfig.umami.enabled &&
     runtimeConfig.umami.websiteId.length > 0 &&
     runtimeConfig.umami.scriptUrl.length > 0;
+
+  const brandColor = runtimeConfig.brand.color;
 
   return (
     <html lang="fr" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${logoFont.variable} antialiased`}
       >
+        <script
+          id="app-runtime-config"
+          // Ship the exact server-side branding/config to the client so client
+          // components render identically during SSR and hydration.
+          dangerouslySetInnerHTML={{
+            __html: `window.__APP_RUNTIME_CONFIG__=${serializeRuntimeConfig(runtimeConfig)};`,
+          }}
+        />
+        {brandColor ? (
+          <style
+            dangerouslySetInnerHTML={{
+              __html: `:root{--primary:${brandColor};}.dark{--primary:${brandColor};}`,
+            }}
+          />
+        ) : null}
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >
-          <AuthProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <main className="flex min-h-screen w-full flex-1 flex-col overflow-x-hidden">
-                <SiteHeader />
-                <div className="flex-1 bg-muted/10">
-                  <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col px-4 py-4 lg:px-8 lg:py-8">
-                    {children}
+          {isBareLayout(pathname) ? (
+            children
+          ) : (
+            <AuthProvider>
+              <SidebarProvider>
+                <AppSidebar />
+                <main className="flex min-h-screen w-full flex-1 flex-col overflow-x-hidden">
+                  <SiteHeader />
+                  <div className="flex-1 bg-muted/10">
+                    <div className="mx-auto flex min-h-full w-full max-w-7xl flex-col px-4 py-4 lg:px-8 lg:py-8">
+                      {children}
+                    </div>
                   </div>
-                </div>
-                <ConditionalSiteFooter />
-              </main>
-            </SidebarProvider>
-          </AuthProvider>
+                  <ConditionalSiteFooter />
+                </main>
+              </SidebarProvider>
+            </AuthProvider>
+          )}
           <Toaster richColors position="top-right" />
         </ThemeProvider>
         <AnalyticsConsent

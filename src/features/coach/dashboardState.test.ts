@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { updateUserPhaseInDashboard } from "@/features/coach/dashboardState";
+import { updateUserSearchGoalInDashboard } from "@/features/coach/dashboardState";
 import { CoachDashboardData } from "@/types/coach";
 
 function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashboardData {
@@ -18,7 +18,7 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
         firstName: "Alice",
         lastName: "Durand",
         role: "user",
-        trackingPhase: "internship_search",
+        searchGoal: "internship",
         groupIds: [1],
         groupNames: ["Groupe A"],
         applicationCount: 2,
@@ -40,7 +40,7 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
         firstName: "Bob",
         lastName: "Martin",
         role: "user",
-        trackingPhase: "job_search",
+        searchGoal: "job",
         groupIds: [1],
         groupNames: ["Groupe A"],
         applicationCount: 1,
@@ -77,13 +77,13 @@ function makeDashboard(overrides: Partial<CoachDashboardData> = {}): CoachDashbo
   };
 }
 
-describe("updateUserPhaseInDashboard", () => {
-  it("updates the user's trackingPhase in both users and group members", () => {
+describe("updateUserSearchGoalInDashboard", () => {
+  it("updates the user's searchGoal in both users and group members", () => {
     const dashboard = makeDashboard();
-    const next = updateUserPhaseInDashboard(dashboard, 1, "job_search");
+    const next = updateUserSearchGoalInDashboard(dashboard, 1, "job");
 
-    expect(next.users[0]?.trackingPhase).toBe("job_search");
-    expect(next.users[1]?.trackingPhase).toBe("job_search"); // Bob unchanged
+    expect(next.users[0]?.searchGoal).toBe("job");
+    expect(next.users[1]?.searchGoal).toBe("job"); // Bob unchanged
 
     // Group members are updated via spread; we verify by checking the user list was synced
     const updatedGroupMember = next.groups[0]?.members.find((m) => m.id === 1);
@@ -92,9 +92,9 @@ describe("updateUserPhaseInDashboard", () => {
 
   it("does not mutate the original dashboard", () => {
     const dashboard = makeDashboard();
-    const next = updateUserPhaseInDashboard(dashboard, 1, "placed");
+    const next = updateUserSearchGoalInDashboard(dashboard, 1, "job");
 
-    expect(dashboard.users[0]?.trackingPhase).toBe("internship_search");
-    expect(next.users[0]?.trackingPhase).toBe("placed");
+    expect(dashboard.users[0]?.searchGoal).toBe("internship");
+    expect(next.users[0]?.searchGoal).toBe("job");
   });
 });

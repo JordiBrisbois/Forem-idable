@@ -13,7 +13,7 @@ import {
   isTrackedCoachBeneficiary,
   parseTimestamp,
 } from "@/features/coach/utils/formatting";
-import { getComputedPhaseBadge } from "@/features/coach/utils/phaseBadge";
+import { getComputedGoalBadge } from "@/features/coach/utils/goalBadge";
 
 export interface CoachRecentActivityItem {
   id: string;
@@ -106,8 +106,8 @@ export interface CoachPriorityItem {
   computedPhaseVariant: "default" | "secondary" | "success" | "outline" | "destructive" | "error" | "info" | "warning";
 }
 
-function computePhaseBadge(user: CoachUserSummary) {
-  return getComputedPhaseBadge(user.trackingPhase, user.hasAcceptedStage, user.hasAcceptedJob);
+function computeGoalBadge(user: CoachUserSummary) {
+  return getComputedGoalBadge(user.searchGoal, user.hasAcceptedStage, user.hasAcceptedJob);
 }
 
 export interface CoachPrioritySection {
@@ -160,7 +160,7 @@ export function buildCoachPrioritySections(
       const oldestDueCompany = oldestDueApplication?.job.company || "Entreprise non précisée";
       const dueBadgeLabel =
         dueApplications.length > 1 ? `${oldestDueCompany} + ${dueApplications.length - 1}` : oldestDueCompany;
-      const phaseBadge = computePhaseBadge(user);
+      const phaseBadge = computeGoalBadge(user);
 
       return {
         id: `due-${user.id}`,
@@ -223,7 +223,7 @@ export function buildCoachPrioritySections(
         upcomingInterviews.length > 1
           ? `${earliestInterviewCompany} + ${upcomingInterviews.length - 1}`
           : earliestInterviewCompany;
-      const phaseBadge = computePhaseBadge(user);
+      const phaseBadge = computeGoalBadge(user);
 
       return {
         id: `interview-${user.id}`,
@@ -266,7 +266,7 @@ export function buildCoachPrioritySections(
         return null;
       }
 
-      const phaseBadge = computePhaseBadge(user);
+      const phaseBadge = computeGoalBadge(user);
 
       return {
         id: `inactive-${user.id}`,

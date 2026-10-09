@@ -15,7 +15,7 @@ function buildMessages(count: number) {
     author: {
       id: index % 2 === 0 ? 2 : 1,
       email: index % 2 === 0 ? "coach@example.com" : "user@example.com",
-      firstName: index % 2 === 0 ? "Camille" : "Jordi",
+      firstName: index % 2 === 0 ? "Camille" : "Sam",
       lastName: index % 2 === 0 ? "Coach" : "User",
       role: index % 2 === 0 ? "coach" : "user",
     },
@@ -35,7 +35,7 @@ test("opens a DM in a dedicated mobile thread and lands at the bottom", async ({
       {
         id: 1,
         email: "user@example.com",
-        firstName: "Jordi",
+        firstName: "Camille",
         lastName: "User",
         role: "user",
       },
@@ -78,7 +78,7 @@ test("opens a DM in a dedicated mobile thread and lands at the bottom", async ({
         user: {
           id: 1,
           email: "user@example.com",
-          firstName: "Jordi",
+          firstName: "Camille",
           lastName: "User",
           role: "user",
         },

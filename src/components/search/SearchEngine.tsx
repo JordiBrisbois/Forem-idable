@@ -3,13 +3,16 @@
 import { useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { LocationAutocomplete } from "./LocationAutocomplete";
 import { KeywordComposer, BooleanModeToggle } from "./KeywordComposer";
 import { SearchHints } from "./SearchHints";
 import { useKeywordParser } from "./useKeywordParser";
+import { runtimeConfig } from "@/config/runtime";
 import { LocationEntry } from "@/services/location/locationCache";
 import { BooleanMode, SearchQuery } from "@/types/search";
 import { FeaturedSearch } from "@/types/featuredSearch";
+import { SearchGoal } from "@/types/preferences";
 
 export type SearchState = SearchQuery;
 
@@ -46,6 +49,9 @@ export function SearchEngine({
   const [booleanMode, setBooleanMode] = useState<BooleanMode>(
     initialState?.booleanMode || "OR"
   );
+  const [goal, setGoal] = useState<SearchGoal>(
+    initialState?.goal ?? runtimeConfig.defaults.searchGoal
+  );
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedLocationsLabel =
@@ -55,7 +61,7 @@ export function SearchEngine({
 
   const triggerSearch = () => {
     const finalKeywords = flushPendingInput();
-    onSearch({ keywords: finalKeywords, locations: selectedLocations, booleanMode });
+    onSearch({ keywords: finalKeywords, locations: selectedLocations, booleanMode, goal });
   };
 
   return (
@@ -91,6 +97,22 @@ export function SearchEngine({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
+        <ToggleGroup
+          type="single"
+          variant="outline"
+          size="sm"
+          value={goal}
+          onValueChange={(value) => {
+            if (value) setGoal(value as SearchGoal);
+          }}
+        >
+          <ToggleGroupItem value="internship" className="px-3">
+            Stage
+          </ToggleGroupItem>
+          <ToggleGroupItem value="job" className="px-3">
+            Emploi
+          </ToggleGroupItem>
+        </ToggleGroup>
         <BooleanModeToggle
           booleanMode={booleanMode}
           onToggle={() => setBooleanMode((prev) => (prev === "OR" ? "AND" : "OR"))}

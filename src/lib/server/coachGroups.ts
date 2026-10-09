@@ -3,6 +3,7 @@ import { db, ensureDatabase } from "@/lib/server/db";
 import { logServerEvent } from "@/lib/server/observability";
 import { toNumericId } from "@/lib/server/common";
 import { AuthUser, UserRole } from "@/types/auth";
+import { SearchGoal } from "@/types/preferences";
 
 export type CoachCapableUser = AuthUser & { role: "coach" | "admin" };
 
@@ -347,65 +348,6 @@ export async function setCoachGroupManager(
   });
 }
 
-export async function updateGroupPhase(
-  groupId: number,
-  phase: string,
-  reason: string | undefined,
-  actor: CoachCapableUser
-): Promise<{ updated: number; skipped: number }> {
-  await ensureDatabase();
-  const allowed = await canManageCoachAssignments(actor, groupId);
-  if (!allowed) {
-    throw new Error("Forbidden");
-  }
-
-  const memberResult = await db.query<{ user_id: number; tracking_phase: string }>(
-    `SELECT cgm.user_id, u.tracking_phase
-     FROM coach_group_members cgm
-     JOIN users u ON u.id = cgm.user_id
-     WHERE cgm.group_id = $1`,
-    [groupId]
-  );
-
-  const terminalPhases = new Set(["placed", "dropped"]);
-  const allMembers = memberResult.rows
-    .map((row) => ({ id: toNumericId(row.user_id), phase: row.tracking_phase }))
-    .filter((row): row is { id: number; phase: string } => row.id !== null);
-
-  const updatableMembers = allMembers.filter(
-    (row) => !terminalPhases.has(row.phase)
-  );
-  const skipped = allMembers.length - updatableMembers.length;
-
-  const memberIds = updatableMembers.map((row) => row.id);
-
-  if (memberIds.length > 0) {
-    const placeholders = memberIds.map((_, i) => `$${i + 2}`).join(",");
-    await db.query(
-      `UPDATE users SET tracking_phase = $1 WHERE id IN (${placeholders})`,
-      [phase, ...memberIds]
-    );
-
-    for (const userId of memberIds) {
-      await db.query(
-        `INSERT INTO user_tracking_phases (user_id, phase, reason, created_by_user_id)
-         VALUES ($1, $2, $3, $4)`,
-        [userId, phase, reason ?? null, actor.id]
-      );
-    }
-  }
-
-  await markCoachAction(actor.id);
-  await recordAuditEvent({
-    actorUserId: actor.id,
-    action: "group_phase_changed",
-    groupId,
-    payload: { phase, reason, affectedUserCount: memberIds.length },
-  });
-
-  return { updated: memberIds.length, skipped };
-}
-
 export async function archiveCoachGroup(
   groupId: number,
   archived: boolean,
@@ -430,9 +372,9 @@ export async function archiveCoachGroup(
   });
 }
 
-export async function updateUserPhase(
+export async function setUserSearchGoal(
   userId: number,
-  phase: string,
+  goal: SearchGoal,
   reason: string | undefined,
   actor: CoachCapableUser
 ): Promise<void> {
@@ -460,22 +402,13 @@ export async function updateUserPhase(
     }
   }
 
-  await db.query(
-    `UPDATE users SET tracking_phase = $1 WHERE id = $2`,
-    [phase, userId]
-  );
-
-  await db.query(
-    `INSERT INTO user_tracking_phases (user_id, phase, reason, created_by_user_id)
-     VALUES ($1, $2, $3, $4)`,
-    [userId, phase, reason ?? null, actor.id]
-  );
+  await db.query(`UPDATE users SET search_goal = $1 WHERE id = $2`, [goal, userId]);
 
   await markCoachAction(actor.id);
   await recordAuditEvent({
     actorUserId: actor.id,
-    action: "user_phase_changed",
+    action: "user_goal_changed",
     targetUserId: userId,
-    payload: { phase, reason, actorRole: actor.role },
+    payload: { goal, reason, actorRole: actor.role },
   });
 }

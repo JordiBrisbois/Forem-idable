@@ -1,44 +1,31 @@
 #!/usr/bin/env node
 /**
- * Start script that runs db:migrate only if migrations have never been applied.
- * Uses a lock file in /tmp to avoid running migrations on every container restart.
- * Designed for Bun runtime.
+ * Runs database migrations once per container lifecycle, then starts Next.js.
+ * Optional: the app also self-migrates on first database access. This script is
+ * only useful when running `next start` (non-standalone) and wanting migrations
+ * to run explicitly at boot.
  */
-
 import { execSync } from "child_process";
 import fs from "fs";
+import os from "os";
+import path from "path";
 
-const LOCK_FILE = "/tmp/scout-migration-applied.lock";
+const LOCK_FILE = path.join(os.tmpdir(), "app-migration-applied.lock");
 
-async function main() {
-  // Check if migrations were already applied in this container lifecycle
+function main() {
   if (!fs.existsSync(LOCK_FILE)) {
-    console.log("[start] Running database migrations...");
+    console.log("[start] Applying database migrations...");
     try {
-      execSync("bun drizzle-kit migrate", {
-        stdio: "inherit",
-        cwd: process.cwd(),
-        timeout: 60000,
-      });
+      execSync("npx drizzle-kit migrate", { stdio: "inherit", cwd: process.cwd() });
       fs.writeFileSync(LOCK_FILE, new Date().toISOString());
-      console.log("[start] Migrations applied successfully.");
+      console.log("[start] Migrations applied.");
     } catch (error) {
       console.error("[start] Migration failed:", error instanceof Error ? error.message : error);
-      // Don't exit - let the app try to start anyway (fail-open for already-migrated DBs)
     }
-  } else {
-    console.log("[start] Migrations already applied, skipping.");
   }
 
-  // Start the Next.js app
   console.log("[start] Starting Next.js...");
-  execSync("bun next start", {
-    stdio: "inherit",
-    cwd: process.cwd(),
-  });
+  execSync("npx next start", { stdio: "inherit", cwd: process.cwd() });
 }
 
-main().catch((err) => {
-  console.error("[start] Fatal error:", err);
-  process.exit(1);
-});
+main();

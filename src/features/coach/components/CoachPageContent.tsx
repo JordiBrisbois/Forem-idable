@@ -64,9 +64,9 @@ export function CoachPageContent({
               onSearchChange={page.setSearch}
               userFilter={page.userFilter}
               onUserFilterChange={page.setUserFilter}
-              phaseFilter={page.phaseFilter}
-              onPhaseFilterChange={page.setPhaseFilter}
-              phaseCounts={page.phaseCounts}
+              goalFilter={page.goalFilter}
+              onGoalFilterChange={page.setGoalFilter}
+              goalCounts={page.goalCounts}
               groupedUsers={page.groupedUsers}
               canRegenerateCalendars={currentUserRole === "admin"}
               onCreateGroup={() => page.setIsCreateGroupOpen(true)}
@@ -98,7 +98,6 @@ export function CoachPageContent({
               onOpenUser={page.setSelectedUserId}
               onRemoveMembership={page.setRemoveMembership}
               onRemoveCoach={page.setRemoveCoach}
-              onUpdateGroupPhase={page.updateGroupPhase}
               onArchiveGroup={page.archiveGroup}
             />
           </div>

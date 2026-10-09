@@ -21,8 +21,16 @@ function getEnabledUmamiOrigin() {
 }
 
 const umamiOrigin = getEnabledUmamiOrigin();
+
 const scriptSrc = ["'self'", "'unsafe-inline'"];
-const connectSrc = ["'self'", "https://www.odwb.be", "https://www.leforem.be", "https://api.adzuna.com"];
+// Allowed at the CSP level regardless of feature flags: harmless when the job
+// module is disabled, and avoids a build-time dependency on runtime env.
+const connectSrc = [
+  "'self'",
+  "https://www.odwb.be",
+  "https://www.leforem.be",
+  "https://api.adzuna.com",
+];
 
 if (umamiOrigin) {
   scriptSrc.push(umamiOrigin);
@@ -47,6 +55,7 @@ const cspDirectives = [
 ].join("; ");
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   poweredByHeader: false,
   async headers() {
     return [

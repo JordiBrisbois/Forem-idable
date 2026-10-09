@@ -8,6 +8,7 @@ describe("searchUrl utils", () => {
       keywords: ["dev", "react"],
       booleanMode: "AND",
       locations: [{ id: "loc-1", name: "4000 Liège", type: "Localités" }],
+      goal: "job",
     };
 
     const params = toSearchParams(query);
@@ -36,6 +37,7 @@ describe("searchUrl utils", () => {
           level: 3,
         },
       ],
+      goal: "internship",
     };
 
     const parsed = fromSearchParams(toSearchParams(query));

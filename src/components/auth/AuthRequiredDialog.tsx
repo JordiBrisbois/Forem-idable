@@ -39,7 +39,10 @@ export function AuthRequiredDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isForgotPasswordDialogOpen, setIsForgotPasswordDialogOpen] = useState(false);
 
-  const effectiveMode = forcedMode ?? mode;
+  const registrationEnabled = runtimeConfig.features.publicRegistration;
+  const rawMode = forcedMode ?? mode;
+  const effectiveMode: AuthMode =
+    rawMode === "register" && !registrationEnabled ? "login" : rawMode;
   const effectiveTitle =
     title ??
     (effectiveMode === "login" ? "Connexion" : "Créer un compte");
@@ -95,7 +98,7 @@ export function AuthRequiredDialog({
           <DialogDescription>{effectiveDescription}</DialogDescription>
         </DialogHeader>
 
-        {!forcedMode ? (
+        {!forcedMode && registrationEnabled ? (
           <div className="flex gap-2">
             <Button
               type="button"

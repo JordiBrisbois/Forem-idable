@@ -3,6 +3,22 @@ import { FeaturedSearchPayload } from "@/features/featured-searches/featuredSear
 import { CoachDashboardData } from "@/types/coach";
 import { AdminApiKeySummary } from "@/types/externalApi";
 import { FeaturedSearch } from "@/types/featuredSearch";
+import { SearchGoal } from "@/types/preferences";
+
+export type AdminCreatedAccount = {
+  id: number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  role: string;
+};
+
+export type AdminCreatedAccountResponse = {
+  ok?: boolean;
+  user?: AdminCreatedAccount;
+  temporaryPassword?: string;
+  error?: string;
+};
 
 export type AdminAccountDeletionRequest = {
   id: number;
@@ -87,6 +103,25 @@ export function promoteCoachRole(userId: number) {
 
 export function demoteCoachRole(userId: number) {
   return del<{ error?: string; ok?: boolean }>(`/api/admin/coaches?userId=${userId}`);
+}
+
+export function createCoachAccount(payload: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password?: string;
+}) {
+  return post<AdminCreatedAccountResponse>("/api/admin/coaches", payload);
+}
+
+export function createBeneficiaryAccount(payload: {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password?: string;
+  searchGoal?: SearchGoal;
+}) {
+  return post<AdminCreatedAccountResponse>("/api/admin/users", payload);
 }
 
 export function fetchAdminApiKeys() {

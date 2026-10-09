@@ -71,8 +71,8 @@ describe("PATCH /api/admin/users/[userId]", () => {
     mockReadValidatedJson.mockResolvedValue({
       success: true,
       data: {
-        firstName: "Jordi",
-        lastName: "Brisbois",
+        firstName: "Camille",
+        lastName: "Rousseau",
         password: undefined,
       },
     });
@@ -91,7 +91,7 @@ describe("PATCH /api/admin/users/[userId]", () => {
           origin: "https://example.com",
           "content-type": "application/json",
         },
-        body: JSON.stringify({ firstName: "Jordi", lastName: "Brisbois" }),
+        body: JSON.stringify({ firstName: "Camille", lastName: "Rousseau" }),
       }),
       { params: Promise.resolve({ userId: "42" }) }
     );

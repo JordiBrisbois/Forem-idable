@@ -1,3 +1,5 @@
+import { getScoutUserAgent } from "@/lib/server/httpUserAgent";
+
 export interface NominatimResult {
   lat: string;
   lon: string;
@@ -12,7 +14,7 @@ export async function geocodeTown(query: string): Promise<NominatimResult | null
   url.searchParams.set("countrycodes", "be"); // Focus Belgique
 
   const res = await fetch(url.toString(), {
-    headers: { "User-Agent": "FOREM-idable/1.0" },
+    headers: { "User-Agent": getScoutUserAgent() },
   });
 
   if (!res.ok) return null;

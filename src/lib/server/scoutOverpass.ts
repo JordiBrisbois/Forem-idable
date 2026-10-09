@@ -1,3 +1,5 @@
+import { getScoutUserAgent } from "@/lib/server/httpUserAgent";
+
 export interface OverpassElement {
   id: number;
   lat?: number;
@@ -85,7 +87,7 @@ export async function queryOverpass(
         method: "POST",
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "User-Agent": "FOREM-idable/1.0",
+          "User-Agent": getScoutUserAgent(),
         },
         body: new URLSearchParams({ data: query }),
         signal,

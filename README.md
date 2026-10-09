@@ -1,216 +1,95 @@
-# 🚀 FOREM-idable
+# Plateforme d'accompagnement
 
-**FOREM-idable** est une plateforme moderne développée avec Next.js, dédiée à la recherche d'emploi, au suivi de candidatures et à l'accompagnement par coachs.
+Plateforme **auto-hébergeable** de suivi d'accompagnement : gestion des **coachs**,
+des **classes** et des **bénéficiaires**, suivi des candidatures, messagerie, et un
+module optionnel de recherche d'offres.
 
-Ce projet a été conçu avec une double exigence : répondre à un **usage réel** tout en maintenant un niveau de **clean code** exemplaire, idéal pour une revue technique ou une démonstration en entretien. L'accent est mis sur la cohérence du front-end, la validation stricte des contrats d'entrée, une persistance type-safe et une gestion explicite des erreurs.
+Chaque établissement déploie sa propre instance (mono-tenant) et personnalise le
+produit via des variables d'environnement (nom, branding, fonctionnalités).
 
----
+## Fonctionnalités
 
-### 🌐 Version Live
-🔗 [forem.brisbois.dev](https://forem.brisbois.dev)
+- **Administration** : création de coachs, gestion des classes, conformité RGPD, audit.
+- **Classes** : créer une classe, y ajouter des bénéficiaires et des coachs.
+- **Espace coach** : suivi par classe, relances, entretiens, priorités, export CSV, calendrier.
+- **Bénéficiaire** : objectif de recherche (**stage** ou **emploi** commutable), suivi de candidatures.
+- **Mode autonome** : un utilisateur sans classe utilise la recherche et la sauvegarde d'offres, sans coaching.
+- **Messagerie** : canaux de classe et messages privés (SSE, Redis optionnel).
+- **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, sources pluggables.
+- **API externe** : endpoints JSON/CSV pour reporting (coach/admin).
 
----
+## Préparation d'une instance
 
-## 🎯 Fonctionnalités Clés
+1. **Premier lancement** : la racine redirige vers `/setup` tant qu'aucun compte
+   n'existe. Le formulaire crée le **premier administrateur**.
+2. Depuis `/admin`, créez des **coachs**, des **classes**, et ajoutez-y des personnes.
 
-Le produit couvre désormais sept domaines stratégiques :
-*   🔍 **Recherche d'offres** : Moteur multi-source performant avec historique de recherche.
-*   📋 **Suivi de candidatures** : Gestion complète du tunnel de recrutement pour les bénéficiaires.
-*   👨‍🏫 **Dashboard Coach** : Pilotage et suivi par groupes pour un accompagnement personnalisé.
-*   ⚙️ **Administration** : Gestion des coachs, mises en avant (featured searches), clés API et traitement des demandes de suppression.
-*   💬 **Messagerie temps réel** : Canaux de groupe et messages privés.
-*   📊 **API Externe** : Endpoints JSON/CSV pour le reporting et l'automatisation.
-*   🛡️ **Conformité & RGPD** : Export de données, demandes de suppression, legal holds, disclosure logs et purge de rétention.
+> Aucun script de seed n'est requis.
 
----
+## Stack
 
-## 💻 Stack Technique
+- **Next.js** (App Router) · **TypeScript** strict · Node ≥ 22
+- **PostgreSQL** + **Drizzle ORM**
+- **Zod** pour la validation des entrées
+- **Tailwind CSS** + **shadcn/ui**
+- **Vitest** (unitaires) & **Playwright** (E2E)
+- **Redis** optionnel (rate limiting, pub/sub messagerie)
 
-Le projet s'appuie sur les dernières versions stables de l'écosystème React/Next.js :
-
-*   **Framework** : [Next.js 16](https://nextjs.org/) (App Router)
-*   **Langage** : [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
-*   **Runtime** : Node.js 24
-*   **Base de données** : PostgreSQL avec [Drizzle ORM](https://orm.drizzle.team/)
-*   **Validation** : [Zod](https://zod.dev/) pour le typage des contrats et la validation runtime
-*   **UI/UX** : Tailwind CSS + [shadcn/ui](https://ui.shadcn.com/)
-*   **Tests** : [Vitest](https://vitest.dev/) (Unit/Integration) & [Playwright](https://playwright.dev/) (E2E)
-*   **Infrastructure** : Redis (optionnel) pour le rate limiting et le pub/sub de la messagerie.
-
----
-
-## 🏗️ Architecture
-
-L'organisation du code suit une approche **feature-first** pour garantir la scalabilité :
-
-```txt
-src/
-  ├── app/             # Routes Next.js (Pages, Layouts) et Handlers API
-  ├── features/        # Composants UI, hooks et logique métier par domaine
-  ├── lib/server/      # Logique serveur pure : Services, Accès DB, Sécurité
-  ├── components/ui/   # Primitives UI (Design System atomique)
-  └── types/           # Contrats applicatifs et interfaces partagées
-```
-
-### Principes Fondamentaux :
-*   **API Routes "Thin"** : Responsables uniquement de l'auth, de la validation et de l'orchestration.
-*   **Business Logic isolée** : Toute la logique métier réside dans `src/lib/server`.
-*   **State Management localisé** : Utilisation de hooks `use*PageState` pour concentrer l'état de page.
-*   **Type Safety de bout en bout** : Contrats Front/Back explicites via Zod et TypeScript.
-
-### Décisions d'Architecture
-
-| Décision | Choix | Justification |
-|---|---|---|
-| ORM | **Drizzle** > Prisma | Zero codegen, pas de CLI lourd, schema TypeScript natif, accès SQL brut quand le query builder est limité (CTE, LATERAL, `FOR UPDATE`) |
-| Messagerie temps réel | **SSE + Redis fallback** > WebSockets | Compatible Next.js edge runtime, fallback in-memory en dev/single-instance, Redis Pub/Sub pour la scalabilité horizontale |
-| Architecture | **Feature-first** > Layered | Co-location composants/hooks/utils par domaine, scalabilité sans explosion de fichiers transversaux |
-| Hashage mot de passe | **scrypt natif** > bcrypt/argon2 | Pas de dépendance native (pas de compilation), memory-hard par défaut, `timingSafeEqual` contre les timing attacks |
-| Queries complexes | **SQL brut documenté** > ORM forcé | `messaging.data.ts`, `coach.ts dashboard` utilisent des CTE/LATERAL que Drizzle n'exprime pas proprement — garder le SQL lisible > forcer l'ORM |
-| Validation | **Zod sur toutes les entrées** | Zero `typeof` checks ou `as` casts sur les données utilisateur — chaque route POST/PATCH passe par `readValidatedJson()` |
-
----
-
-## 🛠️ Choix Techniques & Qualité logicielle
-
-### ✅ Validation & Sécurité
-Toutes les mutations critiques sont verrouillées par des schémas Zod. L'objectif est double : prévenir les erreurs 500 et garantir des contrats d'interface homogènes et robustes.
-
-### 🗄️ Persistance Type-Safe
-L'utilisation de **Drizzle ORM** permet de manipuler une base de données typée. Le domaine "Candidature" repose sur une couche relationnelle explicite, optimisée pour les exports et les besoins analytiques des coachs.
-
-### 📨 Messagerie Hybride
-La messagerie utilise HTTP pour l'écriture et **Server-Sent Events (SSE)** pour le live-stream. Le bus d'événements est conçu pour être résilient :
-*   **Mode Standard** : Fallback en mémoire pour un déploiement simplifié.
-*   **Mode Distribué** : Redis Pub/Sub activable via `REDIS_URL` pour la scalabilité.
-
-### 🛡️ Gestion d'Erreurs
-Utilisation systématique des `error.tsx` de Next.js pour des Error Boundaries segmentaires, offrant une expérience utilisateur fluide même en cas d'imprévu.
-
-### 🧪 Stratégie de Tests
-Le projet ne vise pas le 100% théorique, mais une **couverture pragmatique des flux critiques** :
-*   **Vitest** : Logique métier pure et helpers.
-*   **Playwright** : Parcours utilisateurs (Auth, Suivi, Messagerie, Admin, Compliance).
-
-### 🔐 Conformité pragmatique
-Le projet inclut un premier pack conformité orienté usage réel :
-*   **Espace compte** : Export JSON des données personnelles et demande de suppression avec revue manuelle.
-*   **Administration** : Validation, rejet ou finalisation des demandes de suppression.
-*   **Garde-fous** : `legal holds` pour suspendre une suppression ou une purge si nécessaire.
-*   **Traçabilité** : `disclosure logs` pour journaliser une divulgation ciblée à une autorité.
-*   **Rétention** : purge scriptable des données temporaires et expirées.
-
----
-
-## 🔌 API Externe & Intégrations
-
-Réservée aux comptes `coach` et `admin` via clés API.
-*   **Endpoints** : Gestion utilisateurs, groupes et mutations de candidatures.
-*   **Reporting** : Exports CSV avec indicateurs calculés (`isFollowUpDue`, `isInterviewScheduled`).
-
-📖 [Consulter la documentation API détaillée](DOCAPI.md)
-📖 [Consulter la note conformité](COMPLIANCE.md)
-
----
-
-## 🚀 Installation & Développement
-
-### Pré-requis
-*   **Node.js** ≥ 22
-*   **PostgreSQL** ≥ 15
-*   **Redis** (optionnel, pour le rate limiting distribué et le pub/sub messagerie)
+## Démarrage local
 
 ```bash
-cp env.example .env.local
-# Renseigner DATABASE_URL et AUDIT_HASH_SECRET au minimum
+cp env.example .env
+# Renseignez DATABASE_URL et AUDIT_HASH_SECRET au minimum
 npm install
-```
-
-### Variables d'environnement essentielles
-
-| Variable | Obligatoire | Rôle |
-|---|---|---|
-| `DATABASE_URL` | Oui | Chaîne de connexion PostgreSQL |
-| `AUDIT_HASH_SECRET` | **Oui** | Clé HMAC pour l'anonymisation RGPD des userId dans les logs (générer avec `openssl rand -hex 32`) |
-| `REDIS_URL` | Non | Redis pour rate limiting distribué et pub/sub messagerie |
-| `APP_BASE_URL` | Oui | Origine publique utilisée par les checks CSRF et les liens email |
-| `RESEND_API_KEY` | Non | API key Resend pour les emails (reset password) |
-| `ADZUNA_ENABLED` | Non | Active le fournisseur d'offres Adzuna (requiert `ADZUNA_APP_ID` + `ADZUNA_APP_KEY`) |
-
-Voir [`env.example`](env.example) pour la liste complète (rétention, branding, analytics).
-
-### Commandes utiles
-```bash
-# Développement
 npm run dev
+```
 
-# Qualité & Tests
+Commandes utiles :
+
+```bash
 npm run lint
-npm test            # Unitaires
-npm run test:e2e    # End-to-end
-
-# Base de données
-npm run db:generate
-npm run db:migrate
-
-# Maintenance
+npm test
+npm run test:e2e
+npm run db:generate     # générer une migration
 npm run maintenance:purge
-
-# Production
-npm run build
-npm start
+npm run build && npm start
 ```
 
-### Déploiement
+Docker :
 
-Le projet est conçu pour fonctionner sur n'importe quel hébergeur Node.js supportant Next.js :
-
-**Option 1 — VPS (Coolify, Docker)**
 ```bash
-npm run build
-npm start  # Écoute sur le port configuré (par défaut 3000)
-```
-Prévoir un reverse proxy (Nginx/Caddy) devant le serveur Next.js. Les headers `X-Forwarded-Proto` et `X-Forwarded-For` sont utilisés pour la détection d'origine CSRF et le logging.
-
-**Option 2 — Vercel / Railway**
-Déployer directement depuis le repository. Configurer les variables d'environnement dans le dashboard. Redis peut être omis si le déploiement est mono-instance (fallback in-memory automatique).
-
-**Base de données** : Appliquer les migrations au déploiement :
-```bash
-npm run db:migrate
-```
-Aucun seed n'est requis — le premier compte créé via l'interface de registration reçoit le rôle `user`. Promouvoir manuellement en `admin` via `psql` :
-```sql
-UPDATE users SET role = 'admin' WHERE email = 'votre@email.com';
+docker compose up -d --build
 ```
 
----
+## Déploiement
 
-## 📋 Conventions de Code
+Voir **[SELF_HOSTING.md](SELF_HOSTING.md)** pour le guide complet (Docker, VPS,
+Coolify, variables d'environnement, premier administrateur, sauvegardes).
 
-*   **Validation systématique** : Pas d'entrée de données sans schéma Zod.
-*   **Composition de composants** : Logique métier extraite des composants de rendu.
-*   **Observabilité** : Logs de timing serveur et audit activables en environnement critique.
-*   **Refactoring continu** : Isolation progressive des services historiques vers des modules serveurs propres.
-*   **Conformité outillée** : Les droits utilisateurs et les revues admin passent par des workflows applicatifs plutôt que par des manipulations directes en base.
+## Configuration (white-label)
 
----
+Tout le branding passe par des variables d'environnement (`APP_NAME`, `APP_TITLE`,
+`APP_TAGLINE`, `PRIVACY_*`, `COPYRIGHT_NAME`, `APP_LOGO_URL`, `APP_BRAND_COLOR`…).
+La configuration est injectée au rendu : **aucun rebuild n'est nécessaire** pour
+changer le nom du produit.
 
-## 📄 Licence
-Ce projet est sous licence [GNU AGPL v3.0](LICENSE) (`AGPL-3.0-only`).
+| Domaine | Variables clés |
+|---|---|
+| Identité | `APP_NAME`, `APP_TITLE`, `APP_TITLE_SUFFIX`, `APP_TAGLINE` |
+| Fonctionnalités | `FEATURE_JOB_SEARCH`, `ALLOW_PUBLIC_REGISTRATION`, `DEFAULT_SEARCH_GOAL` |
+| Conformité | `PRIVACY_CONTROLLER_NAME`, `PRIVACY_CONTACT_EMAIL`, `PRIVACY_SOURCE_URL` |
+| Analytics | `UMAMI_ENABLED`, `NEXT_PUBLIC_UMAMI_WEBSITE_ID` |
 
-Le code source public du service est disponible sur GitHub :
-https://github.com/VoxSake/FOREM-idable
+## Documentation
 
-## 📚 Licence Des Données
+- [Auto-hébergement](SELF_HOSTING.md)
+- [API externe](DOCAPI.md)
+- [Conformité & RGPD](COMPLIANCE.md)
+- [Contribution](CONTRIBUTING.md)
 
-Le code de l'application est distribué sous `AGPL-3.0-only`, mais les données d'offres issues du
-jeu de données **Le Forem / ODWB** relèvent d'une licence distincte.
+## Licence
 
-*   **Code de l'application** : `AGPL-3.0-only`
-*   **Données d'offres Forem / ODWB** : [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.fr)
-*   **Source du dataset** : [ODWB - offres-d-emploi-forem](https://www.odwb.be/explore/dataset/offres-d-emploi-forem/information/)
+Code : **AGPL-3.0-only** ([LICENSE](LICENSE)).
 
-Lorsqu'une offre Forem est affichée, l'application peut reformater ou structurer certaines
-informations pour en faciliter la lecture. Les contenus sources restent attribués à Le Forem /
-ODWB, conformément à la licence du dataset.
+Les données d'offres éventuellement affichées via le module de recherche restent
+sous leurs licences respectives.

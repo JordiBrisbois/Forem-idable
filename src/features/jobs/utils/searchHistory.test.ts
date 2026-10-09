@@ -7,6 +7,7 @@ function query(overrides?: Partial<SearchQuery>): SearchQuery {
     keywords: ["dev"],
     locations: [{ id: "loc-1", name: "4000 Liège", type: "Localités" }],
     booleanMode: "OR",
+    goal: "job",
     ...overrides,
   };
 }

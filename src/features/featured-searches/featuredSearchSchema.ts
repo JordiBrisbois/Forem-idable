@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { searchGoalSchema } from "@/types/preferences";
 
 const locationTypeSchema = z.enum([
   "Pays",
@@ -24,6 +25,7 @@ export const featuredSearchQuerySchema = z
     keywords: z.array(z.string().trim().min(1).max(80)).max(12),
     locations: z.array(locationEntrySchema).max(8),
     booleanMode: z.enum(["AND", "OR"]),
+    goal: searchGoalSchema.default("job"),
   })
   .superRefine((value, context) => {
     if (value.keywords.length === 0 && value.locations.length === 0) {

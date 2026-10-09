@@ -17,25 +17,23 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { cn } from "@/lib/utils";
-import { CoachPhaseFilter, CoachUserFilter } from "@/features/coach/types";
+import { CoachGoalFilter, CoachUserFilter } from "@/features/coach/types";
 
 interface CoachGroupToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
-  phaseFilter: CoachPhaseFilter;
-  onPhaseFilterChange: (value: CoachPhaseFilter) => void;
-  phaseCounts: Record<CoachPhaseFilter, number>;
+  goalFilter: CoachGoalFilter;
+  onGoalFilterChange: (value: CoachGoalFilter) => void;
+  goalCounts: Record<CoachGoalFilter, number>;
   userFilter: CoachUserFilter;
   onUserFilterChange: (value: CoachUserFilter) => void;
   filterOptions: Array<{ value: CoachUserFilter; label: string }>;
 }
 
-const PHASE_LABELS: Record<CoachPhaseFilter, string> = {
+const GOAL_LABELS: Record<CoachGoalFilter, string> = {
   all: "Tous",
-  internship_search: "Stage",
-  job_search: "Emploi",
-  placed: "En emploi",
-  dropped: "Sortis",
+  internship: "Stage",
+  job: "Emploi",
 };
 
 const QUICK_CHIPS: Array<{ value: CoachUserFilter; label: string; variant: "default" | "destructive" | "warning" }> = [
@@ -49,9 +47,9 @@ const QUICK_CHIPS: Array<{ value: CoachUserFilter; label: string; variant: "defa
 export function CoachGroupToolbar({
   search,
   onSearchChange,
-  phaseFilter,
-  onPhaseFilterChange,
-  phaseCounts,
+  goalFilter,
+  onGoalFilterChange,
+  goalCounts,
   userFilter,
   onUserFilterChange,
   filterOptions,
@@ -80,14 +78,14 @@ export function CoachGroupToolbar({
           )}
         </div>
 
-        <Select value={phaseFilter} onValueChange={(v) => onPhaseFilterChange(v as CoachPhaseFilter)}>
+        <Select value={goalFilter} onValueChange={(v) => onGoalFilterChange(v as CoachGoalFilter)}>
           <SelectTrigger className="w-[120px] sm:w-[150px]">
-            <SelectValue placeholder="Phase" />
+            <SelectValue placeholder="Objectif" />
           </SelectTrigger>
           <SelectContent>
-            {(Object.keys(PHASE_LABELS) as CoachPhaseFilter[]).map((key) => (
+            {(Object.keys(GOAL_LABELS) as CoachGoalFilter[]).map((key) => (
               <SelectItem key={key} value={key}>
-                {PHASE_LABELS[key]} ({phaseCounts[key]})
+                {GOAL_LABELS[key]} ({goalCounts[key]})
               </SelectItem>
             ))}
           </SelectContent>

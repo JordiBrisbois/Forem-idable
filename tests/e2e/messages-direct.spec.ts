@@ -32,7 +32,7 @@ test("opens a direct conversation from the messages page contact picker", async 
         user: {
           id: 1,
           email: "user@example.com",
-          firstName: "Jordi",
+          firstName: "Camille",
           lastName: "User",
           role: "user",
         },
@@ -93,7 +93,7 @@ test("opens a direct conversation from the messages page contact picker", async 
           participants: [
             {
               userId: 1,
-              firstName: "Jordi",
+              firstName: "Camille",
               lastName: "User",
               email: "user@example.com",
               role: "user",

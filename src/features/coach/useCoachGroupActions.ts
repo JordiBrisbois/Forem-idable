@@ -1,8 +1,7 @@
 "use client";
 
 import { Dispatch, SetStateAction, useCallback } from "react";
-import { toast } from "sonner";
-import { CoachDashboardData, CoachUserSummary } from "@/types/coach";
+import { CoachDashboardData } from "@/types/coach";
 import { AuthUser } from "@/types/auth";
 import { CoachUndoAction } from "@/features/coach/types";
 import {
@@ -13,7 +12,6 @@ import {
   removeCoachGroupMember,
   removeCoachGroupCoach,
   deleteCoachGroup,
-  updateCoachGroupPhase,
   archiveCoachGroup,
 } from "@/lib/api/coachGroups";
 
@@ -272,54 +270,6 @@ export function useCoachGroupActions(input: {
     [input]
   );
 
-  const updateGroupPhase = useCallback(
-    async (groupId: number, phase: string, reason?: string) => {
-      const previousUsers = input.dashboard?.users.map((user) => ({
-        id: user.id,
-        phase: user.trackingPhase,
-      }));
-
-      input.setDashboard((current) => {
-        if (!current) return current;
-        const group = current.groups.find((g) => g.id === groupId);
-        if (!group) return current;
-        const memberIds = new Set(group.members.map((m) => m.id));
-        return {
-          ...current,
-          users: current.users.map((user) =>
-            memberIds.has(user.id) && user.trackingPhase !== "placed" && user.trackingPhase !== "dropped"
-              ? { ...user, trackingPhase: phase as CoachUserSummary["trackingPhase"] }
-              : user
-          ),
-        };
-      });
-
-      try {
-        const { data } = await updateCoachGroupPhase(groupId, phase, reason);
-
-        input.setUndoAction(null);
-        toast.success("Phase du groupe mise à jour.");
-        if ((data.skipped ?? 0) > 0) {
-          toast.info(`${data.skipped} ignoré${(data.skipped ?? 0) > 1 ? 's' : ''} car déjà en sortie.`);
-        }
-      } catch {
-        input.setDashboard((current) => {
-          if (!current) return current;
-          return {
-            ...current,
-            users: current.users.map((user) => {
-              const prev = previousUsers?.find((u) => u.id === user.id);
-              return prev ? { ...user, trackingPhase: prev.phase } : user;
-            }),
-          };
-        });
-        input.setFeedback("Changement de phase impossible.");
-        return;
-      }
-    },
-    [input]
-  );
-
   const archiveGroup = useCallback(
     async (groupId: number, archived: boolean) => {
       input.setDashboard((current) => {
@@ -368,6 +318,5 @@ export function useCoachGroupActions(input: {
     removeMember,
     restoreMembership,
     setGroupManager,
-    updateGroupPhase,
   };
 }

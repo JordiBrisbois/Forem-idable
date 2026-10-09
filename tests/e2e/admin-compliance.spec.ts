@@ -46,8 +46,8 @@ test("admin can create legal holds from deletion requests, applications, and con
             {
               id: 41,
               email: "user@example.test",
-              firstName: "Jordi",
-              lastName: "Brisbois",
+              firstName: "Camille",
+              lastName: "Rousseau",
               role: "user",
               groupIds: [],
               groupNames: [],
@@ -98,8 +98,8 @@ test("admin can create legal holds from deletion requests, applications, and con
             user: {
               id: 41,
               email: "user@example.test",
-              firstName: "Jordi",
-              lastName: "Brisbois",
+              firstName: "Camille",
+              lastName: "Rousseau",
               role: "user",
             },
           },
@@ -150,7 +150,7 @@ test("admin can create legal holds from deletion requests, applications, and con
             {
               id: 501,
               label: "Développeur Frontend",
-              description: "Jordi Brisbois · ACME · En cours",
+              description: "Camille Rousseau · ACME · En cours",
             },
           ],
         },
@@ -163,7 +163,7 @@ test("admin can create legal holds from deletion requests, applications, and con
         options: [
           {
             id: 77,
-            label: "Jordi Brisbois · Ada Admin",
+            label: "Camille Rousseau · Ada Admin",
             description: "DM · user@example.test · admin@example.test",
           },
         ],
@@ -208,7 +208,7 @@ test("admin can create legal holds from deletion requests, applications, and con
   await page.getByRole("option", { name: "Conversation" }).click();
   await page.getByText("Sélectionner une conversation").click();
   await page.getByPlaceholder("Rechercher une conversation...").fill("jordi");
-  await page.getByRole("option", { name: /Jordi Brisbois · Ada Admin/ }).click();
+  await page.getByRole("option", { name: /Camille Rousseau · Ada Admin/ }).click();
   await page.getByLabel("Motif").fill("Conversation conservée pour instruction.");
   await page.getByRole("button", { name: "Créer le legal hold" }).click();
 

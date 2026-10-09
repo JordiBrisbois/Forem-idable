@@ -8,12 +8,12 @@ describe("rejectCrossOriginRequest", () => {
   });
 
   it("accepts a request matching APP_BASE_URL through the Origin header", () => {
-    vi.stubEnv("APP_BASE_URL", "https://forem.brisbois.dev");
+    vi.stubEnv("APP_BASE_URL", "https://app.example.test");
 
-    const request = new NextRequest("https://forem.brisbois.dev/api/auth/login", {
+    const request = new NextRequest("https://app.example.test/api/auth/login", {
       method: "POST",
       headers: {
-        origin: "https://forem.brisbois.dev",
+        origin: "https://app.example.test",
       },
     });
 
@@ -21,9 +21,9 @@ describe("rejectCrossOriginRequest", () => {
   });
 
   it("rejects a request from a different Origin", async () => {
-    vi.stubEnv("APP_BASE_URL", "https://forem.brisbois.dev");
+    vi.stubEnv("APP_BASE_URL", "https://app.example.test");
 
-    const request = new NextRequest("https://forem.brisbois.dev/api/auth/login", {
+    const request = new NextRequest("https://app.example.test/api/auth/login", {
       method: "POST",
       headers: {
         origin: "https://evil.example",
@@ -36,9 +36,9 @@ describe("rejectCrossOriginRequest", () => {
   });
 
   it("accepts same-site requests without Origin when sec-fetch-site is same-origin", () => {
-    vi.stubEnv("APP_BASE_URL", "https://forem.brisbois.dev");
+    vi.stubEnv("APP_BASE_URL", "https://app.example.test");
 
-    const request = new NextRequest("https://forem.brisbois.dev/api/auth/logout", {
+    const request = new NextRequest("https://app.example.test/api/auth/logout", {
       method: "POST",
       headers: {
         "sec-fetch-site": "same-origin",
@@ -49,9 +49,9 @@ describe("rejectCrossOriginRequest", () => {
   });
 
   it("rejects cross-site requests without Origin", async () => {
-    vi.stubEnv("APP_BASE_URL", "https://forem.brisbois.dev");
+    vi.stubEnv("APP_BASE_URL", "https://app.example.test");
 
-    const request = new NextRequest("https://forem.brisbois.dev/api/auth/logout", {
+    const request = new NextRequest("https://app.example.test/api/auth/logout", {
       method: "POST",
       headers: {
         "sec-fetch-site": "cross-site",
@@ -64,9 +64,9 @@ describe("rejectCrossOriginRequest", () => {
   });
 
   it("rejects requests missing both Origin metadata and sec-fetch-site", async () => {
-    vi.stubEnv("APP_BASE_URL", "https://forem.brisbois.dev");
+    vi.stubEnv("APP_BASE_URL", "https://app.example.test");
 
-    const request = new NextRequest("https://forem.brisbois.dev/api/auth/logout", {
+    const request = new NextRequest("https://app.example.test/api/auth/logout", {
       method: "POST",
     });
 
@@ -79,9 +79,9 @@ describe("rejectCrossOriginRequest", () => {
     const request = new NextRequest("http://internal/api/auth/login", {
       method: "POST",
       headers: {
-        origin: "https://forem.brisbois.dev",
+        origin: "https://app.example.test",
         "x-forwarded-proto": "https",
-        "x-forwarded-host": "forem.brisbois.dev",
+        "x-forwarded-host": "app.example.test",
       },
     });
 

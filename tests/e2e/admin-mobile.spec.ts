@@ -55,7 +55,7 @@ test("renders the admin page without horizontal overflow on mobile", async ({ pa
             {
               id: 3,
               email: "user@example.com",
-              firstName: "Jordi",
+              firstName: "Camille",
               lastName: "User",
               role: "user",
               groupIds: [],

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkRateLimit } from "@/lib/server/rateLimit";
+import { getScoutUserAgent } from "@/lib/server/httpUserAgent";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = request.nextUrl;
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
 
     const res = await fetch(url.toString(), {
       headers: {
-        "User-Agent": "FOREM-idable/1.0 (brisbois.dev)",
+        "User-Agent": getScoutUserAgent(),
         "Accept-Language": "fr",
       },
       next: { revalidate: 0 },

@@ -9,6 +9,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { UserRole } from "@/types/auth";
+import { runtimeConfig } from "@/config/runtime";
 
 export interface AppSidebarNavItem {
   title: string;
@@ -47,6 +48,7 @@ const ADMIN_NAV_ITEM: AppSidebarNavItem = {
   icon: ShieldCheck,
   accent: true,
   children: [
+    { title: "Classes", url: "/admin#classes" },
     { title: "Recherches", url: "/admin#recherches" },
     { title: "Coachs", url: "/admin#coachs" },
     { title: "Clés API", url: "/admin#cles-api" },
@@ -62,6 +64,10 @@ export const FOOTER_NAV_ITEMS: AppSidebarNavItem[] = [
 
 export function getSidebarNavItems(role?: UserRole, isAuthenticated?: boolean): AppSidebarNavItem[] {
   let items = [...BASE_NAV_ITEMS];
+
+  if (!runtimeConfig.features.jobSearch) {
+    items = items.filter((item) => item.url !== "/" && item.url !== "/scout");
+  }
 
   if (!isAuthenticated) {
     items = items.filter((item) => item.url !== "/scout");

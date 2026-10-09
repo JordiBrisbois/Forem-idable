@@ -37,7 +37,7 @@ function makeUser(overrides: Partial<CoachUserSummary>): CoachUserSummary {
     firstName: overrides.firstName ?? "Jane",
     lastName: overrides.lastName ?? "Doe",
     role: overrides.role ?? "user",
-    trackingPhase: overrides.trackingPhase ?? "internship_search",
+    searchGoal: overrides.searchGoal ?? "internship",
     groupIds: overrides.groupIds ?? [1],
     groupNames: overrides.groupNames ?? ["Groupe A"],
     applicationCount: overrides.applicationCount ?? 1,
@@ -116,7 +116,7 @@ describe("buildCoachPrioritySections", () => {
     expect(sections[1].items[0]?.badgeLabel).toBe("Acme");
   });
 
-  it("shows computed phase badge as Sortie positive when a beneficiary with due items has an accepted job", () => {
+  it("shows a positive job badge when a beneficiary with due items has an accepted job", () => {
     // Note: a second non-accepted application is required so the user still has
     // due items and appears in the "due" priority section (accepted apps are excluded from due count).
     const users = [
@@ -169,7 +169,7 @@ describe("buildCoachPrioritySections", () => {
     const sections = buildCoachPrioritySections(users, new Date("2026-03-18T12:00:00.000Z"));
 
     expect(sections[0].total).toBe(1);
-    expect(sections[0].items[0]?.computedPhaseLabel).toBe("Sortie positive");
+    expect(sections[0].items[0]?.computedPhaseLabel).toBe("Emploi trouvé");
     expect(sections[0].items[0]?.computedPhaseVariant).toBe("success");
   });
 
@@ -209,7 +209,7 @@ describe("buildCoachPrioritySections", () => {
     expect(sections[0].total).toBe(0);
   });
 
-  it("shows default phase badge when no accepted application", () => {
+  it("shows default goal badge when no accepted application", () => {
     const users = [
       makeUser({
         id: 11,
@@ -444,7 +444,7 @@ describe("coach activity helpers", () => {
   it("treats grouped admins like beneficiaries in coach activity and priorities", () => {
     const adminLearner = makeUser({
       id: 4,
-      firstName: "Jordi",
+      firstName: "Camille",
       role: "admin",
       groupIds: [2],
       groupNames: ["Parcours Dev"],
@@ -474,6 +474,6 @@ describe("coach activity helpers", () => {
 
     expect(isTrackedCoachBeneficiary(adminLearner)).toBe(true);
     expect(buildCoachPrioritySections([adminLearner], new Date("2026-03-18T12:00:00.000Z"))[0].total).toBe(1);
-    expect(buildCoachRecentActivity([adminLearner])[0]?.userName).toContain("Jordi");
+    expect(buildCoachRecentActivity([adminLearner])[0]?.userName).toContain("Camille");
   });
 });

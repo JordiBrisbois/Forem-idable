@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { runtimeConfig } from "@/config/runtime";
 import { createSession, createUser } from "@/lib/server/auth";
 import { logServerEvent, withRequestContext } from "@/lib/server/observability";
 import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
@@ -10,6 +11,13 @@ export async function POST(request: NextRequest) {
     try {
       const forbidden = rejectCrossOriginRequest(request);
       if (forbidden) return forbidden;
+
+      if (!runtimeConfig.features.publicRegistration) {
+        return NextResponse.json(
+          { error: "Les inscriptions sont fermées. Contactez un administrateur." },
+          { status: 403 }
+        );
+      }
 
       const parsed = await readValidatedJson(request, registerRequestSchema);
       const email = parsed.success ? parsed.data.email : "";

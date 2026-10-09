@@ -37,7 +37,7 @@ describe("buildCalendarIcsFeed", () => {
 
     expect(content).toContain("BEGIN:VCALENDAR");
     expect(content).toContain("X-WR-CALNAME:Calendrier test");
-    expect(content).toContain("UID:42-job-1-interview@forem-idable");
+    expect(content).toContain("UID:42-job-1-interview@test-app");
     expect(content).toContain("SUMMARY:Entretien - Ada Lovelace - ACME");
     expect(content).toContain("DESCRIPTION:Beneficiaire: Ada Lovelace");
     expect(content).toContain("Email: beneficiaire@example.com");

@@ -1,10 +1,10 @@
 # 🔌 API Externe - Documentation
 
-Documentation de l'API externe de la plateforme **FOREM-idable**.
+Documentation de l'API externe de la plateforme.
 
 Cette API est strictement réservée aux comptes possédant les rôles `coach` ou `admin`. Elle permet notamment :
 *   📊 **Reporting & BI** : Exportation de données vers Excel, Power Query ou des outils de BI.
-*   🔍 **Consultation** : Lecture des groupes, utilisateurs et candidatures au sein de votre périmètre.
+*   🔍 **Consultation** : Lecture des classes, utilisateurs et candidatures au sein de votre périmètre.
 *   🤖 **Automatisation** : Pilotage programmatique des candidatures et des notes coach via JSON.
 
 ---
@@ -12,7 +12,7 @@ Cette API est strictement réservée aux comptes possédant les rôles `coach` o
 ## 🔐 Authentification & Accès
 
 ### Base URL
-*   **Production** : `https://forem.brisbois.dev`
+*   **Production** : `https://votre-domaine.example` (l'URL publique de votre instance)
 
 ### Authentification
 L'authentification s'effectue via un jeton porteur (Bearer Token) dans le header HTTP :
@@ -22,7 +22,7 @@ Authorization: Bearer VOTRE_CLE_API
 
 ### Périmètre (Scope)
 *   **`admin`** : Accès global à l'ensemble des données de la plateforme.
-*   **`coach`** : Accès restreint aux groupes assignés et aux bénéficiaires membres de ces groupes.
+*   **`coach`** : Accès restreint aux classes assignées et aux bénéficiaires membres de ces classes.
 
 ### Formats de réponse
 L'API supporte deux formats de sortie selon vos besoins :
@@ -104,15 +104,15 @@ Notes visibles par le bénéficiaire et les autres coachs.
 ## 👥 Utilisateurs & Groupes
 
 ### `GET /api/external/users`
-Liste les bénéficiaires visibles. Inclut des agrégats comme `dueCount` (nombre de relances en retard) ainsi que `trackingPhase` (phase de suivi actuelle).
+Liste les bénéficiaires visibles. Inclut des agrégats comme `dueCount` (nombre de relances en retard) ainsi que `searchGoal` (objectif de recherche actuel : `internship` ou `job`).
 
-### `PATCH /api/external/users/:userId/phase`
-Met à jour la phase de suivi d'un bénéficiaire.
+### `PATCH /api/external/users/:userId/goal`
+Met à jour l'objectif de recherche d'un bénéficiaire.
 
 **Body :**
 ```json
 {
-  "phase": "internship_search|job_search|placed|dropped",
+  "goal": "internship|job",
   "reason": "optionnel"
 }
 ```
@@ -125,7 +125,7 @@ Met à jour la phase de suivi d'un bénéficiaire.
 **Erreurs possibles :** `400` (paramètres invalides), `403` (accès interdit), `500` (erreur serveur).
 
 ### `GET /api/external/groups`
-Liste les groupes de suivi. Permet d'extraire la liste des membres et leurs statistiques globales.
+Liste les classes de suivi. Permet d'extraire la liste des membres et leurs statistiques globales.
 
 ---
 

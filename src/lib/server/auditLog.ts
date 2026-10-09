@@ -4,6 +4,8 @@ import { getActiveLegalHold } from "@/lib/server/compliance/legalHolds";
 
 export type AuditAction =
   | "admin_role_changed"
+  | "admin_coach_created"
+  | "admin_user_created"
   | "api_key_revoked"
   | "user_deleted"
   | "user_profile_updated"
@@ -17,8 +19,7 @@ export type AuditAction =
   | "group_coach_assigned"
   | "group_coach_removed"
   | "group_manager_changed"
-  | "group_phase_changed"
-  | "user_phase_changed"
+  | "user_goal_changed"
   | "group_archived"
   | "group_unarchived"
   | "coach_csv_import_completed"

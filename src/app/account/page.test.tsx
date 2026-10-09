@@ -65,8 +65,8 @@ describe("AccountPage", () => {
       user: {
         id: 1,
         email: "user@example.com",
-        firstName: "Jordi",
-        lastName: "Brisbois",
+        firstName: "Camille",
+        lastName: "Rousseau",
         role: "user",
       },
       isLoading: false,
@@ -105,7 +105,7 @@ describe("AccountPage", () => {
               id: 1,
               email: "user@example.com",
               firstName: "Jordan",
-              lastName: "Brisbois",
+              lastName: "Rousseau",
               role: "user",
             },
           }),
@@ -119,8 +119,8 @@ describe("AccountPage", () => {
     render(<AccountPage />);
 
     await waitFor(() => {
-      expect(screen.getByLabelText("Prénom")).toHaveValue("Jordi");
-      expect(screen.getByLabelText("Nom")).toHaveValue("Brisbois");
+      expect(screen.getByLabelText("Prénom")).toHaveValue("Camille");
+      expect(screen.getByLabelText("Nom")).toHaveValue("Rousseau");
     });
 
     const firstNameInput = screen.getByLabelText("Prénom");
@@ -133,7 +133,7 @@ describe("AccountPage", () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           firstName: "Jordan",
-          lastName: "Brisbois",
+          lastName: "Rousseau",
         }),
       });
     });
@@ -151,7 +151,7 @@ describe("AccountPage", () => {
     const submitButton = screen.getByRole("button", { name: "Enregistrer le profil" });
 
     await waitFor(() => {
-      expect(screen.getByLabelText("Prénom")).toHaveValue("Jordi");
+      expect(screen.getByLabelText("Prénom")).toHaveValue("Camille");
     });
 
     expect(submitButton).toBeDisabled();

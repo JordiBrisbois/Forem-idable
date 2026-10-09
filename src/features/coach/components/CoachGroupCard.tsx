@@ -39,7 +39,7 @@ import {
   CoachRemoveMembershipTarget,
 } from "@/features/coach/types";
 import { formatCoachDate, getCoachUserDisplayName } from "@/features/coach/utils";
-import { getSummaryBadgeVariant } from "@/features/coach/utils/phaseBadge";
+import { getSummaryBadgeVariant } from "@/features/coach/utils/goalBadge";
 import { CoachUserSummary } from "@/types/coach";
 
 interface CoachGroupCardProps {
@@ -60,7 +60,6 @@ interface CoachGroupCardProps {
   onRemoveMembership: (target: CoachRemoveMembershipTarget) => void;
   onRemoveCoach: (target: CoachRemoveCoachTarget) => void;
   onArchiveGroup: (id: number, archived: boolean) => void;
-  onOpenPhaseDialog: (group: CoachGroupedUserGroup) => void;
 }
 
 function canManageAssignedCoaches(
@@ -101,7 +100,6 @@ export function CoachGroupCard({
   onRemoveMembership,
   onRemoveCoach,
   onArchiveGroup,
-  onOpenPhaseDialog,
 }: CoachGroupCardProps) {
   const isArchived = Boolean(group.archivedAt);
 
@@ -301,10 +299,6 @@ export function CoachGroupCard({
                           Définir le manager
                         </DropdownMenuItem>
                       ) : null}
-                      <DropdownMenuItem onClick={() => onOpenPhaseDialog(group)}>
-                        <Users className="h-4 w-4" />
-                        Changer de phase
-                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => onArchiveGroup(group.id, !isArchived)}
                       >

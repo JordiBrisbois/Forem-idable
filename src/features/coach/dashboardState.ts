@@ -221,20 +221,20 @@ export function setGroupManagerInDashboard(
   };
 }
 
-export function updateUserPhaseInDashboard(
+export function updateUserSearchGoalInDashboard(
   dashboard: CoachDashboardData,
   userId: number,
-  phase: CoachUserSummary["trackingPhase"]
+  goal: CoachUserSummary["searchGoal"]
 ): CoachDashboardData {
   return {
     ...dashboard,
     users: dashboard.users.map((entry) =>
-      entry.id === userId ? { ...entry, trackingPhase: phase } : entry
+      entry.id === userId ? { ...entry, searchGoal: goal } : entry
     ),
     groups: dashboard.groups.map((group) => ({
       ...group,
       members: group.members.map((entry) =>
-        entry.id === userId ? { ...entry, trackingPhase: phase } : entry
+        entry.id === userId ? { ...entry, searchGoal: goal } : entry
       ),
     })),
   };

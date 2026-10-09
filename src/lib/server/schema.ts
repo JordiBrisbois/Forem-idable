@@ -13,6 +13,7 @@ import {
   uniqueIndex,
 } from "drizzle-orm/pg-core";
 import { UserRole } from "@/types/auth";
+import { SearchGoal } from "@/types/preferences";
 
 /** Core user accounts with role-based access control (user / coach / admin). */
 export const users = pgTable("users", {
@@ -24,7 +25,7 @@ export const users = pgTable("users", {
   role: text("role").$type<UserRole>().notNull().default("user"),
   lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
   lastCoachActionAt: timestamp("last_coach_action_at", { withTimezone: true }),
-  trackingPhase: text("tracking_phase").notNull().default("job_search"),
+  searchGoal: text("search_goal").$type<SearchGoal>().notNull().default("job"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -44,15 +45,6 @@ export const sessions = pgTable(
     expiresAtIdx: index("sessions_expires_at_idx").on(table.expiresAt),
   })
 );
-
-/** Per-user job preferences and UI state persisted as JSONB. */
-export const userState = pgTable("user_state", {
-  userId: bigint("user_id", { mode: "number" })
-    .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
-  payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
 
 /** Saved job bookmarks (pre-selection pipeline, distinct from tracked applications). */
 export const userFavorites = pgTable(
@@ -368,26 +360,6 @@ export const coachGroupCoaches = pgTable(
   (table) => ({
     pk: primaryKey({ columns: [table.groupId, table.userId] }),
     userIdIdx: index("coach_group_coaches_user_id_idx").on(table.userId),
-  })
-);
-
-/** Historical tracking phase transitions for beneficiary lifecycle audit. */
-export const userTrackingPhases = pgTable(
-  "user_tracking_phases",
-  {
-    id: bigserial("id", { mode: "number" }).primaryKey(),
-    userId: bigint("user_id", { mode: "number" })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    phase: text("phase").notNull(),
-    reason: text("reason"),
-    createdByUserId: bigint("created_by_user_id", { mode: "number" }).references(() => users.id, {
-      onDelete: "set null",
-    }),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => ({
-    userIdIdx: index("user_tracking_phases_user_id_idx").on(table.userId, table.createdAt),
   })
 );
 

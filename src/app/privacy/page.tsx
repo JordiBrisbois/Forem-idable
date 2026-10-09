@@ -100,7 +100,7 @@ const ACCESS_AND_RETENTION = [
       "Les sessions expirent automatiquement après 7 jours (renouvelées à chaque utilisation). Les clés API peuvent être révoquées à tout moment et peuvent aussi expirer automatiquement si une date d'expiration a été définie.",
       "Les exports de données générés pour un utilisateur sont temporaires et supprimés après leur durée de disponibilité. L'historique de recherche est purgé au-delà de la durée configurée. Le contenu des messages est effacé après 18 mois d'inactivité de la conversation.",
       "Les journaux d'audit (traçabilité des actions administratives et coach) sont conservés jusqu'à 24 mois. Lors de la suppression effective d'un compte, les identifiants personnels dans ces journaux sont anonymisés, sauf si une obligation légale (legal hold) impose leur conservation.",
-      "Les flux calendrier reflètent l'état courant des entretiens enregistrés dans l'application. Lorsqu'un entretien est modifié ou supprimé, la source est mise à jour côté FOREM-idable, mais la disparition effective dans un agenda tiers dépend du délai de resynchronisation appliqué par ce service tiers.",
+      "Les flux calendrier reflètent l'état courant des entretiens enregistrés dans l'application. Lorsqu'un entretien est modifié ou supprimé, la source est mise à jour côté plateforme, mais la disparition effective dans un agenda tiers dépend du délai de resynchronisation appliqué par ce service tiers.",
     ],
   },
 ];
@@ -234,7 +234,7 @@ export default function PrivacyPage() {
               <div key={section.title} className="flex flex-col gap-3">
                 <p className="font-semibold text-foreground">{section.title}</p>
                 {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph}>{paragraph.replaceAll("FOREM-idable", projectLabel)}</p>
+                  <p key={paragraph}>{paragraph}</p>
                 ))}
               </div>
             ))}

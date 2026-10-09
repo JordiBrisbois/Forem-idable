@@ -126,9 +126,11 @@ describe("useApplicationsPageState", () => {
       await result.current.submitInterview();
     });
 
+    // The form field holds a local datetime; compare against the same local->UTC
+    // conversion the hook performs so the assertion is timezone-independent.
     expect(scheduleInterview).toHaveBeenCalledWith(
       "job-1",
-      "2026-03-29T14:30:00.000Z",
+      new Date("2026-03-29T14:30").toISOString(),
       "Visio RH"
     );
     expect(mockToastError).toHaveBeenCalledWith(

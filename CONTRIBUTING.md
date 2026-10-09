@@ -1,4 +1,4 @@
-# Contributing to FOREM-idable
+# Contributing to the Platform
 
 ## Conventions de code
 

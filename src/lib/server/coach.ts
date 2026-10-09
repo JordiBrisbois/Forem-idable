@@ -90,7 +90,7 @@ export async function getCoachDashboard(
       first_name: string;
       last_name: string;
       role: UserRole;
-      tracking_phase: string;
+      search_goal: string;
       last_seen_at: string | null;
       last_coach_action_at: string | null;
     }>(
@@ -99,7 +99,7 @@ export async function getCoachDashboard(
               first_name,
               last_name,
               role,
-              tracking_phase,
+              search_goal,
               last_seen_at,
               last_coach_action_at
        FROM users
@@ -288,7 +288,7 @@ export async function getCoachDashboard(
       firstName: row.first_name,
       lastName: row.last_name,
       role: row.role,
-      trackingPhase: row.tracking_phase as CoachUserSummary["trackingPhase"],
+      searchGoal: row.search_goal as CoachUserSummary["searchGoal"],
       groupIds: groupIdsByUser.get(userId) ?? [],
       groupNames: groupNamesByUser.get(userId) ?? [],
       ...buildCoachApplicationSummary(applications),

@@ -19,18 +19,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CoachGroupCard } from "@/features/coach/components/CoachGroupCard";
-import { CoachGroupPhaseDialog } from "@/features/coach/components/CoachGroupPhaseDialog";
 import { CoachGroupToolbar } from "@/features/coach/components/CoachGroupToolbar";
 import { coachUserFilterOptions } from "@/features/coach/filters";
 import {
+  CoachGoalFilter,
   CoachGroupedUserGroup,
-  CoachPhaseFilter,
   CoachRemoveCoachTarget,
   CoachRemoveMembershipTarget,
   CoachUserFilter,
 } from "@/features/coach/types";
 import { runtimeConfig } from "@/config/runtime";
-import { CoachUserSummary, TrackingPhase } from "@/types/coach";
+import { CoachUserSummary } from "@/types/coach";
 
 const COLLAPSE_STORAGE_KEY = "forem:coach:group-collapse:v1";
 
@@ -59,9 +58,9 @@ interface CoachGroupsSectionProps {
   onSearchChange: (value: string) => void;
   userFilter: CoachUserFilter;
   onUserFilterChange: (value: CoachUserFilter) => void;
-  phaseFilter: CoachPhaseFilter;
-  onPhaseFilterChange: (value: CoachPhaseFilter) => void;
-  phaseCounts: Record<CoachPhaseFilter, number>;
+  goalFilter: CoachGoalFilter;
+  onGoalFilterChange: (value: CoachGoalFilter) => void;
+  goalCounts: Record<CoachGoalFilter, number>;
   groupedUsers: CoachGroupedUserGroup[];
   canRegenerateCalendars: boolean;
   onCreateGroup: () => void;
@@ -77,7 +76,6 @@ interface CoachGroupsSectionProps {
   onOpenUser: (userId: number) => void;
   onRemoveMembership: (target: CoachRemoveMembershipTarget) => void;
   onRemoveCoach: (target: CoachRemoveCoachTarget) => void;
-  onUpdateGroupPhase: (groupId: number, phase: TrackingPhase, reason?: string) => void;
   onArchiveGroup: (groupId: number, archived: boolean) => void;
 }
 
@@ -88,9 +86,9 @@ export function CoachGroupsSection({
   onSearchChange,
   userFilter,
   onUserFilterChange,
-  phaseFilter,
-  onPhaseFilterChange,
-  phaseCounts,
+  goalFilter,
+  onGoalFilterChange,
+  goalCounts,
   groupedUsers,
   canRegenerateCalendars,
   onCreateGroup,
@@ -106,11 +104,9 @@ export function CoachGroupsSection({
   onOpenUser,
   onRemoveMembership,
   onRemoveCoach,
-  onUpdateGroupPhase,
   onArchiveGroup,
 }: CoachGroupsSectionProps) {
   const [isCalendarHelpOpen, setIsCalendarHelpOpen] = useState(false);
-  const [phaseDialogGroup, setPhaseDialogGroup] = useState<CoachGroupedUserGroup | null>(null);
   const [collapseState, setCollapseState] = useState<Record<string, boolean>>(getStoredCollapseState);
 
   const toggleCollapse = useCallback((groupKey: string) => {
@@ -146,7 +142,6 @@ export function CoachGroupsSection({
         onRemoveMembership={onRemoveMembership}
         onRemoveCoach={onRemoveCoach}
         onArchiveGroup={onArchiveGroup}
-        onOpenPhaseDialog={setPhaseDialogGroup}
       />
     );
   }
@@ -197,9 +192,9 @@ export function CoachGroupsSection({
         <CoachGroupToolbar
           search={search}
           onSearchChange={onSearchChange}
-          phaseFilter={phaseFilter}
-          onPhaseFilterChange={onPhaseFilterChange}
-          phaseCounts={phaseCounts}
+          goalFilter={goalFilter}
+          onGoalFilterChange={onGoalFilterChange}
+          goalCounts={goalCounts}
           userFilter={userFilter}
           onUserFilterChange={onUserFilterChange}
           filterOptions={coachUserFilterOptions}
@@ -223,7 +218,7 @@ export function CoachGroupsSection({
               <p className="mt-2 text-sm text-muted-foreground">
                 {search.trim()
                   ? "Essayez un autre nom, prénom ou email, ou retirez un filtre rapide."
-                  : userFilter === "all" && phaseFilter === "all"
+                  : userFilter === "all" && goalFilter === "all"
                     ? "Ajoutez un groupe ou un bénéficiaire pour commencer le suivi coach."
                     : "Aucun bénéficiaire ne correspond à ce filtre pour l'instant."}
               </p>
@@ -231,20 +226,6 @@ export function CoachGroupsSection({
           )}
         </div>
       </CardContent>
-
-      <CoachGroupPhaseDialog
-        open={Boolean(phaseDialogGroup)}
-        groupName={phaseDialogGroup?.name ?? ""}
-        onOpenChange={(open) => {
-          if (!open) setPhaseDialogGroup(null);
-        }}
-        onConfirm={(phase, reason) => {
-          if (phaseDialogGroup) {
-            onUpdateGroupPhase(phaseDialogGroup.id, phase, reason);
-          }
-          setPhaseDialogGroup(null);
-        }}
-      />
 
       <Dialog open={isCalendarHelpOpen} onOpenChange={setIsCalendarHelpOpen}>
         <DialogContent className="sm:max-w-lg">

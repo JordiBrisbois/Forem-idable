@@ -1,5 +1,5 @@
 import { ApplicationStatus, JobApplication } from "@/types/application";
-import { TrackingPhase } from "@/types/coach";
+import { SearchGoal } from "@/types/preferences";
 import { UserRole } from "@/types/auth";
 
 export interface ApiKeySummary {
@@ -69,7 +69,7 @@ export interface ExternalApiUserSummary {
   lastName: string;
   fullName: string;
   role: UserRole;
-  trackingPhase: TrackingPhase;
+  searchGoal: SearchGoal;
   groupIds: number[];
   groupNames: string[];
   applicationCount: number;

@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { CoachPhaseFilter } from "@/features/coach/types";
+import { CoachGoalFilter } from "@/features/coach/types";
 
 interface CoachSummaryCardsProps {
   userCount: number;
@@ -18,7 +18,7 @@ interface CoachSummaryCardsProps {
   totalDue: number;
   totalAccepted: number;
   totalRejected: number;
-  phaseCounts?: Record<CoachPhaseFilter, number>;
+  goalCounts?: Record<CoachGoalFilter, number>;
 }
 
 export function CoachSummaryCards({
@@ -28,7 +28,7 @@ export function CoachSummaryCards({
   totalDue,
   totalAccepted,
   totalRejected,
-  phaseCounts,
+  goalCounts,
 }: CoachSummaryCardsProps) {
   const primaryCards = [
     {
@@ -75,20 +75,18 @@ export function CoachSummaryCards({
     },
   ];
 
-  const phaseBadges = phaseCounts
+  const goalBadges = goalCounts
     ? [
-        { key: "internship_search" as const, label: "Recherche stage", count: phaseCounts.internship_search, variant: "info" as const },
-        { key: "job_search" as const, label: "Recherche emploi", count: phaseCounts.job_search, variant: "secondary" as const },
-        { key: "placed" as const, label: "En emploi", count: phaseCounts.placed, variant: "outline" as const },
-        { key: "dropped" as const, label: "Sortie du dispositif", count: phaseCounts.dropped, variant: "error" as const },
+        { key: "internship" as const, label: "Recherche stage", count: goalCounts.internship, variant: "info" as const },
+        { key: "job" as const, label: "Recherche emploi", count: goalCounts.job, variant: "secondary" as const },
       ].filter((b) => b.count > 0)
     : [];
 
   return (
     <div className="flex flex-col gap-3">
-      {phaseBadges.length > 0 && (
+      {goalBadges.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {phaseBadges.map((badge) => (
+          {goalBadges.map((badge) => (
             <Badge key={badge.key} variant={badge.variant} className="text-xs">
               {badge.label}
               <span className="ml-1.5 rounded-full bg-background/20 px-1.5 py-0.5 tabular-nums">{badge.count}</span>

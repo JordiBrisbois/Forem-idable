@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
-import DashboardPage from "./page";
+import DashboardPage from "./HomePageClient";
 import { SearchQuery } from "@/types/search";
 import { Job } from "@/types/job";
 
@@ -25,6 +25,7 @@ vi.mock("@/components/search/SearchEngine", () => ({
             keywords: ["dev"],
             locations: [{ id: "loc1", name: "4000 Liège", type: "Localités" }],
             booleanMode: "OR",
+            goal: "job",
           })
         }
       >
@@ -101,6 +102,7 @@ const sampleQuery: SearchQuery = {
   keywords: ["dev"],
   locations: [{ id: "loc1", name: "4000 Liège", type: "Localités" }],
   booleanMode: "OR",
+  goal: "job",
 };
 
 const sampleJob: Job = {

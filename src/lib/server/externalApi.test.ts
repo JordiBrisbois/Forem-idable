@@ -19,8 +19,8 @@ vi.mock("@/lib/server/coach", () => ({
 const actor: ExternalApiActor = {
   id: 11,
   email: "coach@example.com",
-  firstName: "Jordi",
-  lastName: "Brisbois",
+  firstName: "Camille",
+  lastName: "Rousseau",
   role: "coach",
 };
 
@@ -28,8 +28,8 @@ const dashboardFixture: CoachDashboardData = {
   viewer: {
     id: 11,
     email: "coach@example.com",
-    firstName: "Jordi",
-    lastName: "Brisbois",
+    firstName: "Camille",
+    lastName: "Rousseau",
     role: "coach",
   },
   users: [
@@ -50,7 +50,7 @@ const dashboardFixture: CoachDashboardData = {
       latestActivityAt: "2026-03-18T10:00:00.000Z",
       lastSeenAt: "2026-03-18T09:00:00.000Z",
       lastCoachActionAt: null,
-      trackingPhase: "job_search",
+      searchGoal: "job",
       hasAcceptedStage: false,
       hasAcceptedJob: false,
       applications: [],
@@ -83,8 +83,8 @@ const dashboardFixture: CoachDashboardData = {
         {
           id: 11,
           email: "coach@example.com",
-          firstName: "Jordi",
-          lastName: "Brisbois",
+          firstName: "Camille",
+          lastName: "Rousseau",
           role: "coach",
           lastSeenAt: "2026-03-18T09:30:00.000Z",
         },
@@ -123,13 +123,13 @@ describe("externalApi", () => {
       coachCount: 2,
       manager: {
         id: 11,
-        fullName: "Jordi Brisbois",
+        fullName: "Camille Rousseau",
         isManager: true,
       },
       coaches: [
         {
           id: 11,
-          fullName: "Jordi Brisbois",
+          fullName: "Camille Rousseau",
           isManager: true,
         },
         {
@@ -181,9 +181,9 @@ describe("externalApi", () => {
         manager: {
           id: 11,
           email: "coach@example.com",
-          firstName: "Jordi",
-          lastName: "Brisbois",
-          fullName: "Jordi Brisbois",
+          firstName: "Camille",
+          lastName: "Rousseau",
+          fullName: "Camille Rousseau",
           role: "coach",
           isManager: true,
         },
@@ -192,9 +192,9 @@ describe("externalApi", () => {
           {
             id: 11,
             email: "coach@example.com",
-            firstName: "Jordi",
-            lastName: "Brisbois",
-            fullName: "Jordi Brisbois",
+            firstName: "Camille",
+            lastName: "Rousseau",
+            fullName: "Camille Rousseau",
             role: "coach",
             isManager: true,
           },
@@ -216,7 +216,7 @@ describe("externalApi", () => {
 
     expect(csv).toContain("Manager");
     expect(csv).toContain("Nombre de coachs");
-    expect(csv).toContain("Jordi Brisbois");
+    expect(csv).toContain("Camille Rousseau");
     expect(csv).toContain("Alex Martin");
   });
 

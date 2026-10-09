@@ -78,7 +78,7 @@ function buildGroup(overrides: Partial<CoachGroupedUserGroup> = {}): CoachGroupe
         firstName: "Jean",
         lastName: "Dupont",
         role: "user",
-        trackingPhase: "job_search",
+        searchGoal: "job",
         groupIds: [1],
         groupNames: ["Groupe Test"],
         applicationCount: 2,
@@ -123,7 +123,6 @@ function renderCard(
     onRemoveMembership: vi.fn(),
     onRemoveCoach: vi.fn(),
     onArchiveGroup: vi.fn(),
-    onOpenPhaseDialog: vi.fn(),
     ...overrides,
   };
   render(<CoachGroupCard {...props} />);
@@ -193,12 +192,6 @@ describe("CoachGroupCard", () => {
   it("does not show 'Définir le manager' for coach", () => {
     renderCard({ currentUserRole: "coach" });
     expect(screen.queryByText("Définir le manager")).not.toBeInTheDocument();
-  });
-
-  it("calls onOpenPhaseDialog from dropdown", () => {
-    const props = renderCard();
-    fireEvent.click(screen.getByText("Changer de phase"));
-    expect(props.onOpenPhaseDialog).toHaveBeenCalledWith(expect.objectContaining({ id: 1 }));
   });
 
   it("calls onArchiveGroup with true when archiving", () => {

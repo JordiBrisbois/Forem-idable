@@ -45,7 +45,7 @@ describe("useCoachUtilities", () => {
           latestActivityAt: "2026-03-25T10:00:00.000Z",
           lastSeenAt: null,
           lastCoachActionAt: null,
-          trackingPhase: "job_search",
+          searchGoal: "job",
           hasAcceptedStage: false,
           hasAcceptedJob: false,
           applications: [

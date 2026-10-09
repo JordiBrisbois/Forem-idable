@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { CoachPhaseBadge } from "@/features/coach/components/CoachPhaseBadge";
+import { CoachGoalBadge } from "@/features/coach/components/CoachGoalBadge";
 import { CoachStatGrid } from "@/features/coach/components/CoachStatGrid";
 import { CoachUserActivityMeta } from "@/features/coach/components/CoachUserActivityMeta";
 import { CoachGroupedGroupKind, CoachRemoveMembershipTarget } from "@/features/coach/types";
@@ -58,8 +58,8 @@ export const CoachGroupMemberCard = React.memo(function CoachGroupMemberCard({
                 <Badge variant="secondary" className="capitalize">
                   {entry.role}
                 </Badge>
-                <CoachPhaseBadge
-                  phase={entry.trackingPhase}
+                <CoachGoalBadge
+                  goal={entry.searchGoal}
                   hasAcceptedStage={entry.hasAcceptedStage}
                   hasAcceptedJob={entry.hasAcceptedJob}
                 />

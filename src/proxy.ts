@@ -1,9 +1,19 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { runtimeConfig } from "@/config/runtime";
 
-const PUBLIC_EXACT = ["/", "/about", "/privacy", "/favicon.ico", "/sitemap.xml", "/robots.txt"];
+const PUBLIC_EXACT = [
+  "/",
+  "/about",
+  "/privacy",
+  "/setup",
+  "/favicon.ico",
+  "/sitemap.xml",
+  "/robots.txt",
+];
 const PUBLIC_PREFIXES = [
   "/api/auth/",
+  "/api/setup",
   "/api/locations",
   "/api/offers",
   "/api/providers",
@@ -19,16 +29,40 @@ function isPublicPath(pathname: string): boolean {
   return PUBLIC_PREFIXES.some((path) => pathname.startsWith(path));
 }
 
+const JOB_MODULE_PREFIXES = [
+  "/api/search-history",
+  "/api/offers",
+  "/api/pdf",
+  "/api/providers",
+  "/api/locations",
+  "/api/featured-searches",
+];
+
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+
+  const next = () => NextResponse.next({ request: { headers: requestHeaders } });
+
+  if (
+    !runtimeConfig.features.jobSearch &&
+    JOB_MODULE_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  ) {
+    return NextResponse.json(
+      { error: "Module de recherche d'offres désactivé." },
+      { status: 404 }
+    );
+  }
+
   // Allow public paths without auth check
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return next();
   }
 
   // Check for session cookie presence (actual validation happens in API routes)
-  const sessionCookie = request.cookies.get("forem_idable_session");
+  const sessionCookie = request.cookies.get(runtimeConfig.app.sessionCookieName);
   if (!sessionCookie?.value) {
     // For API routes, return 403
     if (pathname.startsWith("/api/")) {
@@ -38,7 +72,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  return NextResponse.next();
+  return next();
 }
 
 export const config = {

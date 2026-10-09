@@ -83,7 +83,7 @@ function ApiKeysSectionComponent({
             <AccountField
               id="account-api-key-name"
               label="Nom de la clé"
-              placeholder="Ex: Excel Jordi, Power Query coach, Zapier..."
+              placeholder="Ex: Excel, Power Query coach, Zapier..."
               error={form.formState.errors.name?.message}
               {...form.register("name")}
             />

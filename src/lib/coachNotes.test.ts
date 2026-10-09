@@ -37,10 +37,10 @@ describe("coach notes helpers", () => {
         content: "  Note privée  ",
         createdAt: "2026-03-10T09:00:00.000Z",
         updatedAt: "2026-03-10T09:00:00.000Z",
-        createdBy: { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
+        createdBy: { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
         contributors: [
-          { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
-          { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
+          { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
+          { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
         ],
       },
       sharedCoachNotes: [
@@ -49,10 +49,10 @@ describe("coach notes helpers", () => {
           content: "  Note partagée  ",
           createdAt: "2026-03-10T09:00:00.000Z",
           updatedAt: "2026-03-10T09:00:00.000Z",
-          createdBy: { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
+          createdBy: { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
           contributors: [
-            { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
-            { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
+            { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
+            { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
           ],
         },
         {
@@ -60,7 +60,7 @@ describe("coach notes helpers", () => {
           content: "   ",
           createdAt: "2026-03-10T09:00:00.000Z",
           updatedAt: "2026-03-10T09:00:00.000Z",
-          createdBy: { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
+          createdBy: { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
           contributors: [],
         },
       ],
@@ -80,8 +80,8 @@ describe("coach notes helpers", () => {
         content: "Privée",
         createdAt: "2026-03-10T09:00:00.000Z",
         updatedAt: "2026-03-10T09:00:00.000Z",
-        createdBy: { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
-        contributors: [{ id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" }],
+        createdBy: { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
+        contributors: [{ id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" }],
       },
       sharedCoachNotes: [
         {
@@ -89,8 +89,8 @@ describe("coach notes helpers", () => {
           content: "Partagée",
           createdAt: "2026-03-10T09:00:00.000Z",
           updatedAt: "2026-03-10T09:00:00.000Z",
-          createdBy: { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" },
-          contributors: [{ id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" }],
+          createdBy: { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" },
+          contributors: [{ id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" }],
         },
       ],
     });
@@ -106,12 +106,12 @@ describe("coach notes helpers", () => {
 
   it("formats and deduplicates contributor names", () => {
     const contributors = [
-      { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" as const },
-      { id: 1, firstName: "Jordi", lastName: "Brisbois", email: "j@x.dev", role: "coach" as const },
+      { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" as const },
+      { id: 1, firstName: "Camille", lastName: "Rousseau", email: "j@x.dev", role: "coach" as const },
       { id: 2, firstName: "", lastName: "", email: "admin@x.dev", role: "admin" as const },
     ];
 
-    expect(formatCoachAuthorName(contributors[0])).toBe("Jordi Brisbois");
-    expect(summarizeCoachContributors(contributors)).toBe("Jordi Brisbois, admin@x.dev");
+    expect(formatCoachAuthorName(contributors[0])).toBe("Camille Rousseau");
+    expect(summarizeCoachContributors(contributors)).toBe("Camille Rousseau, admin@x.dev");
   });
 });

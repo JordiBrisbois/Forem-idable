@@ -2,6 +2,7 @@ import { z } from "zod";
 import { normalizeContractType } from "@/lib/contractType";
 import { searchHistoryEntrySchema } from "@/features/jobs/types/searchHistory";
 import { Job } from "@/types/job";
+import { searchGoalSchema } from "@/types/preferences";
 
 export const applicationStatusSchema = z.enum([
   "in_progress",
@@ -14,6 +15,13 @@ export const applicationStatusSchema = z.enum([
 export const jobSourceSchema = z.enum(["forem", "linkedin", "indeed", "adzuna"]);
 const emailSchema = z.string().trim().email("Adresse email invalide.");
 const trimmedNonEmptyStringSchema = z.string().trim().min(1, "Champ requis.");
+const passwordSchema = z
+  .string()
+  .min(8, "Le mot de passe doit contenir au moins 8 caractères.");
+const optionalPasswordSchema = z.preprocess(
+  (value) => (typeof value === "string" && value.trim().length === 0 ? undefined : value),
+  z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères.").optional()
+);
 
 export const loginRequestSchema = z
   .object({
@@ -32,6 +40,47 @@ export const registerRequestSchema = z
     password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères."),
     firstName: trimmedNonEmptyStringSchema,
     lastName: trimmedNonEmptyStringSchema,
+  })
+  .strict()
+  .transform((value) => ({
+    ...value,
+    email: value.email.toLowerCase(),
+  }));
+
+export const setupRequestSchema = z
+  .object({
+    email: emailSchema,
+    password: passwordSchema,
+    firstName: trimmedNonEmptyStringSchema,
+    lastName: trimmedNonEmptyStringSchema,
+    searchGoal: searchGoalSchema.optional(),
+  })
+  .strict()
+  .transform((value) => ({
+    ...value,
+    email: value.email.toLowerCase(),
+  }));
+
+export const coachCreateRequestSchema = z
+  .object({
+    email: emailSchema,
+    firstName: trimmedNonEmptyStringSchema,
+    lastName: trimmedNonEmptyStringSchema,
+    password: optionalPasswordSchema,
+  })
+  .strict()
+  .transform((value) => ({
+    ...value,
+    email: value.email.toLowerCase(),
+  }));
+
+export const beneficiaryCreateRequestSchema = z
+  .object({
+    email: emailSchema,
+    firstName: trimmedNonEmptyStringSchema,
+    lastName: trimmedNonEmptyStringSchema,
+    password: optionalPasswordSchema,
+    searchGoal: searchGoalSchema.optional(),
   })
   .strict()
   .transform((value) => ({
@@ -122,6 +171,12 @@ export const apiKeyCreateRequestSchema = z
 export const positiveIntegerBodySchema = z.object({
   userId: z.coerce.number().int().positive("Identifiant invalide."),
 }).strict();
+
+/** Either promote an existing user, or create a brand-new coach account. */
+export const adminCoachCreateBodySchema = z.union([
+  positiveIntegerBodySchema,
+  coachCreateRequestSchema,
+]);
 
 export const positiveIntegerParamSchema = z.coerce.number().int().positive("Identifiant invalide.");
 

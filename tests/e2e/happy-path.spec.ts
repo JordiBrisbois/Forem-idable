@@ -113,7 +113,7 @@ function buildCoachDashboard(applications: Application[]) {
       {
         id: 1,
         email: "user@example.com",
-        firstName: "Jordi",
+        firstName: "Camille",
         lastName: "User",
         role: "user",
         groupIds: [10],
@@ -146,7 +146,7 @@ function buildCoachDashboard(applications: Application[]) {
           {
             id: 1,
             email: "user@example.com",
-            firstName: "Jordi",
+            firstName: "Camille",
             lastName: "User",
             role: "user",
             lastSeenAt: "2026-03-21T12:00:00.000Z",
@@ -204,7 +204,7 @@ async function mockCoachSession(
         ? {
             id: 1,
             email: "user@example.com",
-            firstName: "Jordi",
+            firstName: "Camille",
             lastName: "User",
             role: "user",
           }
@@ -296,7 +296,7 @@ async function mockUserApplicationsSession(
         user: {
           id: 1,
           email: "user@example.com",
-          firstName: "Jordi",
+          firstName: "Camille",
           lastName: "User",
           role: "user",
         },
@@ -346,7 +346,7 @@ test("user can add a job to tracking and the coach can see it", async ({ page })
         ? {
             id: 1,
             email: "user@example.com",
-            firstName: "Jordi",
+            firstName: "Camille",
             lastName: "User",
             role: "user",
           }
@@ -428,9 +428,9 @@ test("user can add a job to tracking and the coach can see it", async ({ page })
   actor = "coach";
   await page.goto("/coach");
 
-  await expect(page.getByText("Jordi User").first()).toBeVisible();
-  await page.getByText("Jordi User").first().click();
-  await expect(page.getByRole("heading", { name: "Jordi User" })).toBeVisible();
+  await expect(page.getByText("Camille User").first()).toBeVisible();
+  await page.getByText("Camille User").first().click();
+  await expect(page.getByRole("heading", { name: "Camille User" })).toBeVisible();
   await expect(page.getByText("Développeur Frontend React").last()).toBeVisible();
   await expect(page.getByText("1 candidatures").first()).toBeVisible();
 });
@@ -515,7 +515,7 @@ test("coach can manage private and shared notes from the user sheet", async ({ p
   });
 
   await page.goto("/coach");
-  await page.getByText("Jordi User").first().click();
+  await page.getByText("Camille User").first().click();
 
   const privateNoteArea = page.getByPlaceholder("Note privée commune pour l'équipe coach...");
   await privateNoteArea.fill("Note privée mise à jour");
@@ -566,7 +566,7 @@ test("coach can edit a tracked application from the user sheet", async ({ page }
   });
 
   await page.goto("/coach");
-  await page.getByText("Jordi User").first().click();
+  await page.getByText("Camille User").first().click();
 
   await page.getByRole("button", { name: "Actions candidature" }).click();
   await page.getByRole("menuitem", { name: "Éditer la candidature" }).click();
@@ -614,7 +614,7 @@ test("coach can edit a manual application from the user sheet", async ({ page })
   });
 
   await page.goto("/coach");
-  await page.getByText("Jordi User").first().click();
+  await page.getByText("Camille User").first().click();
 
   await page.getByRole("button", { name: "Actions candidature" }).click();
   await page.getByRole("menuitem", { name: "Éditer la candidature" }).click();

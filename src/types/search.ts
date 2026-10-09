@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { LocationEntry } from "@/services/location/locationCache";
+import { searchGoalSchema } from "@/types/preferences";
 
 export type BooleanMode = "AND" | "OR";
 
@@ -7,6 +8,7 @@ export interface SearchQuery {
   keywords: string[];
   locations: LocationEntry[];
   booleanMode: BooleanMode;
+  goal: "internship" | "job";
 }
 
 export const booleanModeSchema = z.enum(["AND", "OR"]);
@@ -32,4 +34,5 @@ export const searchQuerySchema = z.object({
   keywords: z.array(z.string().trim().min(1)).max(20),
   locations: z.array(locationEntrySchema).max(10),
   booleanMode: booleanModeSchema,
+  goal: searchGoalSchema.default("job"),
 });

@@ -1,11 +1,6 @@
 import { JobApplication } from "@/types/application";
 import { AuthUser, UserRole } from "@/types/auth";
-
-export type TrackingPhase =
-  | "internship_search"
-  | "job_search"
-  | "placed"
-  | "dropped";
+import { SearchGoal } from "@/types/preferences";
 
 export interface CoachGroupMember {
   id: number;
@@ -38,7 +33,7 @@ export interface CoachUserSummary {
   firstName: string;
   lastName: string;
   role: UserRole;
-  trackingPhase: TrackingPhase;
+  searchGoal: SearchGoal;
   groupIds: number[];
   groupNames: string[];
   applicationCount: number;

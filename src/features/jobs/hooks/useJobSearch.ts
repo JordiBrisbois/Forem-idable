@@ -34,6 +34,7 @@ export function useJobSearch() {
         keywords: query.keywords,
         locations: query.locations,
         booleanMode: query.booleanMode,
+        goal: query.goal,
         limit: INITIAL_FETCH_LIMIT,
         offset: 0,
       });
@@ -61,6 +62,7 @@ export function useJobSearch() {
         keywords: lastSearchQuery.keywords,
         locations: lastSearchQuery.locations,
         booleanMode: lastSearchQuery.booleanMode,
+        goal: lastSearchQuery.goal,
         limit: FETCH_CHUNK_SIZE,
         offset: nextOffset,
       });

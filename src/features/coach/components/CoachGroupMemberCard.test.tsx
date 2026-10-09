@@ -32,8 +32,8 @@ vi.mock("@/components/ui/dropdown-menu", () => ({
   ),
 }));
 
-vi.mock("@/features/coach/components/CoachPhaseBadge", () => ({
-  CoachPhaseBadge: ({ phase }: { phase: string }) => <span data-testid="phase-badge">{phase}</span>,
+vi.mock("@/features/coach/components/CoachGoalBadge", () => ({
+  CoachGoalBadge: ({ goal }: { goal: string }) => <span data-testid="goal-badge">{goal}</span>,
 }));
 
 vi.mock("@/features/coach/components/CoachUserActivityMeta", () => ({
@@ -47,7 +47,7 @@ function buildUser(overrides: Partial<CoachUserSummary> = {}): CoachUserSummary 
     firstName: "Ada",
     lastName: "Lovelace",
     role: "user",
-    trackingPhase: "job_search",
+    searchGoal: "job",
     groupIds: [1],
     groupNames: ["Groupe A"],
     applicationCount: 3,

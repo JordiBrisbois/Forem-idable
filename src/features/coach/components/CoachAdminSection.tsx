@@ -28,6 +28,7 @@ interface CoachAdminSectionProps {
   onPromoteCoachOpenChange: (open: boolean) => void;
   onPromoteCoach: (userId: number) => void;
   onDemoteCoach: (userId: number) => void;
+  onOpenCreateCoach: () => void;
 }
 
 export function CoachAdminSection({
@@ -38,6 +39,7 @@ export function CoachAdminSection({
   onPromoteCoachOpenChange,
   onPromoteCoach,
   onDemoteCoach,
+  onOpenCreateCoach,
 }: CoachAdminSectionProps) {
   const [demotionTargetId, setDemotionTargetId] = useState<number | null>(null);
   const [search, setSearch] = useState("");
@@ -84,10 +86,16 @@ export function CoachAdminSection({
               Gestion des accès coach, des promotions globales et des rétrogradations.
             </CardDescription>
           </div>
-          <Button type="button" onClick={() => onPromoteCoachOpenChange(true)}>
-            <ShieldPlus data-icon="inline-start" />
-            Promouvoir un coach
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={onOpenCreateCoach}>
+              <ShieldPlus data-icon="inline-start" />
+              Créer un coach
+            </Button>
+            <Button type="button" onClick={() => onPromoteCoachOpenChange(true)}>
+              <ShieldPlus data-icon="inline-start" />
+              Promouvoir un coach
+            </Button>
+          </div>
         </div>
       </CardHeader>
 

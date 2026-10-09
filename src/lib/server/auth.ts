@@ -1,17 +1,18 @@
-import { serverConfig } from "@/config/runtime.server";
+import { runtimeConfig } from "@/config/runtime";
 import { createHash, randomBytes, scryptSync, timingSafeEqual } from "crypto";
 import { and, eq, gt, isNotNull, or, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { passwordResetTokens, sessions, users } from "@/lib/server/schema";
 import { AuthUser } from "@/types/auth";
+import { SearchGoal } from "@/types/preferences";
 import { anonymizeAuditLogsForUser } from "@/lib/server/auditLog";
 
-const SESSION_COOKIE = serverConfig.app.sessionCookieName;
+const SESSION_COOKIE = runtimeConfig.app.sessionCookieName;
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 24 * 7;
 const PASSWORD_RESET_DURATION_MS = 1000 * 60 * 60;
 
-function hashPassword(password: string, salt = randomBytes(16).toString("hex")) {
+export function hashPassword(password: string, salt = randomBytes(16).toString("hex")) {
   const derived = scryptSync(password, salt, 64).toString("hex");
   return `${salt}:${derived}`;
 }
@@ -51,46 +52,47 @@ export async function getUserPasswordHash(userId: number): Promise<string | null
   return row?.passwordHash ?? null;
 }
 
+export async function getUserCount(): Promise<number> {
+  await ensureDatabase();
+  if (!orm) throw new Error("Database unavailable");
+
+  const [row] = await orm.select({ count: sql<string>`COUNT(*)::text` }).from(users);
+  return Number(row?.count ?? "0");
+}
+
 export async function createUser(
   email: string,
   password: string,
   firstName: string,
-  lastName: string
+  lastName: string,
+  role: AuthUser["role"] = "user",
+  searchGoal: SearchGoal = "job"
 ) {
   await ensureDatabase();
   if (!orm) throw new Error("Database unavailable");
 
   const normalizedEmail = normalizeEmail(email);
   const passwordHash = hashPassword(password);
-  const normalizedFirstName = normalizeProfileValue(firstName);
-  const normalizedLastName = normalizeProfileValue(lastName);
 
-  return orm.transaction(async (tx) => {
-    // Serialize first-user bootstrap so only one account can become admin.
-    await tx.execute(sql`SELECT pg_advisory_xact_lock(${4_016_001})`);
+  const [createdUser] = await orm
+    .insert(users)
+    .values({
+      email: normalizedEmail,
+      passwordHash,
+      firstName: normalizeProfileValue(firstName),
+      lastName: normalizeProfileValue(lastName),
+      role,
+      searchGoal,
+    })
+    .returning({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      role: users.role,
+    });
 
-    const [{ count }] = await tx.select({ count: sql<string>`COUNT(*)::text` }).from(users);
-    const nextRole: AuthUser["role"] = count === "0" ? "admin" : "user";
-
-    const [createdUser] = await tx
-      .insert(users)
-      .values({
-        email: normalizedEmail,
-        passwordHash,
-        firstName: normalizedFirstName,
-        lastName: normalizedLastName,
-        role: nextRole,
-      })
-      .returning({
-        id: users.id,
-        email: users.email,
-        firstName: users.firstName,
-        lastName: users.lastName,
-        role: users.role,
-      });
-
-    return createdUser;
-  });
+  return createdUser;
 }
 
 export async function authenticateUser(email: string, password: string) {

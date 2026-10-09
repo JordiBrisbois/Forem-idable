@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createCoachAccount } from "@/lib/server/accounts";
 import { requireAdminAccess, setUserRole } from "@/lib/server/coach";
 import { withRequestContext } from "@/lib/server/observability";
 import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
 import {
-  positiveIntegerBodySchema,
+  adminCoachCreateBodySchema,
   positiveIntegerParamSchema,
   readValidatedJson,
 } from "@/lib/server/requestSchemas";
@@ -19,19 +20,33 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      const parsed = await readValidatedJson(request, positiveIntegerBodySchema);
+      const parsed = await readValidatedJson(request, adminCoachCreateBodySchema);
       if (!parsed.success) {
-        return NextResponse.json({ error: "Utilisateur invalide." }, { status: 400 });
+        return NextResponse.json({ error: parsed.error }, { status: 400 });
       }
 
-      await setUserRole(parsed.data.userId, "coach", user.id);
-      return NextResponse.json({ ok: true });
+      if ("userId" in parsed.data) {
+        await setUserRole(parsed.data.userId, "coach", user.id);
+        return NextResponse.json({ ok: true });
+      }
+
+      const { user: created, temporaryPassword } = await createCoachAccount(user, parsed.data);
+      return NextResponse.json({ ok: true, user: created, temporaryPassword });
     } catch (error) {
-      if (error instanceof Error && error.message === "User not found") {
+      const message = error instanceof Error ? error.message : "unknown";
+
+      if (message === "User not found") {
         return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
       }
 
-      return NextResponse.json({ error: "Promotion coach impossible." }, { status: 500 });
+      if (message.includes("duplicate") || message.includes("unique")) {
+        return NextResponse.json(
+          { error: "Un compte existe déjà avec cette adresse email." },
+          { status: 409 }
+        );
+      }
+
+      return NextResponse.json({ error: "Création du coach impossible." }, { status: 500 });
     }
   });
 }

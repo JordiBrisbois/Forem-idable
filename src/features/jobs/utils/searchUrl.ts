@@ -33,6 +33,7 @@ export function toSearchParams(query: SearchQuery): URLSearchParams {
     .forEach((kw) => params.append("kw", kw));
 
   params.set("bm", query.booleanMode);
+  params.set("goal", query.goal);
 
   if (query.locations.length > 0) {
     params.set("loc", JSON.stringify(normalizeLocations(query.locations)));
@@ -54,6 +55,7 @@ export function fromSearchParams(params: SearchParamsLike): SearchQuery | null {
     .filter(Boolean);
 
   const booleanMode = params.get("bm") === "AND" ? "AND" : "OR";
+  const goal = params.get("goal") === "internship" ? "internship" : "job";
 
   let locations: LocationEntry[] = [];
   const rawLocations = params.get("loc");
@@ -90,5 +92,6 @@ export function fromSearchParams(params: SearchParamsLike): SearchQuery | null {
     keywords,
     locations,
     booleanMode,
+    goal,
   };
 }

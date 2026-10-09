@@ -34,6 +34,7 @@ describe("buildExportMetadata", () => {
       keywords: ["dev", "react"],
       booleanMode: "AND",
       locations: [{ id: "loc1", name: "4000 Liège", type: "Localités" }],
+      goal: "job",
     };
 
     const metadata = buildExportMetadata({

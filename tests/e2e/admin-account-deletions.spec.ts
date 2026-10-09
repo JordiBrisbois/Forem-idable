@@ -26,8 +26,8 @@ test("admin can approve and complete an account deletion request", async ({ page
       user: {
         id: 41,
         email: "user@example.test",
-        firstName: "Jordi",
-        lastName: "Brisbois",
+        firstName: "Camille",
+        lastName: "Rousseau",
         role: "user",
       },
     },
@@ -116,7 +116,7 @@ test("admin can approve and complete an account deletion request", async ({ page
 
   await expect(page.getByRole("main").getByText("Administration", { exact: true })).toBeVisible();
   await expect(page.getByRole("main").getByText("Demandes de suppression", { exact: true })).toBeVisible();
-  await expect(page.getByRole("main").getByText("Jordi Brisbois", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("Camille Rousseau", { exact: true })).toBeVisible();
 
   await page.getByLabel("Note de revue").fill("Demande validée après vérification.");
   await page.getByRole("button", { name: "Approuver" }).click();
@@ -146,8 +146,8 @@ test("admin can reject an account deletion request without breaking the page", a
       user: {
         id: 41,
         email: "user@example.test",
-        firstName: "Jordi",
-        lastName: "Brisbois",
+        firstName: "Camille",
+        lastName: "Rousseau",
         role: "user",
       },
     },
@@ -233,5 +233,5 @@ test("admin can reject an account deletion request without breaking the page", a
   await page.getByRole("radio", { name: /Refusées/ }).click();
   await expect(page.getByRole("main").getByText("Refusée", { exact: true })).toBeVisible();
   await expect(page.getByText("Note revue: Compte conservé après vérification.")).toBeVisible();
-  await expect(page.getByRole("main").getByText("Jordi Brisbois", { exact: true })).toBeVisible();
+  await expect(page.getByRole("main").getByText("Camille Rousseau", { exact: true })).toBeVisible();
 });

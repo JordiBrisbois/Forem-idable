@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ForemIdableLogo } from "@/components/branding/ForemIdableLogo";
+import { AppLogo } from "@/components/branding/AppLogo";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function SiteHeader() {
@@ -9,7 +9,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-30 flex h-14 items-center border-b bg-background/95 px-4 backdrop-blur lg:hidden">
       <SidebarTrigger />
       <Link href="/" className="ml-4 inline-flex items-center">
-        <ForemIdableLogo className="h-7" />
+        <AppLogo className="h-7" />
       </Link>
     </header>
   );

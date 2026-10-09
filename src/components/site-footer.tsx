@@ -15,14 +15,16 @@ export function SiteFooter() {
           <Link href="/about" className="underline-offset-4 hover:text-foreground hover:underline">
             À propos
           </Link>
-          <a
-            href={runtimeConfig.privacy.sourceUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {runtimeConfig.app.sourceLinkLabel}
-          </a>
+          {runtimeConfig.privacy.sourceUrl ? (
+            <a
+              href={runtimeConfig.privacy.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline-offset-4 hover:text-foreground hover:underline"
+            >
+              {runtimeConfig.app.sourceLinkLabel}
+            </a>
+          ) : null}
         </div>
       </div>
     </footer>

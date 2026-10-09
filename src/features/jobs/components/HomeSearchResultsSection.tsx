@@ -92,7 +92,7 @@ export function HomeSearchResultsSection({
             <div className="flex h-64 flex-col items-center justify-center gap-4 rounded-[20px] bg-linear-to-br from-muted/10 to-muted/30">
               <div className="size-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
               <p className="animate-pulse font-medium text-muted-foreground">
-                Le FOREM-fouille analyse les offres...
+                Analyse des offres en cours...
               </p>
             </div>
           ) : (
