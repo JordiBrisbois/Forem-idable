@@ -70,15 +70,8 @@ async function buildUserDataExport(userId: number) {
   );
   const user = userResult.rows[0] ?? null;
 
-  const [settings, searchHistory, groups, managedGroups, applications, apiKeys, conversations] =
+  const [searchHistory, groups, managedGroups, applications, apiKeys, conversations] =
     await Promise.all([
-      db.query(
-        `SELECT settings, theme, analytics_consent, locations_cache, updated_at
-         FROM user_settings
-         WHERE user_id = $1
-         LIMIT 1`,
-        [userId]
-      ),
       db.query(
         `SELECT entry_id, position, entry, created_at
          FROM user_search_history
@@ -141,7 +134,6 @@ async function buildUserDataExport(userId: number) {
     privateNoteContributors,
     sharedNotes,
     sharedNoteContributors,
-    applicationEvents,
     conversationParticipants,
     conversationMessages,
     conversationReads,
@@ -184,15 +176,6 @@ async function buildUserDataExport(userId: number) {
           [applicationIds]
         )
       : Promise.resolve({ rows: [] }),
-    applicationIds.length
-      ? db.query(
-          `SELECT *
-           FROM application_events
-           WHERE application_id = ANY($1::bigint[])
-           ORDER BY created_at DESC`,
-          [applicationIds]
-        )
-      : Promise.resolve({ rows: [] }),
     conversationIds.length
       ? db.query(
           `SELECT conversation_id,
@@ -231,7 +214,6 @@ async function buildUserDataExport(userId: number) {
   return {
     exportedAt: new Date().toISOString(),
     user,
-    settings: settings.rows[0] ?? null,
     searchHistory: searchHistory.rows,
     groups: groups.rows,
     managedGroups: managedGroups.rows,
@@ -240,7 +222,6 @@ async function buildUserDataExport(userId: number) {
     applicationPrivateNoteContributors: privateNoteContributors.rows,
     applicationSharedNotes: sharedNotes.rows,
     applicationSharedNoteContributors: sharedNoteContributors.rows,
-    applicationEvents: applicationEvents.rows,
     apiKeys: apiKeys.rows,
     conversations: conversations.rows,
     conversationParticipants: conversationParticipants.rows,

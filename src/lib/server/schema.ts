@@ -51,24 +51,6 @@ export const sessions = pgTable(
   })
 );
 
-/** Saved job bookmarks (pre-selection pipeline, distinct from tracked applications). */
-export const userFavorites = pgTable(
-  "user_favorites",
-  {
-    userId: bigint("user_id", { mode: "number" })
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    jobId: text("job_id").notNull(),
-    position: integer("position").notNull().default(0),
-    job: jsonb("job").notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => ({
-    pk: primaryKey({ columns: [table.userId, table.jobId] }),
-    userPositionIdx: index("user_favorites_user_position_idx").on(table.userId, table.position),
-  })
-);
-
 /** Tracked job applications with follow-up scheduling, interview details, and soft-delete (archive). */
 export const applications = pgTable(
   "applications",
@@ -233,33 +215,6 @@ export const applicationSharedNoteContributors = pgTable(
   })
 );
 
-/** Immutable audit events for application lifecycle (status changes, notes, interviews). */
-export const applicationEvents = pgTable(
-  "application_events",
-  {
-    id: bigserial("id", { mode: "number" }).primaryKey(),
-    applicationId: bigint("application_id", { mode: "number" })
-      .notNull()
-      .references(() => applications.id, { onDelete: "cascade" }),
-    actorUserId: bigint("actor_user_id", { mode: "number" }).references(() => users.id, {
-      onDelete: "set null",
-    }),
-    eventType: text("event_type").notNull(),
-    payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  },
-  (table) => ({
-    applicationCreatedIdx: index("application_events_application_created_idx").on(
-      table.applicationId,
-      table.createdAt
-    ),
-    eventTypeCreatedIdx: index("application_events_event_type_created_idx").on(
-      table.eventType,
-      table.createdAt
-    ),
-  })
-);
-
 /** Job search session history for autocomplete and recent searches. */
 export const userSearchHistory = pgTable(
   "user_search_history",
@@ -297,18 +252,6 @@ export const featuredSearches = pgTable(
     updatedAtIdx: index("featured_searches_updated_at_idx").on(table.updatedAt),
   })
 );
-
-/** Per-user settings (theme, analytics consent, cached location data). */
-export const userSettings = pgTable("user_settings", {
-  userId: bigint("user_id", { mode: "number" })
-    .primaryKey()
-    .references(() => users.id, { onDelete: "cascade" }),
-  settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
-  theme: text("theme"),
-  analyticsConsent: text("analytics_consent"),
-  locationsCache: jsonb("locations_cache"),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
 
 /** Coach-managed beneficiary groups with optional archiving and manager assignment. */
 export const coachGroups = pgTable(
