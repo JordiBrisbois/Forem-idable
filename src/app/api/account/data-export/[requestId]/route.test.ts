@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { NextRequest } from "next/server";
 import { GET } from "./route";
 
 const mockGetCurrentUser = vi.fn();
@@ -27,7 +28,7 @@ describe("GET /api/account/data-export/[requestId]", () => {
       payload: { ok: true },
     });
 
-    const response = await GET(new Request("https://example.com"), {
+    const response = await GET(new NextRequest("https://example.com"), {
       params: Promise.resolve({ requestId: "12" }),
     });
 
@@ -45,7 +46,7 @@ describe("GET /api/account/data-export/[requestId]", () => {
       payload: { ok: true },
     });
 
-    const response = await GET(new Request("https://example.com"), {
+    const response = await GET(new NextRequest("https://example.com"), {
       params: Promise.resolve({ requestId: "12" }),
     });
 

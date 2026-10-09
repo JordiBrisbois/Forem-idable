@@ -42,6 +42,11 @@ export function withSessionHandler<
     body?: TBody;
     csrf?: boolean;
     bodyErrorMessage?: string;
+    /** Overrides the 403 message for a `Forbidden` error. */
+    forbiddenMessage?: string;
+    /** Overrides the 404 message for a `NotFound` error. */
+    notFoundMessage?: string;
+    /** Message returned as 500 for unexpected errors. */
     fallbackMessage: string;
   },
   handler: (ctx: {
@@ -63,7 +68,9 @@ export function withSessionHandler<
 
         const user = await resolveAccess(options.access);
         if (!user) {
-          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+          return options.access === "user"
+            ? NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+            : NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
         let body = undefined as BodyOf<TBody>;
@@ -80,13 +87,21 @@ export function withSessionHandler<
 
         return await handler({ request, user: user as UserFor<A>, body, params });
       } catch (error) {
+        const rawMessage = error instanceof Error ? error.message : "";
+        if (rawMessage === "Forbidden" && options.forbiddenMessage) {
+          return NextResponse.json({ error: options.forbiddenMessage }, { status: 403 });
+        }
+        if (rawMessage === "NotFound" && options.notFoundMessage) {
+          return NextResponse.json({ error: options.notFoundMessage }, { status: 404 });
+        }
+
         logServerEvent({
           category: options.access,
           action: "request_failed",
-          level: error instanceof Error && error.message === "Forbidden" ? "warn" : "error",
+          level: rawMessage === "Forbidden" ? "warn" : "error",
           meta: {
             path: request.nextUrl.pathname,
-            error: error instanceof Error ? error.message : "unknown",
+            error: rawMessage || "unknown",
           },
         });
         return handleApiError(error, { fallbackMessage: options.fallbackMessage });

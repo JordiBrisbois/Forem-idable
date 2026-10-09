@@ -1,26 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { publishConversationEvent } from "@/lib/server/messageEvents";
 import { deleteConversationMessage } from "@/lib/server/messaging";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ conversationId: string; messageId: string }> }
-) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const params = await context.params;
-    const conversationId = parseIntegerParam(params.conversationId);
-    const messageId = parseIntegerParam(params.messageId);
+export const DELETE = withSessionHandler(
+  {
+    access: "user",
+    notFoundMessage: "Message introuvable.",
+    fallbackMessage: "Suppression du message impossible.",
+  },
+  async ({ user, params }) => {
+    const conversationId = parseRouteId(params.conversationId as string);
+    const messageId = parseRouteId(params.messageId as string);
     if (!conversationId || !messageId) {
       return NextResponse.json({ error: "Identifiant invalide." }, { status: 400 });
     }
@@ -33,15 +25,5 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    if (error instanceof Error && error.message === "NotFound") {
-      return NextResponse.json({ error: "Message introuvable." }, { status: 404 });
-    }
-
-    return NextResponse.json({ error: "Suppression du message impossible." }, { status: 500 });
   }
-}
+);

@@ -1,34 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { getConversationDetail } from "@/lib/server/messaging";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ conversationId: string }> }
-) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const params = await context.params;
-    const conversationId = parseIntegerParam(params.conversationId);
+export const GET = withSessionHandler(
+  { access: "user", fallbackMessage: "Chargement de la conversation impossible." },
+  async ({ user, params }) => {
+    const conversationId = parseRouteId(params.conversationId as string);
     if (!conversationId) {
       return NextResponse.json({ error: "Conversation invalide." }, { status: 400 });
     }
 
-    const conversation = await getConversationDetail(user, conversationId);
-    return NextResponse.json({ conversation });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json(
-      { error: "Chargement de la conversation impossible." },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      conversation: await getConversationDetail(user, conversationId),
+    });
   }
-}
+);

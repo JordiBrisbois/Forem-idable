@@ -1,20 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { listDirectMessageTargets } from "@/lib/server/messaging";
 
-export async function GET() {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const contacts = await listDirectMessageTargets(user);
-    return NextResponse.json({ contacts });
-  } catch {
-    return NextResponse.json(
-      { error: "Chargement des contacts impossible." },
-      { status: 500 }
-    );
-  }
-}
+export const GET = withSessionHandler(
+  { access: "user", fallbackMessage: "Chargement des contacts impossible." },
+  async ({ user }) => NextResponse.json({ contacts: await listDirectMessageTargets(user) })
+);

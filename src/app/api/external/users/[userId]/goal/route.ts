@@ -1,44 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from "next/server";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 import { setUserSearchGoal } from "@/lib/server/coachGroups";
-import { requireExternalApiAccess } from "@/lib/server/externalApiRoute";
-import { searchGoalSchema } from "@/types/preferences";
+import { searchGoalUpdateSchema } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-const bodySchema = z.object({
-  goal: searchGoalSchema,
-  reason: z.string().optional(),
-});
-
-function parseUserId(value: string) {
-  const userId = Number(value);
-  return Number.isInteger(userId) ? userId : null;
-}
-
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
-) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
-    const { userId: rawUserId } = await context.params;
-    const userId = parseUserId(rawUserId);
-    const body = await request.json();
-    const parseResult = bodySchema.safeParse(body);
-
-    if (!userId || !parseResult.success) {
+export const PATCH = withExternalHandler(
+  {
+    body: searchGoalUpdateSchema,
+    fallbackMessage: "Changement d'objectif impossible.",
+  },
+  async ({ actor, body, params }) => {
+    const userId = parseRouteId(params.userId as string);
+    if (!userId) {
       return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
     }
 
-    const { goal, reason } = parseResult.data;
-    await setUserSearchGoal(userId, goal, reason, actor);
+    await setUserSearchGoal(userId, body.goal, body.reason, actor);
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json({ error: "Changement d'objectif impossible." }, { status: 500 });
   }
-}
+);

@@ -1,21 +1,13 @@
 import { NextResponse } from "next/server";
 import { runtimeConfig } from "@/config/runtime";
-import { getCurrentUser } from "@/lib/server/auth";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { getUserDataExportPayload } from "@/lib/server/compliance";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ requestId: string }> }
-) {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { requestId: rawRequestId } = await context.params;
-    const requestId = parseIntegerParam(rawRequestId);
+export const GET = withSessionHandler(
+  { access: "user", fallbackMessage: "Téléchargement impossible." },
+  async ({ user, params }) => {
+    const requestId = parseRouteId(params.requestId as string);
     if (!requestId) {
       return NextResponse.json({ error: "Export invalide." }, { status: 400 });
     }
@@ -29,7 +21,9 @@ export async function GET(
       return NextResponse.json({ error: "Export non disponible." }, { status: 409 });
     }
 
-    const expiresAt = exportRequest.summary.expiresAt ? new Date(exportRequest.summary.expiresAt) : null;
+    const expiresAt = exportRequest.summary.expiresAt
+      ? new Date(exportRequest.summary.expiresAt)
+      : null;
     if (expiresAt && !Number.isNaN(expiresAt.getTime()) && expiresAt.getTime() <= Date.now()) {
       return NextResponse.json({ error: "Export expiré." }, { status: 410 });
     }
@@ -44,7 +38,5 @@ export async function GET(
         "x-content-type-options": "nosniff",
       },
     });
-  } catch {
-    return NextResponse.json({ error: "Téléchargement impossible." }, { status: 500 });
   }
-}
+);

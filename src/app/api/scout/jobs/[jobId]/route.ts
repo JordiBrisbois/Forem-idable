@@ -1,25 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { db, ensureDatabase } from "@/lib/server/db";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { logServerEvent } from "@/lib/server/observability";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ jobId: string }> }
-) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+function safeJson(value: unknown) {
+  if (value === null || value === undefined) return value;
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
   }
+  return value;
+}
 
-  const { jobId: rawJobId } = await context.params;
-  const jobId = Number(rawJobId);
-  if (!jobId) {
-    return NextResponse.json({ error: "ID invalide." }, { status: 400 });
-  }
+export const GET = withSessionHandler(
+  { access: "user", fallbackMessage: "Chargement impossible." },
+  async ({ user, params }) => {
+    const jobId = parseRouteId(params.jobId as string);
+    if (!jobId) {
+      return NextResponse.json({ error: "ID invalide." }, { status: 400 });
+    }
 
-  try {
     await ensureDatabase();
     const jobResult = await db.query<{
       id: number;
@@ -74,19 +77,8 @@ export async function GET(
       [jobId]
     );
 
-    function safeJson(value: unknown) {
-      if (value === null || value === undefined) return value;
-      if (typeof value === "string") {
-        try { return JSON.parse(value); } catch { return value; }
-      }
-      return value;
-    }
-
     return NextResponse.json({
-      job: {
-        ...job,
-        categories: safeJson(job.categories),
-      },
+      job: { ...job, categories: safeJson(job.categories) },
       results: resultsResult.rows.map((r) => ({
         id: r.id,
         name: r.name,
@@ -103,36 +95,17 @@ export async function GET(
         osmId: r.osm_id,
       })),
     });
-  } catch (error) {
-    logServerEvent({
-      category: "scout",
-      action: "get_job_failed",
-      level: "error",
-      meta: { error: error instanceof Error ? error.message : "unknown" },
-    });
-    return NextResponse.json({ error: "Chargement impossible." }, { status: 500 });
   }
-}
+);
 
-export async function DELETE(
-  _request: NextRequest,
-  context: { params: Promise<{ jobId: string }> }
-) {
-  const forbidden = rejectCrossOriginRequest(_request);
-  if (forbidden) return forbidden;
+export const DELETE = withSessionHandler(
+  { access: "user", fallbackMessage: "Suppression impossible." },
+  async ({ user, params }) => {
+    const jobId = parseRouteId(params.jobId as string);
+    if (!jobId) {
+      return NextResponse.json({ error: "ID invalide." }, { status: 400 });
+    }
 
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { jobId: rawJobId } = await context.params;
-  const jobId = Number(rawJobId);
-  if (!jobId) {
-    return NextResponse.json({ error: "ID invalide." }, { status: 400 });
-  }
-
-  try {
     await ensureDatabase();
     const check = await db.query<{ user_id: number }>(
       `SELECT user_id FROM scout_jobs WHERE id = $1`,
@@ -147,13 +120,5 @@ export async function DELETE(
 
     await db.query(`DELETE FROM scout_jobs WHERE id = $1`, [jobId]);
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    logServerEvent({
-      category: "scout",
-      action: "delete_job_failed",
-      level: "error",
-      meta: { error: error instanceof Error ? error.message : "unknown" },
-    });
-    return NextResponse.json({ error: "Suppression impossible." }, { status: 500 });
   }
-}
+);

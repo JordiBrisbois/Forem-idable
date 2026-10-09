@@ -47,6 +47,11 @@ const MAPPINGS: Array<{ match: string; status: number; message: string }> = [
     message: "Seules les candidatures manuelles peuvent modifier ces champs.",
   },
   { match: "Invalid group", status: 400, message: "Classe invalide." },
+  {
+    match: "InvalidConversationType",
+    status: 400,
+    message: "Cette conversation ne peut pas être fermée.",
+  },
   { match: "Group not found", status: 404, message: "Classe introuvable." },
   { match: "Application not found", status: 404, message: "Candidature introuvable." },
   { match: "User not found", status: 404, message: "Utilisateur introuvable." },
@@ -66,7 +71,11 @@ export function handleApiError(
     return NextResponse.json({ error: message || "Introuvable." }, { status: 404 });
   }
 
-  if (name === "DeletionRequestStatusError" || name === "ActiveLegalHoldError") {
+  if (
+    name === "DeletionRequestStatusError" ||
+    name === "ActiveLegalHoldError" ||
+    name === "DuplicateDeletionRequestError"
+  ) {
     return NextResponse.json({ error: message || "Conflit." }, { status: 409 });
   }
 

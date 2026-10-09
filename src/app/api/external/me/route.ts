@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/authz";
-import { requireExternalApiAccess } from "@/lib/server/externalApiRoute";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 
-export async function GET() {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-    return NextResponse.json({
+export const GET = withExternalHandler(
+  { fallbackMessage: "API externe indisponible." },
+  async ({ actor }) =>
+    NextResponse.json({
       actor,
       capabilities: {
         formats: ["json", "csv"],
@@ -59,10 +58,7 @@ export async function GET() {
           groupDetailCsv: ["format"],
         },
         derivedFields: {
-          externalApplications: [
-            "isFollowUpDue",
-            "isInterviewScheduled",
-          ],
+          externalApplications: ["isFollowUpDue", "isInterviewScheduled"],
           csvColumns: ["Relance due", "Entretien planifie"],
         },
         writeActions: [
@@ -76,14 +72,10 @@ export async function GET() {
         ],
         scope: {
           visibility: isAdmin(actor.role) ? "global" : "assigned_groups",
-          description:
-            isAdmin(actor.role)
-              ? "Accès global à tous les groupes, bénéficiaires et candidatures."
-              : "Accès limité aux groupes attribués au coach et aux bénéficiaires visibles dans ces groupes.",
+          description: isAdmin(actor.role)
+            ? "Accès global à tous les groupes, bénéficiaires et candidatures."
+            : "Accès limité aux groupes attribués au coach et aux bénéficiaires visibles dans ces groupes.",
         },
       },
-    });
-  } catch {
-    return NextResponse.json({ error: "API externe indisponible." }, { status: 500 });
-  }
-}
+    })
+);

@@ -1,38 +1,25 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { runtimeConfig } from "@/config/runtime";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 import {
   buildApplicationsCsv,
   getExternalApplications,
   getExternalGroupDetail,
 } from "@/lib/server/externalApi";
-import {
-  csvResponse,
-  getRequestedFormat,
-  requireExternalApiAccess,
-} from "@/lib/server/externalApiRoute";
+import { csvResponse, getRequestedFormat } from "@/lib/server/externalApiRoute";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-function parseGroupId(value: string) {
-  const id = Number(value);
-  return Number.isInteger(id) ? id : null;
-}
-
-export async function GET(
-  request: NextRequest,
-  context: { params: Promise<{ groupId: string }> }
-) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
-    const { groupId: rawGroupId } = await context.params;
-    const groupId = parseGroupId(rawGroupId);
+export const GET = withExternalHandler(
+  { fallbackMessage: "Export groupe impossible." },
+  async ({ request, actor, params }) => {
+    const groupId = parseRouteId(params.groupId as string);
     if (!groupId) {
-      return NextResponse.json({ error: "Groupe invalide." }, { status: 400 });
+      return NextResponse.json({ error: "Classe invalide." }, { status: 400 });
     }
 
     const group = await getExternalGroupDetail(actor, groupId);
     if (!group) {
-      return NextResponse.json({ error: "Groupe introuvable." }, { status: 404 });
+      return NextResponse.json({ error: "Classe introuvable." }, { status: 404 });
     }
 
     if (getRequestedFormat(request) === "csv") {
@@ -50,7 +37,5 @@ export async function GET(
     }
 
     return NextResponse.json({ actor, group });
-  } catch {
-    return NextResponse.json({ error: "Export groupe impossible." }, { status: 500 });
   }
-}
+);

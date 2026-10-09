@@ -1,18 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { runtimeConfig } from "@/config/runtime";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 import { buildUsersCsv, getExternalUsers } from "@/lib/server/externalApi";
-import {
-  csvResponse,
-  getRequestedFormat,
-  parseExternalFilters,
-  requireExternalApiAccess,
-} from "@/lib/server/externalApiRoute";
+import { csvResponse, getRequestedFormat, parseExternalFilters } from "@/lib/server/externalApiRoute";
 
-export async function GET(request: NextRequest) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
+export const GET = withExternalHandler(
+  { fallbackMessage: "Export utilisateurs impossible." },
+  async ({ request, actor }) => {
     const response = await getExternalUsers(actor, parseExternalFilters(request));
     if (getRequestedFormat(request) === "csv") {
       return csvResponse(
@@ -22,7 +16,5 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(response);
-  } catch {
-    return NextResponse.json({ error: "Export utilisateurs impossible." }, { status: 500 });
   }
-}
+);

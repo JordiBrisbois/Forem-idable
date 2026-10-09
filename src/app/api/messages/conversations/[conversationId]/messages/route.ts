@@ -1,25 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { publishConversationEvent } from "@/lib/server/messageEvents";
 import { sendTextMessage } from "@/lib/server/messaging";
 import { sendConversationMessageSchema } from "@/lib/server/messagingSchemas";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
 import { checkRateLimit } from "@/lib/server/rateLimit";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ conversationId: string }> }
-) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
+export const POST = withSessionHandler(
+  {
+    access: "user",
+    body: sendConversationMessageSchema,
+    bodyErrorMessage: "Message invalide.",
+    fallbackMessage: "Envoi du message impossible.",
+  },
+  async ({ user, body, params }) => {
     const rateLimit = await checkRateLimit({
       scope: "messages-send",
       limit: 60,
@@ -33,18 +27,12 @@ export async function POST(
       );
     }
 
-    const params = await context.params;
-    const conversationId = parseIntegerParam(params.conversationId);
+    const conversationId = parseRouteId(params.conversationId as string);
     if (!conversationId) {
       return NextResponse.json({ error: "Conversation invalide." }, { status: 400 });
     }
 
-    const body = sendConversationMessageSchema.safeParse(await request.json());
-    if (!body.success) {
-      return NextResponse.json({ error: "Message invalide." }, { status: 400 });
-    }
-
-    const result = await sendTextMessage(user, conversationId, body.data.content);
+    const result = await sendTextMessage(user, conversationId, body.content);
     if ("cleared" in result) {
       await publishConversationEvent(conversationId, {
         type: "conversation.cleared",
@@ -61,14 +49,5 @@ export async function POST(
     });
 
     return NextResponse.json({ message: result });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json(
-      { error: "Envoi du message impossible." },
-      { status: 500 }
-    );
   }
-}
+);

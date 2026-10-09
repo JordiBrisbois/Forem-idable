@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { runtimeConfig } from "@/config/runtime";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 import {
   buildApplicationsCsv,
   getExternalApplications,
@@ -9,15 +10,12 @@ import {
   csvResponse,
   getRequestedFormat,
   parseExternalFilters,
-  requireExternalApiAccess,
 } from "@/lib/server/externalApiRoute";
 import { externalApplicationUpsertSchema } from "@/lib/server/requestSchemas";
 
-export async function GET(request: NextRequest) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
+export const GET = withExternalHandler(
+  { fallbackMessage: "Export candidatures impossible." },
+  async ({ request, actor }) => {
     const response = await getExternalApplications(actor, parseExternalFilters(request));
     if (getRequestedFormat(request) === "csv") {
       return csvResponse(
@@ -27,30 +25,18 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json(response);
-  } catch {
-    return NextResponse.json({ error: "Export candidatures impossible." }, { status: 500 });
   }
-}
+);
 
-export async function PUT(request: NextRequest) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
-    const parsed = externalApplicationUpsertSchema.safeParse(await request.json());
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "match.userId, match.jobId et data.job.title sont requis." },
-        { status: 400 }
-      );
-    }
-    const body = parsed.data;
-
+export const PUT = withExternalHandler(
+  {
+    body: externalApplicationUpsertSchema,
+    bodyErrorMessage: "match.userId, match.jobId et data.job.title sont requis.",
+    fallbackMessage: "Upsert candidature impossible.",
+  },
+  async ({ actor, body }) => {
     const response = await upsertExternalApplication(actor, {
-      match: {
-        userId: body.match.userId,
-        jobId: body.match.jobId,
-      },
+      match: { userId: body.match.userId, jobId: body.match.jobId },
       data: {
         status: body.data.status,
         notes: body.data.notes,
@@ -76,11 +62,5 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json(response, { status: response.created ? 201 : 200 });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json({ error: "Upsert candidature impossible." }, { status: 500 });
   }
-}
+);

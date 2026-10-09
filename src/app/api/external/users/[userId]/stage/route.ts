@@ -1,36 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withExternalHandler } from "@/lib/server/apiHandler";
 import { setBeneficiaryStage } from "@/lib/server/coachGroups";
-import { requireExternalApiAccess } from "@/lib/server/externalApiRoute";
-import { beneficiaryStageUpdateSchema, readValidatedJson } from "@/lib/server/requestSchemas";
+import { beneficiaryStageUpdateSchema } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-function parseUserId(value: string) {
-  const userId = Number(value);
-  return Number.isInteger(userId) ? userId : null;
-}
-
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
-) {
-  try {
-    const actor = await requireExternalApiAccess();
-    if (actor instanceof NextResponse) return actor;
-
-    const { userId: rawUserId } = await context.params;
-    const userId = parseUserId(rawUserId);
-    const parsed = await readValidatedJson(request, beneficiaryStageUpdateSchema);
-
-    if (!userId || !parsed.success) {
-      return NextResponse.json({ error: parsed.success ? "Paramètres invalides." : parsed.error }, { status: 400 });
+export const PATCH = withExternalHandler(
+  {
+    body: beneficiaryStageUpdateSchema,
+    fallbackMessage: "Changement d'étape impossible.",
+  },
+  async ({ actor, body, params }) => {
+    const userId = parseRouteId(params.userId as string);
+    if (!userId) {
+      return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
     }
 
-    await setBeneficiaryStage(userId, parsed.data.stage, parsed.data.reason, actor);
+    await setBeneficiaryStage(userId, body.stage, body.reason, actor);
     return NextResponse.json({ ok: true });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json({ error: "Changement d'étape impossible." }, { status: 500 });
   }
-}
+);

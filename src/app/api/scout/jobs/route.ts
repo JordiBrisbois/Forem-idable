@@ -1,12 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { z } from "zod";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { db, ensureDatabase } from "@/lib/server/db";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
+import { checkRateLimit } from "@/lib/server/rateLimit";
 import { geocodeTown } from "@/lib/server/scoutNominatim";
 import { SCOUT_CATEGORIES } from "@/lib/server/scoutOverpass";
-import { logServerEvent } from "@/lib/server/observability";
-import { checkRateLimit } from "@/lib/server/rateLimit";
-import { z } from "zod";
 
 const createJobSchema = z.object({
   query: z.string().min(1).max(200),
@@ -15,26 +13,17 @@ const createJobSchema = z.object({
   scrapeEmails: z.boolean().optional(),
 });
 
-export async function POST(request: NextRequest) {
-  const forbidden = rejectCrossOriginRequest(request);
-  if (forbidden) return forbidden;
-
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
+export const POST = withSessionHandler(
+  {
+    access: "user",
+    body: createJobSchema,
+    bodyErrorMessage: "Requête invalide.",
+    fallbackMessage: "Création impossible.",
+  },
+  async ({ user, body }) => {
     await ensureDatabase();
-    const body = await request.json();
-    const parsed = createJobSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Requête invalide." }, { status: 400 });
-    }
+    const { query, radius, categories, scrapeEmails } = body;
 
-    const { query, radius, categories, scrapeEmails } = parsed.data;
-
-    // Rate limit: 5 jobs per hour per user
     const hourlyLimit = await checkRateLimit({
       scope: "scout-jobs-hourly",
       limit: 5,
@@ -48,7 +37,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limit scraping: 1 scrape job per 10 minutes per user
     if (scrapeEmails) {
       const scrapeLimit = await checkRateLimit({
         scope: "scout-scrape",
@@ -64,7 +52,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Max 2 active jobs per user (queued or running)
     const runningUser = await db.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM scout_jobs WHERE user_id = $1 AND status IN ('queued', 'running')`,
       [user.id]
@@ -76,7 +63,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Global max 3 active jobs (queued or running)
     const runningGlobal = await db.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM scout_jobs WHERE status IN ('queued', 'running')`
     );
@@ -111,27 +97,13 @@ export async function POST(request: NextRequest) {
       ]
     );
 
-    const jobId = result.rows[0].id;
-
-    return NextResponse.json({ jobId }, { status: 201 });
-  } catch (error) {
-    logServerEvent({
-      category: "scout",
-      action: "create_job_failed",
-      level: "error",
-      meta: { error: error instanceof Error ? error.message : "unknown" },
-    });
-    return NextResponse.json({ error: "Création impossible." }, { status: 500 });
+    return NextResponse.json({ jobId: result.rows[0].id }, { status: 201 });
   }
-}
+);
 
-export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  try {
+export const GET = withSessionHandler(
+  { access: "user", fallbackMessage: "Chargement impossible." },
+  async ({ user }) => {
     await ensureDatabase();
     const result = await db.query<{
       id: number;
@@ -154,13 +126,5 @@ export async function GET() {
     );
 
     return NextResponse.json({ jobs: result.rows });
-  } catch (error) {
-    logServerEvent({
-      category: "scout",
-      action: "list_jobs_failed",
-      level: "error",
-      meta: { error: error instanceof Error ? error.message : "unknown" },
-    });
-    return NextResponse.json({ error: "Chargement impossible." }, { status: 500 });
   }
-}
+);

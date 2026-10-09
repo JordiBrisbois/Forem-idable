@@ -15,6 +15,7 @@ export const PATCH = withSessionHandler(
   {
     access: "coach",
     body: managedUserUpdateSchema,
+    forbiddenMessage: "Modification interdite pour ce périmètre.",
     fallbackMessage: "Mise à jour utilisateur impossible.",
   },
   async ({ user: actor, body, params }) => {

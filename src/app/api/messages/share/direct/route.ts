@@ -1,32 +1,26 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/server/auth";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { publishMessageEvent } from "@/lib/server/messageEvents";
 import { shareTextInDirectConversation } from "@/lib/server/messaging";
 import { shareDirectMessageSchema } from "@/lib/server/messagingSchemas";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
 
-export async function POST(request: NextRequest) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const body = shareDirectMessageSchema.safeParse(await request.json());
-    if (!body.success) {
-      return NextResponse.json({ error: "Demande invalide." }, { status: 400 });
-    }
-
+export const POST = withSessionHandler(
+  {
+    access: "user",
+    body: shareDirectMessageSchema,
+    bodyErrorMessage: "Demande invalide.",
+    forbiddenMessage: "Ce destinataire n'est pas disponible en message privé.",
+    notFoundMessage: "Destinataire introuvable.",
+    fallbackMessage: "Partage privé impossible.",
+  },
+  async ({ user, body }) => {
     const result = await shareTextInDirectConversation(
       user,
-      body.data.targetUserId,
-      body.data.content
+      body.targetUserId,
+      body.content
     );
 
-    await publishMessageEvent([user.id, body.data.targetUserId], {
+    await publishMessageEvent([user.id, body.targetUserId], {
       type: "conversation.message_created",
       conversationId: result.conversationId,
       messageId: result.message.id,
@@ -34,22 +28,5 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(result);
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json(
-        { error: "Ce destinataire n'est pas disponible en message privé." },
-        { status: 403 }
-      );
-    }
-
-    if (error instanceof Error && error.message === "NotFound") {
-      return NextResponse.json({ error: "Destinataire introuvable." }, { status: 404 });
-    }
-
-    if (error instanceof Error && error.message === "InvalidDirectMessageContent") {
-      return NextResponse.json({ error: "Message privé invalide." }, { status: 400 });
-    }
-
-    return NextResponse.json({ error: "Partage privé impossible." }, { status: 500 });
   }
-}
+);
