@@ -1,9 +1,31 @@
 import { defineConfig, devices } from "@playwright/test";
-import {
-  E2E_BASE_URL,
-  E2E_SESSION_COOKIE_NAME,
-  authenticatedStorageState,
-} from "./tests/e2e/support/session";
+
+/**
+ * Auth/DB constants for the E2E suite. They are intentionally duplicated from
+ * `tests/e2e/support/session.ts` instead of imported: the Next.js Docker build
+ * excludes `tests/` (see .dockerignore), so this root config must stay
+ * self-contained to type-check during `next build`.
+ *
+ * Keep the cookie name/value in sync with tests/e2e/support/session.ts.
+ */
+const E2E_BASE_URL = "http://127.0.0.1:3001";
+const E2E_SESSION_COOKIE_NAME = "e2e_session";
+
+const authenticatedState = {
+  cookies: [
+    {
+      name: E2E_SESSION_COOKIE_NAME,
+      value: "e2e-session",
+      domain: "127.0.0.1",
+      path: "/",
+      expires: -1,
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax" as const,
+    },
+  ],
+  origins: [],
+};
 
 const useRealDb = process.env.E2E_REAL_DB === "1";
 const realDatabaseUrl = process.env.E2E_DATABASE_URL;
@@ -23,7 +45,7 @@ export default defineConfig({
       name: "chromium",
       use: {
         ...devices["Desktop Chrome"],
-        storageState: useRealDb ? "tests/e2e/.auth/admin.json" : authenticatedStorageState(),
+        storageState: useRealDb ? "tests/e2e/.auth/admin.json" : authenticatedState,
       },
     },
   ],
