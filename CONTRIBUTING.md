@@ -32,6 +32,17 @@
 - Mocker les dépendances externes (DB, Redis, fetch) avec `vi.mock`
 - Pas de snapshot tests
 
+### E2E (Playwright)
+- **Session** : le middleware ne vérifie que la *présence* du cookie de session ; les specs
+  reçoivent donc un `storageState` (cookie `e2e_session`, cf. `playwright.config.ts`). Les
+  specs « déconnectées » le désactivent via `test.use({ storageState: emptyStorageState() })`.
+- **Local (mocks, sans base)** : `npm run test:e2e`.
+- **Réel (base jetable)** : `E2E_REAL_DB=1 E2E_DATABASE_URL=postgres://… npx playwright test`.
+  `tests/e2e/setup/global-setup.ts` réinitialise la base, crée l'admin via `/api/setup` et
+  écrit la session dans `tests/e2e/.auth/`.
+- **Secrets** : ne jamais committer de cookie, token ou identifiant de session
+  (`tests/e2e/.auth/` est gitignoré). Cibler une base **jetable**, jamais la prod.
+
 ### Commits
 Format : `<type>(<scope>): <description>`
 
