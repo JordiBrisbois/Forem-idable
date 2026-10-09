@@ -95,3 +95,8 @@ npm run maintenance:purge
 # Réinitialiser l'instance (⚠️ irréversible) : vide la base et rejoue le schéma
 node scripts/reset-demo.mjs
 ```
+
+> En conteneur (sans shell), on peut aussi définir `RESET_DATABASE_ON_BOOT=true`
+> le temps d'un redéploiement : la base est vidée puis le schéma baseline est
+> rejoué au démarrage. **Repassez ce flag à `false` juste après**, sinon chaque
+> redémarrage effacera les données.

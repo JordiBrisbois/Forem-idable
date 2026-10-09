@@ -122,6 +122,20 @@ async function applyMigration(pool: Pool, migration: MigrationFile) {
 
 export async function runDatabaseMigrations(pool: Pool) {
   try {
+    // One-shot maintenance escape hatch. Set RESET_DATABASE_ON_BOOT=true to drop
+    // every table and re-apply the baseline from scratch (used for a demo reset).
+    // MUST be turned back off afterwards, otherwise every restart wipes data.
+    if (process.env.RESET_DATABASE_ON_BOOT === "true") {
+      logServerEvent({
+        category: "db",
+        action: "reset_on_boot",
+        level: "warn",
+      });
+      await pool.query("DROP SCHEMA IF EXISTS public CASCADE");
+      await pool.query("DROP SCHEMA IF EXISTS drizzle CASCADE");
+      await pool.query("CREATE SCHEMA public");
+    }
+
     await ensureMigrationTable(pool);
 
     const migrations = await readMigrationFiles();
