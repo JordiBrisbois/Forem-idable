@@ -85,6 +85,8 @@ export async function GET(request: NextRequest) {
     upstream = await fetch(odwbUrl.toString(), {
       headers: { Accept: "application/json" },
       cache: "no-store",
+      // Don't let a slow upstream hang the route.
+      signal: AbortSignal.timeout(8000),
     });
   } catch {
     return NextResponse.json({ error: "Service d'offres indisponible." }, { status: 502 });
