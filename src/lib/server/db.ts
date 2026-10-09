@@ -1,5 +1,6 @@
 import { Pool } from "pg";
 import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
+import { runtimeConfig } from "@/config/runtime";
 import { runDatabaseMigrations } from "@/lib/server/migrations";
 import { logServerEvent } from "@/lib/server/observability";
 import * as schema from "@/lib/server/schema";
@@ -141,7 +142,8 @@ export async function ensureDatabase() {
 if (
   typeof process !== "undefined" &&
   process.env.NODE_ENV !== "test" &&
-  process.env.SCOUT_WORKER_ENABLED === "1"
+  process.env.SCOUT_WORKER_ENABLED === "1" &&
+  runtimeConfig.features.jobSearch
 ) {
   import("@/lib/server/scoutWorker").then(({ startScoutWorker }) => {
     startScoutWorker();

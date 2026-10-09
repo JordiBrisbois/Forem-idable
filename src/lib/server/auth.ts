@@ -66,7 +66,7 @@ export async function createUser(
   firstName: string,
   lastName: string,
   role: AuthUser["role"] = "user",
-  searchGoal: SearchGoal = "job"
+  searchGoal: SearchGoal = runtimeConfig.defaults.searchGoal
 ) {
   await ensureDatabase();
   if (!orm) throw new Error("Database unavailable");

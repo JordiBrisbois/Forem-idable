@@ -102,8 +102,8 @@ export interface CoachPriorityItem {
   summary: string;
   detail: string;
   timestamp: string | null;
-  computedPhaseLabel: string;
-  computedPhaseVariant: "default" | "secondary" | "success" | "outline" | "destructive" | "error" | "info" | "warning";
+  computedGoalLabel: string;
+  computedGoalVariant: "default" | "secondary" | "success" | "outline" | "destructive" | "error" | "info" | "warning";
 }
 
 function computeGoalBadge(user: CoachUserSummary) {
@@ -182,8 +182,8 @@ export function buildCoachPrioritySections(
             ? `Plus ancienne le ${formatCoachDate(new Date(oldestDueTime).toISOString())}`
             : "Relance due à vérifier",
         timestamp: oldestDueTime ? new Date(oldestDueTime).toISOString() : null,
-        computedPhaseLabel: phaseBadge.label,
-        computedPhaseVariant: phaseBadge.variant,
+        computedGoalLabel: phaseBadge.label,
+        computedGoalVariant: phaseBadge.variant,
       } satisfies CoachPriorityItem;
     })
     .filter((item): item is CoachPriorityItem => item !== null)
@@ -245,8 +245,8 @@ export function buildCoachPrioritySections(
             ? `Prochain le ${formatCoachDate(new Date(earliestInterviewTime).toISOString(), true)}`
             : "Entretien programmé à vérifier",
         timestamp: earliestInterviewTime ? new Date(earliestInterviewTime).toISOString() : null,
-        computedPhaseLabel: phaseBadge.label,
-        computedPhaseVariant: phaseBadge.variant,
+        computedGoalLabel: phaseBadge.label,
+        computedGoalVariant: phaseBadge.variant,
       } satisfies CoachPriorityItem;
     })
     .filter((item): item is CoachPriorityItem => item !== null)
@@ -282,8 +282,8 @@ export function buildCoachPrioritySections(
           : "Aucune activité enregistrée",
         detail: `${user.applicationCount} candidature${user.applicationCount > 1 ? "s" : ""} à suivre`,
         timestamp: latestActivityTime ? new Date(latestActivityTime).toISOString() : null,
-        computedPhaseLabel: phaseBadge.label,
-        computedPhaseVariant: phaseBadge.variant,
+        computedGoalLabel: phaseBadge.label,
+        computedGoalVariant: phaseBadge.variant,
       } satisfies CoachPriorityItem;
     })
     .filter((item): item is CoachPriorityItem => item !== null)

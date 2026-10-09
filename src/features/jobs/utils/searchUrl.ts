@@ -1,5 +1,7 @@
 import { LocationEntry } from "@/services/location/locationCache";
 import { SearchQuery } from "@/types/search";
+import { SearchGoal } from "@/types/preferences";
+import { runtimeConfig } from "@/config/runtime";
 
 const LOCATION_TYPES = new Set([
   "Pays",
@@ -55,7 +57,11 @@ export function fromSearchParams(params: SearchParamsLike): SearchQuery | null {
     .filter(Boolean);
 
   const booleanMode = params.get("bm") === "AND" ? "AND" : "OR";
-  const goal = params.get("goal") === "internship" ? "internship" : "job";
+  const rawGoal = params.get("goal");
+  const goal: SearchGoal =
+    rawGoal === "internship" || rawGoal === "job"
+      ? rawGoal
+      : runtimeConfig.defaults.searchGoal;
 
   let locations: LocationEntry[] = [];
   const rawLocations = params.get("loc");

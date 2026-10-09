@@ -81,7 +81,7 @@ export function useMessagesActions({
     const normalizedDraft = draft.trim();
     if (normalizedDraft === "/clean") {
       if (selectedConversation.type !== "group") {
-        toast.error("`/clean` est réservé aux conversations de groupe.");
+        toast.error("`/clean` est réservé aux conversations de classe.");
         return;
       }
 

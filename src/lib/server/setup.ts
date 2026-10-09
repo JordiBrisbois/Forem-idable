@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import { runtimeConfig } from "@/config/runtime";
 import { createSession, getUserCount, hashPassword } from "@/lib/server/auth";
 import { recordAuditEvent } from "@/lib/server/auditLog";
 import { ensureDatabase, orm } from "@/lib/server/db";
@@ -50,7 +51,7 @@ export async function createFirstAdmin(input: CreateFirstAdminInput) {
         firstName: input.firstName.trim(),
         lastName: input.lastName.trim(),
         role: "admin",
-        searchGoal: input.searchGoal ?? "job",
+        searchGoal: input.searchGoal ?? runtimeConfig.defaults.searchGoal,
       })
       .returning({
         id: users.id,

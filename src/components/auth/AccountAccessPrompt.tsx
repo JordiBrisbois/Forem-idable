@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { Button } from "@/components/ui/button";
+import { runtimeConfig } from "@/config/runtime";
 
 interface AccountAccessPromptProps {
   title: string;
@@ -29,6 +30,7 @@ export function AccountAccessPrompt({
 }: AccountAccessPromptProps) {
   const [isLoginDialogOpen, setIsLoginDialogOpen] = useState(false);
   const [isRegisterDialogOpen, setIsRegisterDialogOpen] = useState(false);
+  const registrationEnabled = runtimeConfig.features.publicRegistration;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 animate-in fade-in duration-500">
@@ -44,9 +46,11 @@ export function AccountAccessPrompt({
             <Button type="button" onClick={() => setIsLoginDialogOpen(true)}>
               {loginLabel}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setIsRegisterDialogOpen(true)}>
-              {registerLabel}
-            </Button>
+            {registrationEnabled ? (
+              <Button type="button" variant="outline" onClick={() => setIsRegisterDialogOpen(true)}>
+                {registerLabel}
+              </Button>
+            ) : null}
           </div>
         </div>
       </div>
@@ -58,13 +62,15 @@ export function AccountAccessPrompt({
         title={loginTitle}
         description={loginDescription}
       />
-      <AuthRequiredDialog
-        open={isRegisterDialogOpen}
-        onOpenChange={setIsRegisterDialogOpen}
-        mode="register"
-        title={registerTitle}
-        description={registerDescription}
-      />
+      {registrationEnabled ? (
+        <AuthRequiredDialog
+          open={isRegisterDialogOpen}
+          onOpenChange={setIsRegisterDialogOpen}
+          mode="register"
+          title={registerTitle}
+          description={registerDescription}
+        />
+      ) : null}
     </div>
   );
 }

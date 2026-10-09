@@ -162,7 +162,9 @@ export function addCoachAssignmentToDashboard(
 ): CoachDashboardData {
   const targetCoach =
     dashboard.availableCoaches.find((entry) => entry.id === coachId) ??
-    dashboard.users.find((entry) => entry.id === coachId && entry.role === "coach");
+    dashboard.users.find(
+      (entry) => entry.id === coachId && (entry.role === "coach" || entry.role === "admin")
+    );
 
   if (!targetCoach) {
     return dashboard;

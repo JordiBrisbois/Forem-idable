@@ -65,7 +65,9 @@ export function useCoachDashboardDerivedState({
   const assignableUsers = useMemo(() => {
     if (!dashboard || !memberPickerGroup) return [];
     const memberIds = new Set(memberPickerGroup.members.map((entry) => entry.id));
-    return dashboard.users.filter((entry) => !memberIds.has(entry.id));
+    return dashboard.users.filter(
+      (entry) => entry.role === "user" && !memberIds.has(entry.id)
+    );
   }, [dashboard, memberPickerGroup]);
 
   const assignableCoaches = useMemo(() => {
@@ -133,7 +135,7 @@ export function useCoachDashboardDerivedState({
       job: 0,
     };
     dashboard?.users.forEach((user) => {
-      if (user.role === "coach") return;
+      if (user.role === "coach" || user.role === "admin") return;
       counts.all++;
       if (user.searchGoal === "internship") counts.internship++;
       else counts.job++;

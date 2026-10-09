@@ -142,7 +142,7 @@ export default function SetupPage() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="setup-goal">Objectif de recherche par défaut</Label>
+            <Label htmlFor="setup-goal">Votre objectif de recherche</Label>
             <Select
               value={searchGoal}
               onValueChange={(value) => setSearchGoal(value as SearchGoal)}

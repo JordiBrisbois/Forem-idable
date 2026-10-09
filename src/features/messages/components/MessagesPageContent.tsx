@@ -27,10 +27,10 @@ export function MessagesPageContent() {
           </div>
           <div className="flex flex-col gap-3 px-6 py-5 text-sm text-muted-foreground">
             <p>
-              La messagerie est réservée aux personnes rattachées à au moins un groupe de suivi.
+              La messagerie est réservée aux personnes rattachées à au moins une classe.
             </p>
             <p>
-              Lorsqu&apos;un groupe vous est attribué, les conversations de groupe et les messages privés apparaissent ici.
+              Lorsqu&apos;une classe vous est attribuée, les conversations de classe et les messages privés apparaissent ici.
             </p>
           </div>
         </div>

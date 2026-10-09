@@ -29,7 +29,7 @@ export function DeleteMessageDialog({
           <AlertDialogTitle>Supprimer ce message ?</AlertDialogTitle>
           <AlertDialogDescription>
             Le message restera dans l&apos;historique comme supprimé. Cette action est
-            réservée à l&apos;encadrement du groupe.
+            réservée à l&apos;encadrement de la classe.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

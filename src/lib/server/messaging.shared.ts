@@ -33,7 +33,7 @@ export function normalizeConversationPreview(row: ConversationSummaryRow): Conve
     groupId: toNumericId(row.group_id),
     title:
       row.type === "group"
-        ? row.group_name || "Groupe"
+        ? row.group_name || "Classe"
         : getDisplayName({
             firstName: row.other_user_first_name || "",
             lastName: row.other_user_last_name || "",

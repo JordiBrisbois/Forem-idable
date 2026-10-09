@@ -39,6 +39,20 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
       }
 
+      if (message === "CannotDemoteSelf") {
+        return NextResponse.json(
+          { error: "Vous ne pouvez pas retirer votre propre rôle administrateur." },
+          { status: 400 }
+        );
+      }
+
+      if (message === "LastAdmin") {
+        return NextResponse.json(
+          { error: "Impossible : il doit rester au moins un administrateur." },
+          { status: 400 }
+        );
+      }
+
       if (message.includes("duplicate") || message.includes("unique")) {
         return NextResponse.json(
           { error: "Un compte existe déjà avec cette adresse email." },
@@ -74,6 +88,20 @@ export async function DELETE(request: NextRequest) {
     } catch (error) {
       if (error instanceof Error && error.message === "User not found") {
         return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
+      }
+
+      if (error instanceof Error && error.message === "CannotDemoteSelf") {
+        return NextResponse.json(
+          { error: "Vous ne pouvez pas retirer votre propre rôle administrateur." },
+          { status: 400 }
+        );
+      }
+
+      if (error instanceof Error && error.message === "LastAdmin") {
+        return NextResponse.json(
+          { error: "Impossible : il doit rester au moins un administrateur." },
+          { status: 400 }
+        );
       }
 
       return NextResponse.json({ error: "Retrait du rôle coach impossible." }, { status: 500 });

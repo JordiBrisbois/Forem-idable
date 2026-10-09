@@ -31,7 +31,7 @@ import {
 import { runtimeConfig } from "@/config/runtime";
 import { CoachUserSummary } from "@/types/coach";
 
-const COLLAPSE_STORAGE_KEY = "forem:coach:group-collapse:v1";
+const COLLAPSE_STORAGE_KEY = `${runtimeConfig.app.storageNamespace}:coach:group-collapse:v1`;
 
 function getStoredCollapseState(): Record<string, boolean> {
   if (typeof window === "undefined") return {};

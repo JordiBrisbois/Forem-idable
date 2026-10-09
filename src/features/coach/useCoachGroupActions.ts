@@ -2,7 +2,7 @@
 
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { CoachDashboardData } from "@/types/coach";
-import { AuthUser } from "@/types/auth";
+import { AuthUser, UserRole } from "@/types/auth";
 import { CoachUndoAction } from "@/features/coach/types";
 import {
   createCoachGroup,
@@ -36,7 +36,7 @@ export function useCoachGroupActions(input: {
       email: string;
       firstName: string;
       lastName: string;
-      role: "coach";
+      role: UserRole;
       lastSeenAt: string | null;
     } | null;
   }) => void;
@@ -65,6 +65,7 @@ export function useCoachGroupActions(input: {
     const createdAt = new Date().toISOString();
     const creatorEmail = input.user?.email ?? input.dashboard?.viewer.email ?? "";
     const creatorRole = input.user?.role;
+    const creatorIsStaff = creatorRole === "coach" || creatorRole === "admin";
 
     input.addGroupLocally({
       id: temporaryGroupId,
@@ -76,18 +77,17 @@ export function useCoachGroupActions(input: {
         firstName: input.user?.firstName ?? "",
         lastName: input.user?.lastName ?? "",
       },
-      managerCoachId: creatorRole === "coach" ? input.user?.id ?? null : null,
-      initialCoach:
-        creatorRole === "coach"
-          ? {
-              id: input.user?.id ?? 0,
-              email: creatorEmail,
-              firstName: input.user?.firstName ?? "",
-              lastName: input.user?.lastName ?? "",
-              role: "coach",
-              lastSeenAt: null,
-            }
-          : null,
+      managerCoachId: creatorIsStaff ? input.user?.id ?? null : null,
+      initialCoach: creatorIsStaff
+        ? {
+            id: input.user?.id ?? 0,
+            email: creatorEmail,
+            firstName: input.user?.firstName ?? "",
+            lastName: input.user?.lastName ?? "",
+            role: creatorRole ?? "coach",
+            lastSeenAt: null,
+          }
+        : null,
     });
 
     try {

@@ -1,9 +1,10 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { runtimeConfig } from "@/config/runtime";
 import { CoachGoalFilter } from "@/features/coach/types";
 
-const STORAGE_KEY = "app:coach:goal-tab:v1";
+const STORAGE_KEY = `${runtimeConfig.app.storageNamespace}:coach:goal-tab:v1`;
 
 function getStoredGoal(): CoachGoalFilter {
   if (typeof window === "undefined") return "all";

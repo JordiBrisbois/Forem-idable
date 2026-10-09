@@ -196,7 +196,7 @@ export function ConversationSidebar({
                     Tout
                   </ToggleGroupItem>
                   <ToggleGroupItem value="group" className="rounded-full text-xs">
-                    Groupes
+                    Classes
                   </ToggleGroupItem>
                   <ToggleGroupItem value="direct" className="rounded-full text-xs">
                     Privés
@@ -248,7 +248,7 @@ export function ConversationSidebar({
               <EmptyMedia variant="icon"><MessageSquareDashed /></EmptyMedia>
               <EmptyTitle>Aucune conversation.</EmptyTitle>
               <EmptyDescription>
-                Les groupes et messages privés apparaîtront ici.
+                Les classes et messages privés apparaîtront ici.
               </EmptyDescription>
             </EmptyHeader>
           </Empty>
@@ -287,7 +287,7 @@ export function ConversationSidebar({
                   <div className="flex flex-col gap-2.5">
                     <div className="flex items-center justify-between gap-3 px-1">
                       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Groupes
+                        Classes
                       </p>
                       <Badge variant="outline">{filteredGroupConversations.length}</Badge>
                     </div>
@@ -296,8 +296,8 @@ export function ConversationSidebar({
                       <Empty className="min-h-40 rounded-2xl border border-dashed border-border/60 bg-muted/10">
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><Users /></EmptyMedia>
-                          <EmptyTitle>Aucun groupe actif.</EmptyTitle>
-                          <EmptyDescription>Les conversations de groupe apparaîtront ici.</EmptyDescription>
+                          <EmptyTitle>Aucune classe active.</EmptyTitle>
+                          <EmptyDescription>Les conversations de classe apparaîtront ici.</EmptyDescription>
                         </EmptyHeader>
                       </Empty>
                     ) : filteredGroupConversations.length === 0 ? (
@@ -305,7 +305,7 @@ export function ConversationSidebar({
                         <EmptyHeader>
                           <EmptyMedia variant="icon"><MessageSquareDashed /></EmptyMedia>
                           <EmptyTitle>Aucun résultat.</EmptyTitle>
-                          <EmptyDescription>Aucun groupe ne correspond à cette recherche.</EmptyDescription>
+                          <EmptyDescription>Aucune classe ne correspond à cette recherche.</EmptyDescription>
                         </EmptyHeader>
                       </Empty>
                     ) : (

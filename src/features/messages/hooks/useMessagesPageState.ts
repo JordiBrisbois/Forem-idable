@@ -82,6 +82,7 @@ export function useMessagesPageState() {
     loadContacts,
     loadTrackedApplications,
   } = useMessagesDataLoader({
+    hasStaffAccess: user?.role === "coach" || user?.role === "admin",
     setConversations,
     setHasMessagingAccess,
     setSelectedConversationId,

@@ -154,7 +154,7 @@ export function ShareOfferDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Partager une offre"
-      description="Choisis une conversation de groupe ou une personne autorisée."
+      description="Choisis une conversation de classe ou une personne autorisée."
       className="sm:max-w-2xl"
     >
       <CommandInput placeholder="Rechercher une conversation ou une personne..." value={query} onValueChange={setQuery} />
@@ -168,7 +168,7 @@ export function ShareOfferDialog({
         </CommandEmpty>
 
         {!isLoading && filteredGroupConversations.length > 0 ? (
-          <CommandGroup heading="Conversations de groupe">
+          <CommandGroup heading="Conversations de classe">
             {filteredGroupConversations.map((conversation) => (
               <CommandItem
                 key={`group-${conversation.id}`}
@@ -187,7 +187,7 @@ export function ShareOfferDialog({
                     </span>
                   ) : null}
                 </div>
-                <CommandShortcut>Groupe</CommandShortcut>
+                <CommandShortcut>Classe</CommandShortcut>
               </CommandItem>
             ))}
           </CommandGroup>

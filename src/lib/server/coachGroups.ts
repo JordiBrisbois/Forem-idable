@@ -151,7 +151,11 @@ export async function createCoachGroup(name: string, actor: CoachCapableUser) {
 
 export async function deleteCoachGroup(groupId: number, actor: CoachCapableUser) {
   await ensureDatabase();
-  await assertCanManageCoachGroup(actor, groupId);
+  // Align with archiveCoachGroup: only the manager or an admin may delete.
+  const allowed = await canManageCoachAssignments(actor, groupId);
+  if (!allowed) {
+    throw new Error("Forbidden");
+  }
 
   await db.query(
     `DELETE FROM coach_groups
@@ -181,6 +185,14 @@ export async function addUserToCoachGroup(
   await ensureDatabase();
   if (actor) {
     await assertCanManageCoachGroup(actor, groupId);
+  }
+
+  const target = await db.query<{ role: UserRole }>(
+    `SELECT role FROM users WHERE id = $1 LIMIT 1`,
+    [userId]
+  );
+  if (target.rows[0]?.role !== "user") {
+    throw new Error("Beneficiary required");
   }
 
   await db.query(
@@ -384,9 +396,7 @@ export async function setUserSearchGoal(
     const managedResult = await db.query<{ group_id: number }>(
       `SELECT coach_group_coaches.group_id
        FROM coach_group_coaches
-       INNER JOIN coach_groups ON coach_groups.id = coach_group_coaches.group_id
-       WHERE coach_group_coaches.user_id = $1
-         AND coach_groups.archived_at IS NULL`,
+       WHERE coach_group_coaches.user_id = $1`,
       [actor.id]
     );
     const managedGroupIds = new Set(managedResult.rows.map((r) => r.group_id));

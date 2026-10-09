@@ -27,7 +27,7 @@ function buildEventDescription(row: CalendarFeedApplicationRow) {
   return [
     `Beneficiaire: ${[row.userFirstName, row.userLastName].join(" ").trim() || row.userEmail}`,
     `Email: ${row.userEmail}`,
-    row.groupNames.length > 0 ? `Groupes: ${row.groupNames.join(" | ")}` : "",
+    row.groupNames.length > 0 ? `Classes: ${row.groupNames.join(" | ")}` : "",
     `Entreprise: ${application.job.company || "Non precisee"}`,
     `Poste: ${application.job.title}`,
     application.job.location ? `Lieu: ${application.job.location}` : "",

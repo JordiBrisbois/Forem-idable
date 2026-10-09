@@ -333,6 +333,19 @@ export async function setUserRole(userId: number, role: UserRole, actorId?: numb
     throw new Error("User not found");
   }
 
+  // Never allow removing the last administrator, nor self-demotion.
+  if (previousRole === "admin" && role !== "admin") {
+    if (actorId !== undefined && actorId === userId) {
+      throw new Error("CannotDemoteSelf");
+    }
+    const adminCountResult = await db.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count FROM users WHERE role = 'admin'`
+    );
+    if (Number(adminCountResult.rows[0]?.count ?? "0") <= 1) {
+      throw new Error("LastAdmin");
+    }
+  }
+
   await db.query(
     `UPDATE users
      SET role = $2
@@ -350,6 +363,13 @@ export async function setUserRole(userId: number, role: UserRole, actorId?: numb
       `UPDATE coach_groups
        SET manager_coach_user_id = NULL
        WHERE manager_coach_user_id = $1`,
+      [userId]
+    );
+    // Invalidate calendar feeds this user created (they no longer have access).
+    await db.query(
+      `UPDATE calendar_subscriptions
+       SET revoked_at = NOW()
+       WHERE created_by = $1 AND revoked_at IS NULL`,
       [userId]
     );
   }

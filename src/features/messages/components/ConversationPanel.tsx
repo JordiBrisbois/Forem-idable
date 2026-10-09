@@ -138,7 +138,7 @@ export function ConversationPanel({
               {!isMobile && selectedConversation ? (
                 <div className="flex flex-wrap items-center gap-2">
                   <Badge variant="outline">
-                    {selectedConversation.type === "group" ? "Groupe" : "Privé"}
+                    {selectedConversation.type === "group" ? "Classe" : "Privé"}
                   </Badge>
                   <Badge variant="outline">
                     {selectedConversation.participantCount} participant

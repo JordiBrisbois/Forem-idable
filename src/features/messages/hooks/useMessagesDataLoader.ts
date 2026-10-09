@@ -11,6 +11,7 @@ import {
 import { ConversationDetail, ConversationPreview, DirectMessageTarget } from "@/types/messaging";
 
 type MessagesDataLoaderInput = {
+  hasStaffAccess?: boolean;
   setConversations: Dispatch<SetStateAction<ConversationPreview[]>>;
   setHasMessagingAccess: Dispatch<SetStateAction<boolean | null>>;
   setSelectedConversationId: Dispatch<SetStateAction<number | null>>;
@@ -24,6 +25,7 @@ type MessagesDataLoaderInput = {
 };
 
 export function useMessagesDataLoader({
+  hasStaffAccess = false,
   setConversations,
   setHasMessagingAccess,
   setSelectedConversationId,
@@ -49,7 +51,8 @@ export function useMessagesDataLoader({
         }
 
         setConversations(data.conversations);
-        setHasMessagingAccess(data.conversations.some((entry) => entry.type === "group"));
+        // Staff (coach/admin) can always message, even without a group conversation yet.
+        setHasMessagingAccess(data.conversations.length > 0 || hasStaffAccess);
 
         const nextConversationId =
           preferredConversationId &&
@@ -66,7 +69,7 @@ export function useMessagesDataLoader({
         return null;
       }
     },
-    [setConversations, setError, setHasMessagingAccess, setSelectedConversationId]
+    [hasStaffAccess, setConversations, setError, setHasMessagingAccess, setSelectedConversationId]
   );
 
   const loadConversationDetail = useCallback(

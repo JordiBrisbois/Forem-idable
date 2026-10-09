@@ -6,6 +6,7 @@ const PUBLIC_EXACT = [
   "/",
   "/about",
   "/privacy",
+  "/applications",
   "/setup",
   "/favicon.ico",
   "/sitemap.xml",
@@ -36,6 +37,7 @@ const JOB_MODULE_PREFIXES = [
   "/api/providers",
   "/api/locations",
   "/api/featured-searches",
+  "/api/scout",
 ];
 
 export function proxy(request: NextRequest) {
@@ -54,6 +56,10 @@ export function proxy(request: NextRequest) {
       { error: "Module de recherche d'offres désactivé." },
       { status: 404 }
     );
+  }
+
+  if (!runtimeConfig.features.jobSearch && pathname === "/scout") {
+    return NextResponse.redirect(new URL("/applications", request.url));
   }
 
   // Allow public paths without auth check

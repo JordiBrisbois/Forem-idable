@@ -102,8 +102,8 @@ export function CoachPriorityBoard({ sections, onOpenUser }: CoachPriorityBoardP
                                 <Badge variant="outline" className="max-w-[10rem] truncate" title={item.badgeTitle ?? item.badgeLabel}>
                                   {item.badgeLabel}
                                 </Badge>
-                                <Badge variant={item.computedPhaseVariant} className="text-xs">
-                                  {item.computedPhaseLabel}
+                                <Badge variant={item.computedGoalVariant} className="text-xs">
+                                  {item.computedGoalLabel}
                                 </Badge>
                               </div>
                             <p className="text-sm text-muted-foreground">

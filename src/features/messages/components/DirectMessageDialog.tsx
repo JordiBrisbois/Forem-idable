@@ -52,7 +52,7 @@ export function DirectMessageDialog({
         <DialogHeader>
           <DialogTitle>Nouveau message privé</DialogTitle>
           <DialogDescription>
-            Choisis une personne liée à l&apos;un de tes groupes.
+            Choisis une personne liée à l&apos;une de tes classes.
           </DialogDescription>
         </DialogHeader>
 
@@ -147,8 +147,8 @@ export function DirectMessageDialog({
                         <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="secondary">{contact.relationLabel}</Badge>
                           <Badge variant="outline">
-                            {contact.sharedGroupCount} groupe
-                            {contact.sharedGroupCount > 1 ? "s" : ""} partagé
+                            {contact.sharedGroupCount} classe
+                            {contact.sharedGroupCount > 1 ? "s" : ""} partagée
                             {contact.sharedGroupCount > 1 ? "s" : ""}
                           </Badge>
                         </div>

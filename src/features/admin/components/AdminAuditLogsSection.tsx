@@ -112,7 +112,7 @@ function AuditLogMobileCard({ entry }: { entry: AdminAuditLog }) {
           </div>
           <div className="flex flex-col gap-1">
             <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-              Groupe
+              Classe
             </span>
             <span title={entry.group?.name}>
               {entry.group ? `${truncateGroupName(entry.group.name)} (#${entry.group.id})` : "N/A"}
@@ -204,7 +204,7 @@ export function AdminAuditLogsSection({
               Audit logs
             </CardTitle>
             <CardDescription>
-              Historique récent des actions sensibles tracées en base: rôles, groupes, API keys,
+              Historique récent des actions sensibles tracées en base: rôles, classes, API keys,
               conformité et opérations coach/admin.
             </CardDescription>
           </div>
@@ -227,7 +227,7 @@ export function AdminAuditLogsSection({
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Action, utilisateur, groupe, payload..."
+              placeholder="Action, utilisateur, classe, payload..."
             />
           </Field>
           <Field>
@@ -309,7 +309,7 @@ export function AdminAuditLogsSection({
                     <TableHead>Action</TableHead>
                     <TableHead>Acteur</TableHead>
                     <TableHead>Cible</TableHead>
-                    <TableHead>Groupe</TableHead>
+                    <TableHead>Classe</TableHead>
                     <TableHead>Payload</TableHead>
                   </TableRow>
                 </TableHeader>

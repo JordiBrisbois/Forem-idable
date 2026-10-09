@@ -169,8 +169,8 @@ describe("buildCoachPrioritySections", () => {
     const sections = buildCoachPrioritySections(users, new Date("2026-03-18T12:00:00.000Z"));
 
     expect(sections[0].total).toBe(1);
-    expect(sections[0].items[0]?.computedPhaseLabel).toBe("Emploi trouvé");
-    expect(sections[0].items[0]?.computedPhaseVariant).toBe("success");
+    expect(sections[0].items[0]?.computedGoalLabel).toBe("Emploi trouvé");
+    expect(sections[0].items[0]?.computedGoalVariant).toBe("success");
   });
 
   it("excludes beneficiaries with an accepted stage from due section", () => {
@@ -243,8 +243,8 @@ describe("buildCoachPrioritySections", () => {
     const sections = buildCoachPrioritySections(users, new Date("2026-03-18T12:00:00.000Z"));
 
     expect(sections[0].total).toBe(1);
-    expect(sections[0].items[0]?.computedPhaseLabel).toBe("Recherche stage");
-    expect(sections[0].items[0]?.computedPhaseVariant).toBe("info");
+    expect(sections[0].items[0]?.computedGoalLabel).toBe("Recherche stage");
+    expect(sections[0].items[0]?.computedGoalVariant).toBe("info");
   });
 
   it("excludes beneficiaries with accepted applications from inactive section", () => {
@@ -441,7 +441,7 @@ describe("coach activity helpers", () => {
     expect(items[0]?.jobId).toBe("job-4");
   });
 
-  it("treats grouped admins like beneficiaries in coach activity and priorities", () => {
+  it("treats grouped admins as staff, not beneficiaries", () => {
     const adminLearner = makeUser({
       id: 4,
       firstName: "Camille",
@@ -472,8 +472,8 @@ describe("coach activity helpers", () => {
       ],
     });
 
-    expect(isTrackedCoachBeneficiary(adminLearner)).toBe(true);
-    expect(buildCoachPrioritySections([adminLearner], new Date("2026-03-18T12:00:00.000Z"))[0].total).toBe(1);
-    expect(buildCoachRecentActivity([adminLearner])[0]?.userName).toContain("Camille");
+    expect(isTrackedCoachBeneficiary(adminLearner)).toBe(false);
+    expect(buildCoachPrioritySections([adminLearner], new Date("2026-03-18T12:00:00.000Z"))[0].total).toBe(0);
+    expect(buildCoachRecentActivity([adminLearner])).toHaveLength(0);
   });
 });
