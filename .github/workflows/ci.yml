@@ -13,6 +13,7 @@ jobs:
   quality:
     name: Typecheck · Lint · Tests · Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     env:
       # The build does not need real secrets: branding is injected at runtime,
       # but the modules validate their environment at import time.
@@ -44,8 +45,7 @@ jobs:
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
-    # Non-blocking while the suite stabilizes; remove once reliably green.
-    continue-on-error: true
+    timeout-minutes: 15
     env:
       AUDIT_HASH_SECRET: ci-audit-secret
       E2E_REAL_DB: "1"
