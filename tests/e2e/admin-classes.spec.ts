@@ -1,21 +1,15 @@
 import { expect, test, type Route } from "@playwright/test";
+import { e2eSessionCookie } from "./support/session";
 
 function fulfillJson(route: Route, json: unknown, status = 200) {
   return route.fulfill({ status, json });
 }
 
-test("an admin can create a class from the admin console", async ({ page, context }) => {
+test("an admin can create a class from the admin console", async ({ page, context, baseURL }) => {
   let createdName: string | null = null;
 
   // The middleware only checks the presence of the session cookie.
-  await context.addCookies([
-    {
-      name: "forem_idable_session",
-      value: "e2e-session",
-      domain: "127.0.0.1",
-      path: "/",
-    },
-  ]);
+  await context.addCookies([e2eSessionCookie(baseURL)]);
 
   await page.route("**/api/auth/me", (route) =>
     fulfillJson(route, {
