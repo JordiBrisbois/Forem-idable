@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach, isAdmin } from "@/lib/authz";
+
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { fetchManagedUserApiKeys } from "@/features/coach/coachDashboardApi";
 import {
@@ -73,8 +75,8 @@ export function useCoachAdminActions(input: {
   );
 
   const openManagedUserApiKeys = useCallback(async () => {
-    if (!input.selectedUser || input.user?.role !== "admin") return;
-    if (input.selectedUser.role !== "coach" && input.selectedUser.role !== "admin") return;
+    if (!input.selectedUser || !isAdmin(input.user?.role)) return;
+    if (!canCoach(input.selectedUser.role)) return;
 
     input.setApiKeysTarget({
       userId: input.selectedUser.id,

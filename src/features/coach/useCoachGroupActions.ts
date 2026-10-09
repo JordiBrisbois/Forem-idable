@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { Dispatch, SetStateAction, useCallback } from "react";
 import { CoachDashboardData } from "@/types/coach";
 import { AuthUser, UserRole } from "@/types/auth";
@@ -65,7 +67,7 @@ export function useCoachGroupActions(input: {
     const createdAt = new Date().toISOString();
     const creatorEmail = input.user?.email ?? input.dashboard?.viewer.email ?? "";
     const creatorRole = input.user?.role;
-    const creatorIsStaff = creatorRole === "coach" || creatorRole === "admin";
+    const creatorIsStaff = canCoach(creatorRole);
 
     input.addGroupLocally({
       id: temporaryGroupId,

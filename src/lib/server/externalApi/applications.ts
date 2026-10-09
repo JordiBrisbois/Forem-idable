@@ -11,6 +11,7 @@ import {
   updateApplicationForUser,
 } from "@/lib/server/applications";
 import { canAccessCoachUser } from "@/lib/server/coach";
+import { isAdmin } from "@/lib/authz";
 import { db } from "@/lib/server/db";
 import { ApplicationPatchInput, normalizeApplicationPatch } from "@/lib/server/requestSchemas";
 import {
@@ -86,7 +87,7 @@ export async function getScopedApplicationRows(
 }
 
 export async function requireScopedUser(actor: ExternalApiActor, userId: number) {
-  if (actor.role === "admin") return true;
+  if (isAdmin(actor.role)) return true;
   return canAccessCoachUser(actor, userId);
 }
 

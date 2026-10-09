@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdmin } from "@/lib/authz";
 import { recordAuditEvent } from "@/lib/server/auditLog";
 import { assertNoActiveUserLegalHold } from "@/lib/server/compliance";
 import { db, ensureDatabase } from "@/lib/server/db";
@@ -58,7 +59,7 @@ export async function PATCH(
         return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
       }
 
-      if (actor.role !== "admin") {
+      if (!isAdmin(actor.role)) {
         if (target.role !== "user") {
           return NextResponse.json({ error: "Modification interdite pour ce rôle." }, { status: 403 });
         }

@@ -11,6 +11,7 @@ import { toNumericId } from "@/lib/server/common";
 import { buildCoachApplicationSummary } from "@/features/coach/applicationSummary";
 import { CoachGroupMember } from "@/types/coach";
 import { AuthUser, UserRole } from "@/types/auth";
+import { canCoach, isAdmin } from "@/lib/authz";
 import {
   CoachDashboardData,
   CoachGroupSummary,
@@ -22,10 +23,6 @@ interface CoachDashboardFilters {
   groupId?: number | null;
   role?: UserRole | null;
   search?: string | null;
-}
-
-function canCoach(role: UserRole) {
-  return role === "coach" || role === "admin";
 }
 
 function matchesDashboardSearch(
@@ -71,7 +68,7 @@ export async function requireCoachAccess(): Promise<CoachCapableUser | null> {
 
 export async function requireAdminAccess(): Promise<(AuthUser & { role: "admin" }) | null> {
   const user = await getCurrentUser();
-  if (!user || user.role !== "admin") {
+  if (!user || !isAdmin(user.role)) {
     return null;
   }
 
@@ -169,11 +166,11 @@ export async function getCoachDashboard(
        INNER JOIN users ON users.id = coach_group_coaches.user_id
        ORDER BY users.last_name ASC, users.first_name ASC, users.email ASC`
     ),
-    viewer.role === "admin" ? Promise.resolve([]) : getManagedGroupIdsForCoach(viewer.id),
+    isAdmin(viewer.role) ? Promise.resolve([]) : getManagedGroupIdsForCoach(viewer.id),
   ]);
 
   const visibleGroupIds =
-    viewer.role === "admin"
+    isAdmin(viewer.role)
       ? new Set(
           groupsResult.rows
             .map((row) => toNumericId(row.id))
@@ -258,7 +255,7 @@ export async function getCoachDashboard(
     const groupIds = groupIdsByUser.get(userId) ?? [];
     const groupNames = groupNamesByUser.get(userId) ?? [];
 
-    if (viewer.role !== "admin" && groupIds.length === 0) {
+    if (!isAdmin(viewer.role) && groupIds.length === 0) {
       return false;
     }
 
@@ -306,7 +303,7 @@ export async function getCoachDashboard(
     users,
     groups: Array.from(groupsById.values()),
     availableCoaches: usersResult.rows
-      .filter((row) => row.role === "coach" || row.role === "admin")
+      .filter((row) => canCoach(row.role))
       .map((row) => {
         const coachId = toNumericId(row.id);
         if (coachId === null) return null;
@@ -337,7 +334,7 @@ export async function setUserRole(userId: number, role: UserRole, actorId?: numb
   }
 
   // Never allow removing the last administrator, nor self-demotion.
-  if (previousRole === "admin" && role !== "admin") {
+  if (isAdmin(previousRole) && !isAdmin(role)) {
     if (actorId !== undefined && actorId === userId) {
       throw new Error("CannotDemoteSelf");
     }
@@ -356,7 +353,7 @@ export async function setUserRole(userId: number, role: UserRole, actorId?: numb
     [userId, role]
   );
 
-  if (role !== "coach" && role !== "admin") {
+  if (!canCoach(role)) {
     await db.query(
       `DELETE FROM coach_group_coaches
        WHERE user_id = $1`,

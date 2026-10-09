@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { Circle, Clock, UserCheck } from "lucide-react";
 import {
   Tooltip,
@@ -69,7 +71,7 @@ export function CoachUserActivityMeta({
 
   const lastSeenText = formatRelativeTime(user.lastSeenAt) ?? "N/A";
   const lastSeenTooltip = buildTooltip("Dernière connexion", formatCoachDate(user.lastSeenAt, true));
-  const isCoach = user.role === "coach" || user.role === "admin";
+  const isCoach = canCoach(user.role);
   const actionText = formatRelativeTime(isCoach ? user.lastCoachActionAt : user.latestActivityAt) ?? "N/A";
   const actionLabel = isCoach ? "Dernière action coach" : "Dernière activité";
   const actionTooltip = buildTooltip(

@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, format, isAfter } from "date-fns";
+import { canCoach } from "@/lib/authz";
 import { fr } from "date-fns/locale";
 import { CoachNoteAuthor, JobApplication } from "@/types/application";
 import { CoachUserSummary } from "@/types/coach";
@@ -61,7 +62,7 @@ export function isApplicationDue(application: JobApplication) {
 }
 
 export function isTrackedCoachBeneficiary(user: CoachUserSummary) {
-  if (user.role === "coach" || user.role === "admin") return false;
+  if (canCoach(user.role)) return false;
   return user.role === "user" || user.groupIds.length > 0;
 }
 

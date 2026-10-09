@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { useCallback } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { UserRound } from "lucide-react";
@@ -88,7 +90,7 @@ export default function AccountPage() {
     name: ["name", "expiry"],
   });
 
-  const canManageApiKeys = user?.role === "coach" || user?.role === "admin";
+  const canManageApiKeys = canCoach(user?.role);
   const apiKeys = useAccountApiKeys({ enabled: canManageApiKeys });
 
   useToastFeedback(profile.feedback, { title: "Mise à jour du profil" });

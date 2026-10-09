@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -226,7 +228,7 @@ export function useCoachDashboard() {
 
   useEffect(() => {
     if (isAuthLoading) return;
-    if (!user || (user.role !== "coach" && user.role !== "admin")) {
+    if (!user || !canCoach(user.role)) {
       setIsLoading(false);
       return;
     }

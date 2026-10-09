@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { canCoach } from "@/lib/authz";
 import { createApiKey, listApiKeysForUser } from "@/lib/server/apiKeys";
 import { getCurrentUser } from "@/lib/server/auth";
 import { logServerEvent, withRequestContext } from "@/lib/server/observability";
 import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
 import { apiKeyCreateRequestSchema, readValidatedJson } from "@/lib/server/requestSchemas";
 
-function canManageApiKeys(role: string) {
-  return role === "coach" || role === "admin";
+function canManageApiKeys(role: Parameters<typeof canCoach>[0]) {
+  return canCoach(role);
 }
 
 export async function GET(request: NextRequest) {

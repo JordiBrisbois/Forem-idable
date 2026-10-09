@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { useMemo, useState } from "react";
 import { Archive, ArchiveRestore, GraduationCap, Plus, UserPlus, Users } from "lucide-react";
 import { UserPickerDialog } from "@/components/coach/UserPickerDialog";
@@ -55,7 +57,7 @@ export function AdminClassesSection({
   }, [beneficiaries, memberGroup]);
 
   const assignableCoaches = useMemo(
-    () => users.filter((entry) => entry.role === "coach" || entry.role === "admin"),
+    () => users.filter((entry) => canCoach(entry.role)),
     [users]
   );
 

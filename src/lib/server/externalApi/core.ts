@@ -1,4 +1,5 @@
 import { isAfter } from "date-fns";
+import { isAdmin } from "@/lib/authz";
 import {
   formatCoachAuthorName,
   summarizeCoachContributors,
@@ -105,7 +106,7 @@ export function toExternalGroupCoachSummary(
     firstName: coach.firstName,
     lastName: coach.lastName,
     fullName: `${coach.firstName} ${coach.lastName}`.trim() || coach.email,
-    role: coach.role === "admin" ? "admin" : "coach",
+    role: isAdmin(coach.role) ? "admin" : "coach",
     isManager: managerCoachId === coach.id,
   };
 }

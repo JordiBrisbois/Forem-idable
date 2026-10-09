@@ -1,5 +1,7 @@
 "use client";
 
+import { isAdmin } from "@/lib/authz";
+
 import {
   Archive,
   ArchiveRestore,
@@ -67,7 +69,7 @@ function canManageAssignedCoaches(
   currentUserId: number,
   managerCoachId: number | null
 ) {
-  return currentUserRole === "admin" || managerCoachId === currentUserId;
+  return isAdmin(currentUserRole) || managerCoachId === currentUserId;
 }
 
 function canRemoveAssignedCoach(
@@ -293,7 +295,7 @@ export function CoachGroupCard({
                         <UserRoundPlus className="h-4 w-4" />
                         Attribuer un coach
                       </DropdownMenuItem>
-                      {currentUserRole === "admin" ? (
+                      {isAdmin(currentUserRole) ? (
                         <DropdownMenuItem onClick={() => onSetManager(group.id)}>
                           <UserRoundPlus className="h-4 w-4" />
                           Définir le manager

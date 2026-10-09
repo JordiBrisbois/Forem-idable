@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { useCallback, useMemo, useState } from "react";
 import { buildCoachPrioritySections, isTrackedCoachBeneficiary } from "@/features/coach/utils";
 import { useCoachDashboard } from "@/features/coach/useCoachDashboard";
@@ -23,8 +25,7 @@ export function useCoachPageState() {
     () => buildCoachPrioritySections(coach.dashboard?.users ?? []),
     [coach.dashboard?.users]
   );
-  const isAuthorized =
-    coach.user?.role === "coach" || coach.user?.role === "admin";
+  const isAuthorized = canCoach(coach.user?.role);
 
   const closeSelectedUserSheet = useCallback(
     (open: boolean) => {

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { canCoach } from "@/lib/authz";
 import { db, ensureDatabase } from "@/lib/server/db";
 import { requireAdminAccess } from "@/lib/server/coach";
 import { listApiKeysForUser } from "@/lib/server/apiKeys";
@@ -37,7 +38,7 @@ export async function GET(
       return NextResponse.json({ error: "Utilisateur introuvable." }, { status: 404 });
     }
 
-    if (target.role !== "coach" && target.role !== "admin") {
+    if (!canCoach(target.role)) {
       return NextResponse.json({ error: "Aucune clé API à gérer pour ce rôle." }, { status: 400 });
     }
 

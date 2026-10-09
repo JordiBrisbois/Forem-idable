@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach, isAdmin } from "@/lib/authz";
+
 import { useDeferredValue, useMemo } from "react";
 import { CoachDashboardData } from "@/types/coach";
 import { AuthUser } from "@/types/auth";
@@ -106,15 +108,15 @@ export function useCoachDashboardDerivedState({
 
   const canEditSelectedUser = useMemo(() => {
     if (!selectedUser || !user) return false;
-    if (user.role === "admin") return true;
+    if (isAdmin(user.role)) return true;
     return selectedUser.role === "user";
   }, [selectedUser, user]);
 
   const canManageSelectedUserApiKeys = useMemo(
     () =>
-      user?.role === "admin" &&
+      isAdmin(user?.role) &&
       Boolean(selectedUser) &&
-      (selectedUser?.role === "coach" || selectedUser?.role === "admin"),
+      canCoach(selectedUser?.role),
     [selectedUser, user?.role]
   );
 
@@ -138,7 +140,7 @@ export function useCoachDashboardDerivedState({
       exited: 0,
     };
     dashboard?.users.forEach((user) => {
-      if (user.role === "coach" || user.role === "admin") return;
+      if (canCoach(user.role)) return;
       counts.all++;
       counts[user.beneficiaryStage]++;
     });

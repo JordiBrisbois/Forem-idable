@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach } from "@/lib/authz";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -82,7 +84,7 @@ export function useMessagesPageState() {
     loadContacts,
     loadTrackedApplications,
   } = useMessagesDataLoader({
-    hasStaffAccess: user?.role === "coach" || user?.role === "admin",
+    hasStaffAccess: canCoach(user?.role),
     setConversations,
     setHasMessagingAccess,
     setSelectedConversationId,

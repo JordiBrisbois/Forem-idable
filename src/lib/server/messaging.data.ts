@@ -1,4 +1,5 @@
 import { AuthUser, UserRole } from "@/types/auth";
+import { isAdmin } from "@/lib/authz";
 import {
   ConversationParticipantSummary,
   ConversationPreview,
@@ -16,7 +17,7 @@ import {
 } from "@/lib/server/messaging.shared";
 
 export async function listAccessibleGroupIds(queryable: Queryable, actor: AuthUser) {
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     const result = await queryable.query<{ id: number }>(
       `SELECT id
        FROM coach_groups`

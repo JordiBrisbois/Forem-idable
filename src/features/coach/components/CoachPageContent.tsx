@@ -1,5 +1,7 @@
 "use client";
 
+import { isAdmin } from "@/lib/authz";
+
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -68,7 +70,7 @@ export function CoachPageContent({
               onStageFilterChange={page.setStageFilter}
               stageCounts={page.stageCounts}
               groupedUsers={page.groupedUsers}
-              canRegenerateCalendars={currentUserRole === "admin"}
+              canRegenerateCalendars={isAdmin(currentUserRole)}
               onCreateGroup={() => page.setIsCreateGroupOpen(true)}
               onCopyAllGroupsCalendar={() => void page.copyAllGroupsCalendarUrl()}
               onRequestRegenerateAllGroupsCalendar={() =>

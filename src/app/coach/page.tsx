@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach, isAdmin } from "@/lib/authz";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CoachDialogs } from "@/features/coach/components/CoachDialogs";
@@ -97,7 +99,7 @@ export default function CoachPage() {
 
   if (
     !page.user ||
-    (page.user.role !== "coach" && page.user.role !== "admin")
+    !canCoach(page.user.role)
   ) {
     return (
       <Card className="mx-auto max-w-3xl gap-0 py-0">
@@ -138,7 +140,7 @@ export default function CoachPage() {
       <CoachUserSheet
         key={`${page.selectedUser?.id ?? "none"}:${page.activityTargetJobId ?? "base"}`}
         currentUserId={page.user.id}
-        isAdmin={page.user.role === "admin"}
+        isAdmin={isAdmin(page.user.role)}
         canEditUser={page.canEditSelectedUser}
         canManageApiKeys={Boolean(page.canManageSelectedUserApiKeys)}
         open={Boolean(page.selectedUser)}

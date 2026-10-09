@@ -1,4 +1,5 @@
 import { db, ensureDatabase } from "@/lib/server/db";
+import { isAdmin } from "@/lib/authz";
 import { escapeHtml } from "@/lib/server/common";
 import {
   assertCanAccessConversation,
@@ -40,7 +41,7 @@ export async function canModerateGroupConversation(
     return false;
   }
 
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     return true;
   }
 
@@ -68,7 +69,7 @@ export async function canDirectMessage(actor: AuthUser, targetUserId: number) {
   }
 
   await ensureDatabase();
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     return true;
   }
 
@@ -262,7 +263,7 @@ export async function sendTextMessage(
 
 export async function listDirectMessageTargets(actor: AuthUser): Promise<DirectMessageTarget[]> {
   await ensureDatabase();
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     const result = await db.query<{
       id: number;
       first_name: string;

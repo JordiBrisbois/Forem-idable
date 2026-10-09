@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "crypto";
 import { runtimeConfig } from "@/config/runtime";
+import { isAdmin } from "@/lib/authz";
 import { buildCalendarIcsFeed } from "@/lib/calendarIcs";
 import { db, ensureDatabase } from "@/lib/server/db";
 import { listApplicationRecordsFromRelationalStoreByUsers } from "@/lib/server/applicationStore";
@@ -299,7 +300,7 @@ async function resolveCalendarActorScope(actorId: number) {
     throw new Error("Actor not found");
   }
 
-  if (role === "admin") {
+  if (isAdmin(role)) {
     return {
       role,
       managedGroupIds: null,
@@ -375,7 +376,7 @@ export async function listCalendarFeedRowsForAllGroups(actorId: number): Promise
 
   return {
     calendarName:
-      actorScope.role === "admin"
+      isAdmin(actorScope.role)
         ? `${runtimeConfig.app.name} - Toutes les classes beneficiaires`
         : `${runtimeConfig.app.name} - Mes classes beneficiaires`,
     rows,

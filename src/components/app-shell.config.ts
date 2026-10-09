@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { UserRole } from "@/types/auth";
 import { runtimeConfig } from "@/config/runtime";
+import { isAdmin, isCoach } from "@/lib/authz";
 
 export interface AppSidebarNavItem {
   title: string;
@@ -73,11 +74,11 @@ export function getSidebarNavItems(role?: UserRole, isAuthenticated?: boolean): 
     items = items.filter((item) => item.url !== "/scout");
   }
 
-  if (role === "admin") {
+  if (isAdmin(role)) {
     return [ADMIN_NAV_ITEM, COACH_NAV_ITEM, ...items];
   }
 
-  if (role === "coach") {
+  if (isCoach(role)) {
     return [COACH_NAV_ITEM, ...items];
   }
 

@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "crypto";
 import { and, desc, eq, gt, isNull, or } from "drizzle-orm";
 import { headers } from "next/headers";
+import { isAdmin } from "@/lib/authz";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { apiKeys, users } from "@/lib/server/schema";
 import {
@@ -246,6 +247,6 @@ export async function requireExternalApiActor(): Promise<ExternalApiActor | null
     email: row.email,
     firstName: row.firstName,
     lastName: row.lastName,
-    role: row.role === "admin" ? "admin" : "coach",
+    role: isAdmin(row.role) ? "admin" : "coach",
   };
 }

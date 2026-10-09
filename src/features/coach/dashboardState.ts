@@ -1,4 +1,5 @@
 import { buildCoachApplicationSummary, sortApplicationsByAppliedAtDesc } from "@/features/coach/applicationSummary";
+import { canCoach } from "@/lib/authz";
 import { JobApplication } from "@/types/application";
 import { UserRole } from "@/types/auth";
 import { stageToSearchGoal } from "@/types/beneficiaryStage";
@@ -164,7 +165,7 @@ export function addCoachAssignmentToDashboard(
   const targetCoach =
     dashboard.availableCoaches.find((entry) => entry.id === coachId) ??
     dashboard.users.find(
-      (entry) => entry.id === coachId && (entry.role === "coach" || entry.role === "admin")
+      (entry) => entry.id === coachId && canCoach(entry.role)
     );
 
   if (!targetCoach) {

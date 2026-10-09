@@ -6,6 +6,7 @@ import {
   CoachUserFilter,
 } from "@/features/coach/types";
 import { CoachGroupSummary, CoachUserSummary } from "@/types/coach";
+import { canCoach, isCoach } from "@/lib/authz";
 import { getCoachUserDisplayName, isCoachUserInactive } from "@/features/coach/utils/formatting";
 
 export function buildMemberPickerGroup(
@@ -31,7 +32,7 @@ export function buildManagerPickerGroup(
 
 function getMostRelevantActivityTime(user: CoachUserSummary) {
   const timestamps =
-    user.role === "coach" || user.role === "admin"
+    canCoach(user.role)
       ? [user.lastCoachActionAt, user.lastSeenAt, user.latestActivityAt]
       : [user.latestActivityAt];
 
@@ -108,7 +109,7 @@ export function buildGroupedUsers(input: {
   const standardGroups = groups.map((group) => {
     const members = users.filter(
       (entry) =>
-        entry.role !== "coach" &&
+        !isCoach(entry.role) &&
         group.members.some((member) => member.id === entry.id)
     );
     const visibleMembers = sortMembers(

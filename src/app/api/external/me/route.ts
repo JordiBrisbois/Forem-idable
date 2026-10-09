@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { isAdmin } from "@/lib/authz";
 import { requireExternalApiAccess } from "@/lib/server/externalApiRoute";
 
 export async function GET() {
@@ -74,9 +75,9 @@ export async function GET() {
           "applications.shared_notes.delete",
         ],
         scope: {
-          visibility: actor.role === "admin" ? "global" : "assigned_groups",
+          visibility: isAdmin(actor.role) ? "global" : "assigned_groups",
           description:
-            actor.role === "admin"
+            isAdmin(actor.role)
               ? "Accès global à tous les groupes, bénéficiaires et candidatures."
               : "Accès limité aux groupes attribués au coach et aux bénéficiaires visibles dans ces groupes.",
         },

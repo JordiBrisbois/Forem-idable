@@ -1,5 +1,7 @@
 "use client";
 
+import { isAdmin } from "@/lib/authz";
+
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +42,7 @@ export function CoachPageHeader({
                 {role}
               </Badge>
               <Badge variant="outline">
-                {role === "admin" ? "Pilotage + administration" : "Pilotage quotidien"}
+                {isAdmin(role) ? "Pilotage + administration" : "Pilotage quotidien"}
               </Badge>
             </div>
             <div className="flex flex-col gap-1.5">
@@ -75,7 +77,7 @@ export function CoachPageHeader({
                 </Button>
               );
             })}
-            {role === "admin" ? (
+            {isAdmin(role) ? (
               <Button asChild variant="secondary" className="justify-between sm:col-span-3">
                 <Link href="/admin">
                   <span>Ouvrir l&apos;administration</span>

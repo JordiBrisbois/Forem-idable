@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isAdmin } from "@/lib/authz";
 import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 import {
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      if (regenerate && actor.role !== "admin") {
+      if (regenerate && !isAdmin(actor.role)) {
         return NextResponse.json({ error: "Régénération réservée aux admins." }, { status: 403 });
       }
 

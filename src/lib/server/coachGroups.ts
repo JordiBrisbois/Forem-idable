@@ -3,6 +3,7 @@ import { db, ensureDatabase } from "@/lib/server/db";
 import { logServerEvent } from "@/lib/server/observability";
 import { toNumericId } from "@/lib/server/common";
 import { AuthUser, UserRole } from "@/types/auth";
+import { canCoach, isAdmin, isCoach } from "@/lib/authz";
 import { SearchGoal } from "@/types/preferences";
 import { BeneficiaryStage, stageToSearchGoal } from "@/types/beneficiaryStage";
 
@@ -23,7 +24,7 @@ export async function getManagedGroupIdsForCoach(userId: number) {
 }
 
 export async function canManageCoachGroup(actor: CoachCapableUser, groupId: number) {
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     return true;
   }
 
@@ -42,7 +43,7 @@ export async function canManageCoachGroup(actor: CoachCapableUser, groupId: numb
 }
 
 export async function canManageCoachAssignments(actor: CoachCapableUser, groupId: number) {
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     return true;
   }
 
@@ -73,7 +74,7 @@ export async function assertCanManageCoachGroup(actor: CoachCapableUser, groupId
 }
 
 export async function canAccessCoachUser(actor: CoachCapableUser, userId: number) {
-  if (actor.role === "admin") {
+  if (isAdmin(actor.role)) {
     return true;
   }
 
@@ -122,10 +123,10 @@ export async function createCoachGroup(name: string, actor: CoachCapableUser) {
     `INSERT INTO coach_groups (name, created_by, manager_coach_user_id)
      VALUES ($1, $2, $3)
      RETURNING id`,
-    [trimmed, actor.id, actor.role === "coach" || actor.role === "admin" ? actor.id : null]
+    [trimmed, actor.id, canCoach(actor.role) ? actor.id : null]
   );
 
-  if (actor.role === "coach" || actor.role === "admin") {
+  if (canCoach(actor.role)) {
     await db.query(
       `INSERT INTO coach_group_coaches (group_id, user_id)
        VALUES ($1, $2)
@@ -263,7 +264,7 @@ export async function addCoachToGroup(
   );
 
   const role = userResult.rows[0]?.role;
-  if (role !== "coach" && role !== "admin") {
+  if (!canCoach(role)) {
     throw new Error("Coach required");
   }
 
@@ -290,7 +291,7 @@ export async function removeCoachFromGroup(
   actor: CoachCapableUser
 ) {
   await ensureDatabase();
-  if (actor.role === "coach" && actor.id === coachUserId) {
+  if (isCoach(actor.role) && actor.id === coachUserId) {
     throw new Error("SelfRemovalForbidden");
   }
   const allowed = await canRemoveCoachAssignmentFromGroup(actor, groupId);
@@ -387,7 +388,7 @@ export async function archiveCoachGroup(
 
 async function assertCanEditBeneficiary(actor: CoachCapableUser, userId: number) {
   // Admin can edit anyone; a coach only users from a class they manage.
-  if (actor.role === "admin") return;
+  if (isAdmin(actor.role)) return;
 
   const managedResult = await db.query<{ group_id: number }>(
     `SELECT coach_group_coaches.group_id

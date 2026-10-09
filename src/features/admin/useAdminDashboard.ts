@@ -1,5 +1,7 @@
 "use client";
 
+import { canCoach, isAdmin, isCoach } from "@/lib/authz";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { updateUserRoleInDashboard } from "@/features/coach/dashboardState";
@@ -13,7 +15,7 @@ export function useAdminDashboard() {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPromoteCoachOpen, setIsPromoteCoachOpen] = useState(false);
 
-  const isAuthorized = user?.role === "admin";
+  const isAuthorized = isAdmin(user?.role);
 
   const loadDashboard = useCallback(async () => {
     if (!isAuthorized) {
@@ -60,7 +62,7 @@ export function useAdminDashboard() {
   );
 
   const managedCoaches = useMemo(
-    () => dashboard?.users.filter((entry) => entry.role === "coach") ?? [],
+    () => dashboard?.users.filter((entry) => isCoach(entry.role)) ?? [],
     [dashboard?.users]
   );
 
@@ -94,7 +96,7 @@ export function useAdminDashboard() {
   const demoteCoach = useCallback(
     async (userId: number) => {
       const targetUser = dashboard?.users.find((entry) => entry.id === userId);
-      if (!targetUser || (targetUser.role !== "coach" && targetUser.role !== "admin")) {
+      if (!targetUser || !canCoach(targetUser.role)) {
         setFeedback("Utilisateur introuvable.");
         return false;
       }
