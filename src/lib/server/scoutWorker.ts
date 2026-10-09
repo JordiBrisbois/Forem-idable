@@ -1,4 +1,4 @@
-import { db } from "@/lib/server/db";
+import { db, ensureDatabase } from "@/lib/server/db";
 import { logServerEvent } from "@/lib/server/observability";
 import {
   buildOverpassQuery,
@@ -30,6 +30,9 @@ async function jobStillExists(jobId: number): Promise<boolean> {
 }
 
 async function processNextJob(): Promise<void> {
+  // Ensure migrations have run before querying job tables (fresh DB / boot race).
+  await ensureDatabase();
+
   const jobResult = await db.query<{
     id: number;
     user_id: number;
