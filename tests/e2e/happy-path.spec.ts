@@ -421,9 +421,9 @@ test("user can add a job to tracking and the coach can see it", async ({ page })
 
   await page.goto("/?kw=react&bm=OR");
 
-  await expect(page.getByTitle("Ajouter au suivi")).toBeVisible();
-  await page.getByTitle("Ajouter au suivi").click();
-  await expect(page.getByTitle("Déjà dans le suivi")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Ajouter au suivi" }).first()).toBeVisible();
+  await page.getByRole("button", { name: "Ajouter au suivi" }).first().click();
+  await expect(page.getByRole("button", { name: "Déjà dans le suivi" }).first()).toBeVisible();
 
   actor = "coach";
   await page.goto("/coach");
@@ -661,7 +661,7 @@ test("user can manage follow-up and interview from the applications page", async
     .poll(() => applications[0]?.lastFollowUpAt ?? null)
     .not.toBeNull();
 
-  await page.getByRole("button", { name: "Détails" }).first().click();
+  await page.getByRole("button", { name: "Détails", exact: true }).click();
 
   const followUpInput = page.getByLabel("Relance active");
   await followUpInput.fill("2026-04-01");
@@ -731,7 +731,7 @@ test("user can edit a manual application from the applications page", async ({ p
   });
 
   await page.goto("/applications");
-  await page.getByRole("button", { name: "Détails" }).first().click();
+  await page.getByRole("button", { name: "Détails", exact: true }).click();
 
   await page.getByRole("button", { name: "Éditer" }).click();
   await page.getByLabel("Intitulé").fill("Candidature spontanée senior");

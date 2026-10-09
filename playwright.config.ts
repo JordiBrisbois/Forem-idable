@@ -1,5 +1,9 @@
 import { defineConfig, devices } from "@playwright/test";
-import { E2E_SESSION_COOKIE_NAME } from "./tests/e2e/support/session";
+import {
+  E2E_BASE_URL,
+  E2E_SESSION_COOKIE_NAME,
+  authenticatedStorageState,
+} from "./tests/e2e/support/session";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -7,18 +11,18 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: "list",
   use: {
-    baseURL: "http://127.0.0.1:3001",
+    baseURL: E2E_BASE_URL,
     trace: "on-first-retry",
   },
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: { ...devices["Desktop Chrome"], storageState: authenticatedStorageState() },
     },
   ],
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3001",
-    url: "http://127.0.0.1:3001",
+    url: E2E_BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: {

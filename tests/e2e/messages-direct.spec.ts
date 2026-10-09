@@ -142,6 +142,29 @@ test("opens a direct conversation from the messages page contact picker", async 
       return;
     }
 
+    if (url.pathname === "/api/messages/conversations/202") {
+      await route.fulfill({
+        json: {
+          conversation: {
+            id: 202,
+            type: "direct",
+            title: "Camille Coach",
+            subtitle: "coach@example.com",
+            participantCount: 2,
+            participants: [],
+            canModerateMessages: false,
+            messages: [],
+          },
+        },
+      });
+      return;
+    }
+
+    if (url.pathname.endsWith("/read")) {
+      await route.fulfill({ json: { ok: true } });
+      return;
+    }
+
     await route.fallback();
   });
 

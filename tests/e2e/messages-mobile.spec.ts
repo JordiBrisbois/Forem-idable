@@ -121,6 +121,11 @@ test("opens a DM in a dedicated mobile thread and lands at the bottom", async ({
       return;
     }
 
+    if (url.pathname.endsWith("/read")) {
+      await route.fulfill({ json: { ok: true } });
+      return;
+    }
+
     await route.fallback();
   });
 
