@@ -186,6 +186,13 @@ export const beneficiaryStageUpdateSchema = z
   })
   .strict();
 
+export const searchGoalUpdateSchema = z
+  .object({
+    goal: searchGoalSchema,
+    reason: z.string().trim().max(2000, "Note trop longue.").optional(),
+  })
+  .strict();
+
 export const positiveIntegerParamSchema = z.coerce.number().int().positive("Identifiant invalide.");
 
 const jobInputSchema = z

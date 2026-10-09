@@ -1,47 +1,31 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import {
-  CoachImportDateFormat,
   importCoachApplicationsForUser,
-  requireCoachAccess,
   updateCoachApplicationNotes,
+  type CoachImportDateFormat,
 } from "@/lib/server/coach";
-import { logServerEvent, withRequestContext } from "@/lib/server/observability";
 import {
   coachImportRequestSchema,
   coachNotesActionSchema,
-  parseIntegerParam,
 } from "@/lib/server/requestSchemas";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function PATCH(
-  request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
-) {
-  return withRequestContext(request, async () => {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const viewer = await requireCoachAccess();
-    if (!viewer) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { userId } = await context.params;
-    const parsedUserId = parseIntegerParam(userId);
-    if (!parsedUserId) {
+export const PATCH = withSessionHandler(
+  {
+    access: "coach",
+    body: coachNotesActionSchema,
+    fallbackMessage: "Impossible de mettre à jour les notes coach.",
+  },
+  async ({ user, body, params }) => {
+    const userId = parseRouteId(params.userId as string);
+    if (!userId) {
       return NextResponse.json({ error: "Utilisateur invalide." }, { status: 400 });
     }
-    const parsed = coachNotesActionSchema.safeParse(await request.json());
-    if (!parsed.success) {
-      const issue = parsed.error.issues[0];
-      return NextResponse.json({ error: issue?.message || "Action invalide." }, { status: 400 });
-    }
-    const body = parsed.data;
 
     const application = await updateCoachApplicationNotes({
-      actor: viewer,
-      userId: parsedUserId,
+      actor: user,
+      userId,
       jobId: body.jobId,
       privateNoteContent: body.action === "save-private" ? body.content ?? "" : undefined,
       sharedNoteContent:
@@ -57,53 +41,25 @@ export async function PATCH(
     });
 
     return NextResponse.json({ application });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    if (error instanceof Error && error.message === "Application not found") {
-      return NextResponse.json({ error: "Candidature introuvable." }, { status: 404 });
-    }
+  }
+);
 
-    if (error instanceof Error && error.message === "Shared note content required") {
-      return NextResponse.json({ error: "Contenu de note partagée requis." }, { status: 400 });
-    }
-
-    return NextResponse.json(
-      { error: "Impossible de mettre à jour les notes coach." },
-      { status: 500 }
-    );
-  }});
-}
-
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ userId: string }> }
-) {
-  return withRequestContext(request, async () => {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const viewer = await requireCoachAccess();
-    if (!viewer) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { userId } = await context.params;
-    const parsedUserId = parseIntegerParam(userId);
-    if (!parsedUserId) {
+export const POST = withSessionHandler(
+  {
+    access: "coach",
+    body: coachImportRequestSchema,
+    bodyErrorMessage: "Aucune ligne à importer.",
+    fallbackMessage: "Impossible d'importer le suivi CSV.",
+  },
+  async ({ user, body, params }) => {
+    const userId = parseRouteId(params.userId as string);
+    if (!userId) {
       return NextResponse.json({ error: "Utilisateur invalide." }, { status: 400 });
     }
-    const parsed = coachImportRequestSchema.safeParse(await request.json());
-    if (!parsed.success) {
-      return NextResponse.json({ error: "Aucune ligne à importer." }, { status: 400 });
-    }
-    const body = parsed.data;
 
-    const importedApplications = await importCoachApplicationsForUser({
-      actor: viewer,
-      userId: parsedUserId,
+    const imported = await importCoachApplicationsForUser({
+      actor: user,
+      userId,
       dateFormat: (body.dateFormat ?? "dmy") as CoachImportDateFormat,
       rows: body.rows.map((row) => ({
         company: row.company ?? "",
@@ -117,30 +73,11 @@ export async function POST(
     });
 
     return NextResponse.json({
-      importedCount: importedApplications.applications.length,
-      createdCount: importedApplications.createdCount,
-      updatedCount: importedApplications.updatedCount,
-      ignoredCount: importedApplications.ignoredCount,
-      applications: importedApplications.applications,
+      importedCount: imported.applications.length,
+      createdCount: imported.createdCount,
+      updatedCount: imported.updatedCount,
+      ignoredCount: imported.ignoredCount,
+      applications: imported.applications,
     });
-  } catch (error) {
-    if (error instanceof Error && error.message === "Forbidden") {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    logServerEvent({
-      category: "coach",
-      action: "csv_import_failed",
-      level: "error",
-      meta: {
-        targetUserId: Number((await context.params).userId),
-        error: error instanceof Error ? error.message : "unknown",
-      },
-    });
-
-    return NextResponse.json(
-      { error: "Impossible d'importer le suivi CSV." },
-      { status: 500 }
-    );
-  }});
-}
+  }
+);

@@ -1,109 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
-import { addUserToCoachGroup, removeUserFromCoachGroup, requireCoachAccess } from "@/lib/server/coach";
-import { logServerEvent, withRequestContext } from "@/lib/server/observability";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { positiveIntegerBodySchema, readValidatedJson } from "@/lib/server/requestSchemas";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
+import { addUserToCoachGroup, removeUserFromCoachGroup } from "@/lib/server/coach";
+import { positiveIntegerBodySchema } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-function parseGroupId(value: string) {
-  const groupId = Number(value);
-  return Number.isInteger(groupId) ? groupId : null;
-}
-
-export async function POST(
-  request: NextRequest,
-  context: { params: Promise<{ groupId: string }> }
-) {
-  return withRequestContext(request, async () => {
-    try {
-      const forbidden = rejectCrossOriginRequest(request);
-      if (forbidden) return forbidden;
-
-      const user = await requireCoachAccess();
-      if (!user) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
-      const { groupId: rawGroupId } = await context.params;
-      const groupId = parseGroupId(rawGroupId);
-
-      if (!groupId) {
-        return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
-      }
-
-      const parsed = await readValidatedJson(request, positiveIntegerBodySchema);
-      if (!parsed.success) return NextResponse.json({ error: parsed.error }, { status: 400 });
-      const { userId } = parsed.data;
-
-      await addUserToCoachGroup(groupId, userId, user);
-      return NextResponse.json({ ok: true });
-    } catch (error) {
-      const { groupId: rawGroupId } = await context.params;
-      const groupId = parseGroupId(rawGroupId);
-
-      logServerEvent({
-        category: "coach",
-        action: "group_member_add_failed",
-        level: error instanceof Error && error.message === "Forbidden" ? "warn" : "error",
-        meta: {
-          groupId: groupId ?? undefined,
-          error: error instanceof Error ? error.message : "unknown",
-        },
-      });
-
-      if (error instanceof Error && error.message === "Forbidden") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
-      return NextResponse.json({ error: "Ajout à la classe impossible." }, { status: 500 });
+export const POST = withSessionHandler(
+  {
+    access: "coach",
+    body: positiveIntegerBodySchema,
+    fallbackMessage: "Ajout à la classe impossible.",
+  },
+  async ({ user, body, params }) => {
+    const groupId = parseRouteId(params.groupId as string);
+    if (!groupId) {
+      return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
     }
-  });
-}
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ groupId: string }> }
-) {
-  return withRequestContext(request, async () => {
-    try {
-      const forbidden = rejectCrossOriginRequest(request);
-      if (forbidden) return forbidden;
+    await addUserToCoachGroup(groupId, body.userId, user);
+    return NextResponse.json({ ok: true });
+  }
+);
 
-      const user = await requireCoachAccess();
-      if (!user) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
-      const { groupId: rawGroupId } = await context.params;
-      const groupId = parseGroupId(rawGroupId);
-      const userId = Number(request.nextUrl.searchParams.get("userId"));
-
-      if (!groupId || !Number.isInteger(userId)) {
-        return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
-      }
-
-      await removeUserFromCoachGroup(groupId, userId, user);
-      return NextResponse.json({ ok: true });
-    } catch (error) {
-      const { groupId: rawGroupId } = await context.params;
-      const groupId = parseGroupId(rawGroupId);
-      const userId = Number(request.nextUrl.searchParams.get("userId"));
-
-      logServerEvent({
-        category: "coach",
-        action: "group_member_remove_failed",
-        level: error instanceof Error && error.message === "Forbidden" ? "warn" : "error",
-        meta: {
-          groupId: groupId ?? undefined,
-          targetUserId: Number.isInteger(userId) ? userId : undefined,
-          error: error instanceof Error ? error.message : "unknown",
-        },
-      });
-
-      if (error instanceof Error && error.message === "Forbidden") {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
-
-      return NextResponse.json({ error: "Suppression de la classe impossible." }, { status: 500 });
+export const DELETE = withSessionHandler(
+  { access: "coach", fallbackMessage: "Suppression de la classe impossible." },
+  async ({ request, user, params }) => {
+    const groupId = parseRouteId(params.groupId as string);
+    const userId = Number(request.nextUrl.searchParams.get("userId"));
+    if (!groupId || !Number.isInteger(userId)) {
+      return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
     }
-  });
-}
+
+    await removeUserFromCoachGroup(groupId, userId, user);
+    return NextResponse.json({ ok: true });
+  }
+);
