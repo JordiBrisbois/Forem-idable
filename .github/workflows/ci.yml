@@ -50,6 +50,12 @@ jobs:
       AUDIT_HASH_SECRET: ci-audit-secret
       E2E_REAL_DB: "1"
       E2E_DATABASE_URL: postgres://postgres:postgres@localhost:5432/app
+      # Feature flags matching a demo/self-hosted instance, so the specs exercise
+      # the same surfaces (job search, public registration, password reset).
+      FEATURE_JOB_SEARCH: "true"
+      ALLOW_PUBLIC_REGISTRATION: "true"
+      PASSWORD_RESET_ENABLED: "true"
+      NEXT_PUBLIC_PASSWORD_RESET_ENABLED: "true"
     services:
       postgres:
         image: postgres:18-alpine
@@ -80,7 +86,7 @@ jobs:
 
       - name: Run E2E
         # global-setup resets the database and bootstraps the admin.
-        run: npx playwright test
+        run: npx playwright test --reporter=list,html
 
       - name: Upload Playwright report
         if: failure()
