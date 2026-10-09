@@ -183,19 +183,36 @@ function buildForemSearchUrl(options: { where: string | null; limit: number; off
     return appendOdwbApiKey(url);
 }
 
+/**
+ * Browser requests go through the shared server proxy (`/api/offers/odwb`) so the
+ * whole instance shares one stream of cached ODWB calls and the API key stays on
+ * the server. Server-side callers (e.g. message previews) hit ODWB directly.
+ */
+function buildForemProxyUrl(options: { where: string | null; limit: number; offset: number }): string {
+    const origin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    const url = new URL("/api/offers/odwb", origin);
+    url.searchParams.set("limit", String(options.limit));
+    url.searchParams.set("offset", String(options.offset));
+    if (options.where) {
+        url.searchParams.set("where", options.where);
+    }
+    return url.toString();
+}
+
 async function fetchForemPage(options: { where: string | null; limit: number; offset: number }): Promise<{ jobs: Job[]; total: number } | null> {
-    const url = buildForemSearchUrl(options);
-    const cacheKey = url.toString();
+    const isBrowser = typeof window !== "undefined";
+    const requestUrl = isBrowser ? buildForemProxyUrl(options) : buildForemSearchUrl(options).toString();
+    const cacheKey = `${options.where ?? ""}::${options.limit}::${options.offset}`;
 
     const cached = foremPageCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < FOREM_PAGE_CACHE_TTL_MS) {
         return { jobs: cached.jobs, total: cached.total };
     }
 
-    const response = await fetch(cacheKey, { method: "GET" });
+    const response = await fetch(requestUrl, { method: "GET" });
 
-    // ODWB rate limit (anonymous quota exhausted): surface it instead of
-    // silently returning an empty result set.
+    // ODWB rate limit (quota exhausted): surface it instead of silently
+    // returning an empty result set.
     if (response.status === 429) {
         throw new ForemRateLimitedError();
     }
