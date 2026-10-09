@@ -1,51 +1,32 @@
-import { NextRequest, NextResponse } from "next/server";
-import { recordAuditEvent } from "@/lib/server/auditLog";
-import { markCoachAction, requireAdminAccess } from "@/lib/server/coach";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { revokeApiKeyById } from "@/lib/server/apiKeys";
+import { recordAuditEvent } from "@/lib/server/auditLog";
+import { markCoachAction } from "@/lib/server/coach";
 import { logServerEvent } from "@/lib/server/observability";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ keyId: string }> }
-) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { keyId: rawKeyId } = await context.params;
-    const keyId = parseIntegerParam(rawKeyId);
+export const DELETE = withSessionHandler(
+  { access: "admin", fallbackMessage: "Révocation impossible." },
+  async ({ user, params }) => {
+    const keyId = parseRouteId(params.keyId as string);
     if (!keyId) {
       return NextResponse.json({ error: "Clé invalide." }, { status: 400 });
     }
 
     await revokeApiKeyById(keyId);
-    await markCoachAction(admin.id);
+    await markCoachAction(user.id);
     await recordAuditEvent({
-      actorUserId: admin.id,
+      actorUserId: user.id,
       action: "api_key_revoked",
-      payload: {
-        apiKeyId: keyId,
-        scope: "global_admin",
-      },
+      payload: { apiKeyId: keyId, scope: "global_admin" },
     });
     logServerEvent({
       category: "admin",
       action: "api_key_revoked",
-      meta: {
-        actorUserId: admin.id,
-        apiKeyId: keyId,
-        scope: "global_admin",
-      },
+      meta: { actorUserId: user.id, apiKeyId: keyId, scope: "global_admin" },
     });
+
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Révocation impossible." }, { status: 500 });
   }
-}
+);

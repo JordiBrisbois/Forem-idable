@@ -1,15 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { listLegalHoldTargetOptions } from "@/lib/server/compliance";
-import { requireAdminAccess } from "@/lib/server/coach";
 import { legalHoldTargetLookupQuerySchema } from "@/lib/server/requestSchemas";
 
-export async function GET(request: NextRequest) {
-  try {
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
+export const GET = withSessionHandler(
+  { access: "admin", fallbackMessage: "Recherche de cibles indisponible." },
+  async ({ request }) => {
     const parsed = legalHoldTargetLookupQuerySchema.safeParse({
       targetType: request.nextUrl.searchParams.get("targetType") ?? undefined,
       q: request.nextUrl.searchParams.get("q") ?? undefined,
@@ -25,15 +21,6 @@ export async function GET(request: NextRequest) {
     }
 
     const options = await listLegalHoldTargetOptions(parsed.data);
-    return NextResponse.json(
-      { options },
-      {
-        headers: {
-          "Cache-Control": "no-store",
-        },
-      }
-    );
-  } catch {
-    return NextResponse.json({ error: "Recherche de cibles indisponible." }, { status: 500 });
+    return NextResponse.json({ options }, { headers: { "Cache-Control": "no-store" } });
   }
-}
+);

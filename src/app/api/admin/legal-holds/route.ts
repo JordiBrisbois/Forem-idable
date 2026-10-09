@@ -1,44 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { createLegalHold, listActiveLegalHolds } from "@/lib/server/compliance";
-import { requireAdminAccess } from "@/lib/server/coach";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { legalHoldCreateSchema, readValidatedJson } from "@/lib/server/requestSchemas";
+import { legalHoldCreateSchema } from "@/lib/server/requestSchemas";
 
-export async function GET() {
-  try {
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+export const GET = withSessionHandler(
+  { access: "admin", fallbackMessage: "Legal holds indisponibles." },
+  async () => NextResponse.json({ holds: await listActiveLegalHolds() })
+);
 
-    const holds = await listActiveLegalHolds();
-    return NextResponse.json({ holds });
-  } catch {
-    return NextResponse.json({ error: "Legal holds indisponibles." }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const parsed = await readValidatedJson(request, legalHoldCreateSchema);
-    if (!parsed.success) {
-      return NextResponse.json({ error: parsed.error }, { status: 400 });
-    }
-
-    const hold = await createLegalHold({
-      actorUserId: admin.id,
-      ...parsed.data,
-    });
+export const POST = withSessionHandler(
+  {
+    access: "admin",
+    body: legalHoldCreateSchema,
+    fallbackMessage: "Création du legal hold impossible.",
+  },
+  async ({ user, body }) => {
+    const hold = await createLegalHold({ actorUserId: user.id, ...body });
     return NextResponse.json({ hold }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Création du legal hold impossible." }, { status: 500 });
   }
-}
+);

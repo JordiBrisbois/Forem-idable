@@ -1,33 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
-import { markCoachAction, requireAdminAccess } from "@/lib/server/coach";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { revokeApiKey } from "@/lib/server/apiKeys";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
+import { markCoachAction } from "@/lib/server/coach";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ userId: string; keyId: string }> }
-) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { userId: rawUserId, keyId: rawKeyId } = await context.params;
-    const userId = parseIntegerParam(rawUserId);
-    const keyId = parseIntegerParam(rawKeyId);
+export const DELETE = withSessionHandler(
+  { access: "admin", fallbackMessage: "Révocation impossible." },
+  async ({ user, params }) => {
+    const userId = parseRouteId(params.userId as string);
+    const keyId = parseRouteId(params.keyId as string);
     if (!userId || !keyId) {
       return NextResponse.json({ error: "Paramètres invalides." }, { status: 400 });
     }
 
     await revokeApiKey(userId, keyId);
-    await markCoachAction(admin.id);
+    await markCoachAction(user.id);
     return NextResponse.json({ ok: true });
-  } catch {
-    return NextResponse.json({ error: "Révocation impossible." }, { status: 500 });
   }
-}
+);

@@ -60,6 +60,15 @@ export function handleApiError(
   options: { fallbackMessage: string; status?: number }
 ): NextResponse {
   const message = error instanceof Error ? error.message : "";
+  const name = error instanceof Error ? error.name : "";
+
+  if (name === "DeletionRequestNotFoundError") {
+    return NextResponse.json({ error: message || "Introuvable." }, { status: 404 });
+  }
+
+  if (name === "DeletionRequestStatusError" || name === "ActiveLegalHoldError") {
+    return NextResponse.json({ error: message || "Conflit." }, { status: 409 });
+  }
 
   if (/duplicate|unique/i.test(message)) {
     return NextResponse.json(

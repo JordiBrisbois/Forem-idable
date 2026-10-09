@@ -1,33 +1,20 @@
 import { NextResponse } from "next/server";
 import { canCoach } from "@/lib/authz";
-import { db, ensureDatabase } from "@/lib/server/db";
-import { requireAdminAccess } from "@/lib/server/coach";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { listApiKeysForUser } from "@/lib/server/apiKeys";
+import { db, ensureDatabase } from "@/lib/server/db";
+import { parseRouteId } from "@/lib/server/routeParams";
 import { UserRole } from "@/types/auth";
 
-function parseUserId(value: string) {
-  const userId = Number(value);
-  return Number.isInteger(userId) ? userId : null;
-}
-
-export async function GET(
-  _request: Request,
-  context: { params: Promise<{ userId: string }> }
-) {
-  try {
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { userId: rawUserId } = await context.params;
-    const userId = parseUserId(rawUserId);
+export const GET = withSessionHandler(
+  { access: "admin", fallbackMessage: "Chargement des clés API impossible." },
+  async ({ params }) => {
+    const userId = parseRouteId(params.userId as string);
     if (!userId) {
       return NextResponse.json({ error: "Utilisateur invalide." }, { status: 400 });
     }
 
     await ensureDatabase();
-
     const targetResult = await db.query<{ role: UserRole }>(
       `SELECT role FROM users WHERE id = $1 LIMIT 1`,
       [userId]
@@ -39,12 +26,13 @@ export async function GET(
     }
 
     if (!canCoach(target.role)) {
-      return NextResponse.json({ error: "Aucune clé API à gérer pour ce rôle." }, { status: 400 });
+      return NextResponse.json(
+        { error: "Aucune clé API à gérer pour ce rôle." },
+        { status: 400 }
+      );
     }
 
     const apiKeys = await listApiKeysForUser(userId);
     return NextResponse.json({ apiKeys: apiKeys.filter((entry) => !entry.revokedAt) });
-  } catch {
-    return NextResponse.json({ error: "Chargement des clés API impossible." }, { status: 500 });
   }
-}
+);

@@ -1,35 +1,21 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withSessionHandler } from "@/lib/server/apiHandler";
 import { releaseLegalHold } from "@/lib/server/compliance";
-import { requireAdminAccess } from "@/lib/server/coach";
-import { rejectCrossOriginRequest } from "@/lib/server/requestOrigin";
-import { parseIntegerParam } from "@/lib/server/requestSchemas";
+import { parseRouteId } from "@/lib/server/routeParams";
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  try {
-    const forbidden = rejectCrossOriginRequest(request);
-    if (forbidden) return forbidden;
-
-    const admin = await requireAdminAccess();
-    if (!admin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const { id: rawId } = await context.params;
-    const id = parseIntegerParam(rawId);
+export const DELETE = withSessionHandler(
+  { access: "admin", fallbackMessage: "Libération impossible." },
+  async ({ user, params }) => {
+    const id = parseRouteId(params.id as string);
     if (!id) {
       return NextResponse.json({ error: "Legal hold invalide." }, { status: 400 });
     }
 
-    const hold = await releaseLegalHold(id, admin.id);
+    const hold = await releaseLegalHold(id, user.id);
     if (!hold) {
       return NextResponse.json({ error: "Legal hold introuvable." }, { status: 404 });
     }
 
     return NextResponse.json({ hold });
-  } catch {
-    return NextResponse.json({ error: "Libération impossible." }, { status: 500 });
   }
-}
+);
