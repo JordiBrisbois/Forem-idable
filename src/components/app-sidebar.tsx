@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessagesSquare, Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import Link from "next/link";
@@ -17,6 +17,7 @@ import {
 import { AuthSidebarPanel } from "@/components/auth/AuthSidebarPanel";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { fetchConversations } from "@/features/messages/messages.api";
+import { useMessagesStream } from "@/features/messages/hooks/useMessagesStream";
 import { Button } from "@/components/ui/button";
 import { runtimeConfig } from "@/config/runtime";
 import {
@@ -151,6 +152,8 @@ export function AppSidebar() {
   const { user, isLoading } = useAuth();
   const [currentHash, setCurrentHash] = useState("");
   const [messagingConversations, setMessagingConversations] = useState<ConversationPreview[] | null>(null);
+  const reloadMessagingRef = useRef<(() => void) | null>(null);
+  const streamReloadTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -201,18 +204,16 @@ export function AppSidebar() {
       }
     }
 
-    void loadMessagingMeta();
+    const reload = () => {
+      void loadMessagingMeta();
+    };
 
-    const isOnMessagesPage = pathname === "/messages";
-    const intervalId = isOnMessagesPage
-      ? null
-      : window.setInterval(() => {
-          void loadMessagingMeta();
-        }, 5000);
+    reloadMessagingRef.current = reload;
+    reload();
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === "visible") {
-        void loadMessagingMeta();
+        reload();
       }
     };
 
@@ -221,13 +222,35 @@ export function AppSidebar() {
 
     return () => {
       cancelled = true;
-      if (intervalId !== null) {
-        window.clearInterval(intervalId);
-      }
+      reloadMessagingRef.current = null;
       window.removeEventListener("focus", handleVisibilityChange);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isLoading, user, pathname]);
+
+  // Refresh the unread badge from the server-sent events stream instead of
+  // polling. On /messages the page owns its own stream connection.
+  useMessagesStream({
+    enabled: !isLoading && !!user && pathname !== "/messages",
+    onEvent: () => {
+      if (streamReloadTimerRef.current !== null) {
+        window.clearTimeout(streamReloadTimerRef.current);
+      }
+
+      streamReloadTimerRef.current = window.setTimeout(() => {
+        streamReloadTimerRef.current = null;
+        reloadMessagingRef.current?.();
+      }, 400);
+    },
+  });
+
+  useEffect(() => {
+    return () => {
+      if (streamReloadTimerRef.current !== null) {
+        window.clearTimeout(streamReloadTimerRef.current);
+      }
+    };
+  }, []);
 
   const messagingNav = useMemo(() => {
     const conversations = messagingConversations ?? [];
