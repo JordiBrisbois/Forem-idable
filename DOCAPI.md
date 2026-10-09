@@ -92,7 +92,7 @@ Suppression d'une candidature.
 ## 📝 Gestion des Notes Coach
 
 ### Notes Privées (`/private-note`)
-*   `PUT /api/external/applications/:id/private-note` : Crée ou remplace la note coach privée (commune aux coachs du groupe).
+*   `PUT /api/external/applications/:id/private-note` : Crée ou remplace la note coach privée (commune aux coachs de la classe).
 
 ### Notes Partagées (`/shared-notes`)
 Notes visibles par le bénéficiaire et les autres coachs.

@@ -38,7 +38,7 @@ const COACH_NAV_ITEM: AppSidebarNavItem = {
   children: [
     { title: "À traiter", url: "/coach#a-traiter" },
     { title: "Activité récente", url: "/coach#activite-recente" },
-    { title: "Groupes", url: "/coach#groupes" },
+    { title: "Classes", url: "/coach#classes" },
   ],
 };
 

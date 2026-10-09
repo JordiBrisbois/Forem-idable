@@ -27,7 +27,7 @@ export function CoachPageHeader({
   const quickLinks = [
     { href: "#a-traiter", label: "Priorités", icon: Sparkles },
     { href: "#activite-recente", label: "Activité", icon: History },
-    { href: "#groupes", label: "Groupes", icon: FolderKanban },
+    { href: "#classes", label: "Classes", icon: FolderKanban },
   ];
 
   return (
@@ -49,7 +49,7 @@ export function CoachPageHeader({
               </CardTitle>
               <CardDescription className="max-w-3xl text-sm text-muted-foreground sm:text-base">
                 Tour de contrôle pour repérer les urgences, ouvrir une fiche
-                rapidement et gérer les groupes sans quitter la même vue.
+                rapidement et gérer les classes sans quitter la même vue.
               </CardDescription>
             </div>
           </div>

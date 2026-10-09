@@ -44,7 +44,7 @@ export function buildGroupExportRows(
         userLastName: entry.lastName,
         userEmail: entry.email,
         groupName,
-        message: "Aucune candidature pour cet utilisateur dans ce groupe.",
+        message: "Aucune candidature pour cet utilisateur dans cette classe.",
       });
     }
   }

@@ -98,14 +98,14 @@ export function useCoachGroupActions(input: {
       }
     } catch {
       input.removeGroupLocally(temporaryGroupId);
-      input.setFeedback("Création du groupe impossible.");
+      input.setFeedback("Création de la classe impossible.");
       return;
     }
 
     input.setUndoAction(null);
     input.setGroupName("");
     input.setIsCreateGroupOpen(false);
-    input.setFeedback(`Groupe créé: ${trimmedGroupName}.`);
+    input.setFeedback(`Classe créée: ${trimmedGroupName}.`);
   }, [input]);
 
   const addMember = useCallback(
@@ -115,13 +115,13 @@ export function useCoachGroupActions(input: {
         await addCoachGroupMember(groupId, userId);
       } catch {
         input.removeMembershipLocally(groupId, userId);
-        input.setFeedback("Ajout au groupe impossible.");
+        input.setFeedback("Ajout à la classe impossible.");
         return;
       }
 
       input.setUndoAction(null);
       input.setMemberPickerGroupId(null);
-      input.setFeedback("Membre ajouté au groupe.");
+      input.setFeedback("Membre ajouté à la classe.");
     },
     [input]
   );
@@ -139,7 +139,7 @@ export function useCoachGroupActions(input: {
 
       input.setUndoAction(null);
       input.setCoachPickerGroupId(null);
-      input.setFeedback("Coach attribué au groupe.");
+      input.setFeedback("Coach attribué à la classe.");
     },
     [input]
   );
@@ -172,7 +172,7 @@ export function useCoachGroupActions(input: {
 
       input.setManagerPickerGroupId(null);
       input.setUndoAction(null);
-      input.setFeedback("Manager du groupe mis à jour.");
+      input.setFeedback("Manager de la classe mis à jour.");
     },
     [input]
   );
@@ -181,7 +181,7 @@ export function useCoachGroupActions(input: {
     async (groupId: number, userId: number) => {
       const targetGroup = input.dashboard?.groups.find((group) => group.id === groupId);
       if (!targetGroup) {
-        input.setFeedback("Groupe introuvable.");
+        input.setFeedback("Classe introuvable.");
         return;
       }
 
@@ -190,18 +190,18 @@ export function useCoachGroupActions(input: {
         await removeCoachGroupMember(groupId, userId);
       } catch {
         input.addMembershipLocally(groupId, userId);
-        input.setFeedback("Suppression du groupe impossible.");
+        input.setFeedback("Suppression de la classe impossible.");
         return;
       }
 
       input.setUndoAction({
         type: "remove-membership",
-        label: "Retrait du groupe effectué.",
+        label: "Retrait de la classe effectué.",
         groupId,
         userId,
         groupName: targetGroup.name,
       });
-      input.setFeedback("Membre retiré du groupe.");
+      input.setFeedback("Membre retiré de la classe.");
     },
     [input]
   );
@@ -225,7 +225,7 @@ export function useCoachGroupActions(input: {
       }
 
       input.setUndoAction(null);
-      input.setFeedback("Coach retiré du groupe.");
+      input.setFeedback("Coach retiré de la classe.");
     },
     [input]
   );
@@ -239,14 +239,14 @@ export function useCoachGroupActions(input: {
       } catch (error) {
         await input.loadDashboard();
         input.setFeedback(
-          error instanceof Error ? error.message : "Suppression du groupe impossible."
+          error instanceof Error ? error.message : "Suppression de la classe impossible."
         );
         input.setIsDeletingGroup(false);
         return;
       }
 
       input.setUndoAction(null);
-      input.setFeedback("Groupe supprimé.");
+      input.setFeedback("Classe supprimée.");
       input.setIsDeletingGroup(false);
     },
     [input]
@@ -259,12 +259,12 @@ export function useCoachGroupActions(input: {
         await addCoachGroupMember(undoAction.groupId, undoAction.userId);
       } catch {
         input.removeMembershipLocally(undoAction.groupId, undoAction.userId);
-        input.setFeedback("Impossible d'annuler le retrait du groupe.");
+        input.setFeedback("Impossible d'annuler le retrait de la classe.");
         return false;
       }
 
       input.setUndoAction(null);
-      input.setFeedback("Retrait du groupe annulé.");
+      input.setFeedback("Retrait de la classe annulé.");
       return true;
     },
     [input]
@@ -303,7 +303,7 @@ export function useCoachGroupActions(input: {
       }
 
       input.setUndoAction(null);
-      input.setFeedback(archived ? "Groupe archivé." : "Groupe désarchivé.");
+      input.setFeedback(archived ? "Classe archivée." : "Classe désarchivée.");
     },
     [input]
   );

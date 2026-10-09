@@ -39,7 +39,7 @@ export function exportCoachApplicationsToCSV(input: {
     "Prénom",
     "Nom",
     "Utilisateur",
-    "Groupe",
+    "Classe",
     "Entreprise",
     "Intitulé",
     "Type",

@@ -60,7 +60,7 @@ export function CoachSummaryCards({
     {
       label: "Candidatures consolidées",
       value: String(totalApplications),
-      detail: "Volume total de candidatures visible sur l’ensemble des groupes.",
+      detail: "Volume total de candidatures visible sur l’ensemble des classes.",
       badge: "Pipeline",
       badgeVariant: "outline" as const,
       icon: FolderKanban,

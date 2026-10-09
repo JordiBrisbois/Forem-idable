@@ -280,7 +280,7 @@ export async function listCalendarFeedRowsForGroup(groupId: number): Promise<{
   });
 
   return {
-    calendarName: `${runtimeConfig.app.name} - Groupe ${target.groupName}`,
+    calendarName: `${runtimeConfig.app.name} - Classe ${target.groupName}`,
     rows,
   };
 }
@@ -327,7 +327,7 @@ export async function listCalendarFeedRowsForAllGroups(actorId: number): Promise
   const actorScope = await resolveCalendarActorScope(actorId);
   if (actorScope.managedGroupIds && actorScope.managedGroupIds.length === 0) {
     return {
-      calendarName: `${runtimeConfig.app.name} - Mes groupes beneficiaires`,
+      calendarName: `${runtimeConfig.app.name} - Mes classes beneficiaires`,
       rows: [],
     };
   }
@@ -376,8 +376,8 @@ export async function listCalendarFeedRowsForAllGroups(actorId: number): Promise
   return {
     calendarName:
       actorScope.role === "admin"
-        ? `${runtimeConfig.app.name} - Tous les groupes beneficiaires`
-        : `${runtimeConfig.app.name} - Mes groupes beneficiaires`,
+        ? `${runtimeConfig.app.name} - Toutes les classes beneficiaires`
+        : `${runtimeConfig.app.name} - Mes classes beneficiaires`,
     rows,
   };
 }

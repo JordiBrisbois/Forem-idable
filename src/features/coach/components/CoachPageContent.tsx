@@ -25,18 +25,18 @@ export function CoachPageContent({
 }: CoachPageContentProps) {
   return (
     <div className="flex flex-col gap-6 min-w-0 overflow-x-hidden">
-      {page.followedUserCount === 0 ? (
+      {page.followedUserCount === 0 && (page.dashboard?.groups.length ?? 0) === 0 ? (
         <Empty className="rounded-2xl border border-dashed bg-card/80 p-8">
           <EmptyHeader>
             <EmptyTitle>Aucun bénéficiaire suivi pour l&apos;instant</EmptyTitle>
             <EmptyDescription>
-              Commencez par créer un groupe, puis ajoutez un bénéficiaire pour
+              Commencez par créer une classe, puis ajoutez un bénéficiaire pour
               centraliser ses candidatures, ses relances et ses entretiens.
             </EmptyDescription>
           </EmptyHeader>
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={() => page.setIsCreateGroupOpen(true)}>
-              Créer un groupe
+              Créer une classe
             </Button>
           </div>
         </Empty>
@@ -56,7 +56,7 @@ export function CoachPageContent({
             />
           </div>
 
-          <div id="groupes" className="scroll-mt-6">
+          <div id="classes" className="scroll-mt-6">
             <CoachGroupsSection
               currentUserId={currentUserId}
               currentUserRole={currentUserRole}
@@ -75,7 +75,7 @@ export function CoachPageContent({
                 page.setCalendarRegenerationTarget({
                   scope: "all_groups",
                   groupId: null,
-                  label: "tous les groupes bénéficiaires",
+                  label: "toutes les classes bénéficiaires",
                 })
               }
               onAddMember={page.setMemberPickerGroupId}
@@ -89,7 +89,7 @@ export function CoachPageContent({
                 page.setCalendarRegenerationTarget({
                   scope: "group",
                   groupId,
-                  label: `groupe ${groupName}`,
+                  label: `classe ${groupName}`,
                 })
               }
               onRemoveGroup={(groupId, groupName) =>

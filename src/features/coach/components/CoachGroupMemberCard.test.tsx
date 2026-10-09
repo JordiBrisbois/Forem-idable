@@ -94,9 +94,9 @@ describe("CoachGroupMemberCard", () => {
     expect(screen.getByText("Groupe A")).toBeInTheDocument();
   });
 
-  it("shows 'Sans groupe' when user has no groups", () => {
+  it("shows 'Sans classe' when user has no groups", () => {
     renderCard({ entry: buildUser({ groupNames: [] }) });
-    expect(screen.getByText("Sans groupe")).toBeInTheDocument();
+    expect(screen.getByText("Sans classe")).toBeInTheDocument();
   });
 
   it("is accessible as a button with user name", () => {
@@ -124,17 +124,17 @@ describe("CoachGroupMemberCard", () => {
 
   it("shows the remove menu for standard groups", () => {
     renderCard({ groupKind: "standard" });
-    expect(screen.getByText("Retirer du groupe")).toBeInTheDocument();
+    expect(screen.getByText("Retirer de la classe")).toBeInTheDocument();
   });
 
   it("does not show the remove menu for ungrouped", () => {
     renderCard({ groupKind: "ungrouped" });
-    expect(screen.queryByText("Retirer du groupe")).not.toBeInTheDocument();
+    expect(screen.queryByText("Retirer de la classe")).not.toBeInTheDocument();
   });
 
-  it("calls onRemoveMembership when 'Retirer du groupe' is clicked", () => {
+  it("calls onRemoveMembership when 'Retirer de la classe' is clicked", () => {
     const props = renderCard({ groupKind: "standard" });
-    fireEvent.click(screen.getByText("Retirer du groupe"));
+    fireEvent.click(screen.getByText("Retirer de la classe"));
     expect(props.onRemoveMembership).toHaveBeenCalledWith({
       groupId: 1,
       userId: 1,

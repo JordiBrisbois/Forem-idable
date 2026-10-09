@@ -41,8 +41,8 @@ describe("app shell config", () => {
     expect(isSidebarItemActive("/applications", "/account")).toBe(false);
     expect(isSidebarSubItemVisible("/coach", coachItem)).toBe(true);
     expect(isSidebarSubItemVisible("/applications", coachItem)).toBe(false);
-    expect(isSidebarSubItemActive("/coach", "#groupes", "/coach#groupes")).toBe(true);
-    expect(isSidebarSubItemActive("/coach", "#groupes", "/coach#activite-recente")).toBe(false);
+    expect(isSidebarSubItemActive("/coach", "#classes", "/coach#classes")).toBe(true);
+    expect(isSidebarSubItemActive("/coach", "#classes", "/coach#activite-recente")).toBe(false);
   });
 
   it("exposes the privacy footer entry", () => {

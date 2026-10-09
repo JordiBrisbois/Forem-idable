@@ -151,15 +151,15 @@ export function CoachGroupsSection({
       <CardHeader className="border-b px-5 py-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <CardTitle className="text-xl">Groupes</CardTitle>
+            <CardTitle className="text-xl">Classes</CardTitle>
             <CardDescription>
-              Recherche, suivi et gestion détaillée des personnes directement par groupe.
+              Recherche, suivi et gestion détaillée des personnes directement par classe.
             </CardDescription>
           </div>
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <Button type="button" className="flex-1 sm:flex-none" onClick={onCreateGroup}>
               <FolderPlus className="mr-2 h-4 w-4" />
-              Créer un groupe
+              Créer une classe
             </Button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -206,7 +206,7 @@ export function CoachGroupsSection({
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <div className="h-px flex-1 bg-border" />
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Groupes archivés</span>
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Classes archivées</span>
                 <div className="h-px flex-1 bg-border" />
               </div>
               {archivedGroups.map(renderGroupCard)}
@@ -219,7 +219,7 @@ export function CoachGroupsSection({
                 {search.trim()
                   ? "Essayez un autre nom, prénom ou email, ou retirez un filtre rapide."
                   : userFilter === "all" && goalFilter === "all"
-                    ? "Ajoutez un groupe ou un bénéficiaire pour commencer le suivi coach."
+                    ? "Ajoutez une classe ou un bénéficiaire pour commencer le suivi coach."
                     : "Aucun bénéficiaire ne correspond à ce filtre pour l'instant."}
               </p>
             </div>
@@ -241,7 +241,7 @@ export function CoachGroupsSection({
             <p>Le calendrier se met ensuite a jour quand un entretien est ajoute, modifie ou supprime dans {runtimeConfig.app.name}.</p>
             <p>La synchronisation n&apos;est pas immediate: Google choisit lui-meme la frequence de rafraichissement.</p>
             <p>Si vous remplacez le lien utilise dans votre agenda, il faut re-ajouter la nouvelle URL dans Google Calendar.</p>
-            <p>Le lien global rassemble tous les groupes beneficiaires visibles par votre compte.</p>
+            <p>Le lien global rassemble toutes les classes beneficiaires visibles par votre compte.</p>
           </div>
           <DialogFooter>
             <Button type="button" onClick={() => setIsCalendarHelpOpen(false)}>Fermer</Button>

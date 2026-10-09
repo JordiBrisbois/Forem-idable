@@ -119,7 +119,7 @@ export async function DELETE(
       }
       if (error instanceof Error && error.message === "SelfRemovalForbidden") {
         return NextResponse.json(
-          { error: "Un coach ne peut pas se retirer lui-même d'un groupe attribué." },
+          { error: "Un coach ne peut pas se retirer lui-même d'une classe attribuée." },
           { status: 400 }
         );
       }

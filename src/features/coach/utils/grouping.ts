@@ -155,7 +155,7 @@ export function buildGroupedUsers(input: {
   const syntheticGroups: CoachGroupedUserGroup[] = [
     {
       id: -1,
-      name: "Aucun groupe attribué",
+      name: "Aucune classe attribuée",
       createdById: null,
       createdByLabel: null,
       managerCoachId: null,

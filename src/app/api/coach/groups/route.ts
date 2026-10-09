@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      return NextResponse.json({ error: "Création de groupe impossible." }, { status: 500 });
+      return NextResponse.json({ error: "Création de classe impossible." }, { status: 500 });
     }
   });
 }
@@ -49,7 +49,7 @@ export async function DELETE(request: NextRequest) {
 
       const groupId = Number(request.nextUrl.searchParams.get("groupId"));
       if (!Number.isInteger(groupId) || groupId <= 0) {
-        return NextResponse.json({ error: "Groupe invalide." }, { status: 400 });
+        return NextResponse.json({ error: "Classe invalide." }, { status: 400 });
       }
 
       await deleteCoachGroup(groupId, user);
@@ -71,7 +71,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      return NextResponse.json({ error: "Suppression du groupe impossible." }, { status: 500 });
+      return NextResponse.json({ error: "Suppression de la classe impossible." }, { status: 500 });
     }
   });
 }

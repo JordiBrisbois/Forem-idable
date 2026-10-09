@@ -54,7 +54,7 @@ export async function POST(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      return NextResponse.json({ error: "Ajout au groupe impossible." }, { status: 500 });
+      return NextResponse.json({ error: "Ajout à la classe impossible." }, { status: 500 });
     }
   });
 }
@@ -103,7 +103,7 @@ export async function DELETE(
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
       }
 
-      return NextResponse.json({ error: "Suppression du groupe impossible." }, { status: 500 });
+      return NextResponse.json({ error: "Suppression de la classe impossible." }, { status: 500 });
     }
   });
 }

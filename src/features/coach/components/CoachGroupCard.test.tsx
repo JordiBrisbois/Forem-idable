@@ -145,9 +145,9 @@ describe("CoachGroupCard", () => {
     expect(screen.getByText("Archivé")).toBeInTheDocument();
   });
 
-  it("shows 'Groupe système' for ungrouped", () => {
+  it("shows 'Classe système' for ungrouped", () => {
     renderCard({ group: buildGroup({ kind: "ungrouped", coaches: [] }) });
-    expect(screen.getByText("Groupe système")).toBeInTheDocument();
+    expect(screen.getByText("Classe système")).toBeInTheDocument();
   });
 
   it("renders coaches with Manager badge", () => {
@@ -208,7 +208,7 @@ describe("CoachGroupCard", () => {
 
   it("calls onRemoveGroup from dropdown", () => {
     const props = renderCard();
-    fireEvent.click(screen.getByText("Supprimer le groupe"));
+    fireEvent.click(screen.getByText("Supprimer la classe"));
     expect(props.onRemoveGroup).toHaveBeenCalledWith(1, "Groupe Test");
   });
 
@@ -224,7 +224,7 @@ describe("CoachGroupCard", () => {
         ],
       }),
     });
-    const removeButton = screen.getByLabelText("Retirer other@example.com du groupe Groupe Test");
+    const removeButton = screen.getByLabelText("Retirer other@example.com de la classe Groupe Test");
     fireEvent.click(removeButton);
     expect(props.onRemoveCoach).toHaveBeenCalledWith({
       groupId: 1,
@@ -242,7 +242,7 @@ describe("CoachGroupCard", () => {
     // Let me check the logic: canRemoveAssignedCoach returns false when currentUserRole === "coach" && coachId === currentUserId
     // So the X button should NOT be rendered
     expect(
-      screen.queryByLabelText("Retirer coach@example.com du groupe Groupe Test")
+      screen.queryByLabelText("Retirer coach@example.com de la classe Groupe Test")
     ).not.toBeInTheDocument();
   });
 

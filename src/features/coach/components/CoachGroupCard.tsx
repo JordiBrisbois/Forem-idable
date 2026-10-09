@@ -120,7 +120,7 @@ export function CoachGroupCard({
                 <Badge
                   variant={group.kind === "ungrouped" ? "secondary" : "outline"}
                 >
-                  {group.kind === "ungrouped" ? "Groupe système" : "Groupe actif"}
+                  {group.kind === "ungrouped" ? "Classe système" : "Classe active"}
                 </Badge>
               )}
               <ChevronDown
@@ -199,7 +199,7 @@ export function CoachGroupCard({
                                     groupName: group.name,
                                   });
                                 }}
-                                aria-label={`Retirer ${coach.email} du groupe ${group.name}`}
+                                aria-label={`Retirer ${coach.email} de la classe ${group.name}`}
                               >
                                 <X className="h-3 w-3" />
                               </button>
@@ -319,7 +319,7 @@ export function CoachGroupCard({
                         onClick={() => onRemoveGroup(group.id, group.name)}
                       >
                         <Trash2 className="h-4 w-4" />
-                        Supprimer le groupe
+                        Supprimer la classe
                       </DropdownMenuItem>
                     </>
                   )}

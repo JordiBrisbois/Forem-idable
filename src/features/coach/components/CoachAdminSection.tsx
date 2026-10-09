@@ -140,12 +140,12 @@ export function CoachAdminSection({
                     <div className="mt-2 flex flex-wrap gap-2">
                       <Badge variant="outline">
                         {coachedGroups.length > 0
-                          ? `${coachedGroups.length} groupe${coachedGroups.length > 1 ? "s" : ""} coaché${coachedGroups.length > 1 ? "s" : ""}`
-                          : "Aucun groupe coaché"}
+                          ? `${coachedGroups.length} classe${coachedGroups.length > 1 ? "s" : ""} coachée${coachedGroups.length > 1 ? "s" : ""}`
+                          : "Aucune classe coachée"}
                       </Badge>
                       {managedGroups.length > 0 ? (
                         <Badge variant="outline">
-                          {managedGroups.length} groupe{managedGroups.length > 1 ? "s" : ""} managé{managedGroups.length > 1 ? "s" : ""}
+                          {managedGroups.length} classe{managedGroups.length > 1 ? "s" : ""} managée{managedGroups.length > 1 ? "s" : ""}
                         </Badge>
                       ) : null}
                       <Badge variant="outline">
@@ -214,26 +214,26 @@ export function CoachAdminSection({
             <DialogTitle>Rétrograder ce coach ?</DialogTitle>
             <DialogDescription>
               {demotionTarget
-                ? `${demotionTarget.email} perdra son rôle coach, ses attributions de groupe et ses éventuels rôles de manager.`
+                ? `${demotionTarget.email} perdra son rôle coach, ses attributions de classe et ses éventuels rôles de manager.`
                 : "Ce coach perdra son rôle."}
             </DialogDescription>
           </DialogHeader>
           {demotionSummary ? (
             <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-2">
               <div>
-                <p className="font-medium text-foreground">Groupes attribués</p>
+                <p className="font-medium text-foreground">Classes attribuées</p>
                 <p>
                   {demotionSummary.coachedGroups.length > 0
                     ? demotionSummary.coachedGroups.join(" • ")
-                    : "Aucun groupe attribué"}
+                    : "Aucune classe attribuée"}
                 </p>
               </div>
               <div>
-                <p className="font-medium text-foreground">Groupes managés</p>
+                <p className="font-medium text-foreground">Classes managées</p>
                 <p>
                   {demotionSummary.managedGroups.length > 0
                     ? demotionSummary.managedGroups.join(" • ")
-                    : "Aucun groupe managé"}
+                    : "Aucune classe managée"}
                 </p>
               </div>
             </div>

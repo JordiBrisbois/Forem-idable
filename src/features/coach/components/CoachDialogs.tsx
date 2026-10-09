@@ -60,7 +60,7 @@ export function CoachDialogs({ page }: CoachDialogsProps) {
             ? `Définir le manager de ${page.managerPickerGroup.name}`
             : "Définir le manager"
         }
-        description="Le manager doit être un coach déjà attribué à ce groupe."
+        description="Le manager doit être un coach déjà attribué à cette classe."
         users={page.assignableManagers}
         onSelect={(entry) =>
           void page.setGroupManager(page.managerPickerGroup?.id ?? 0, entry.id)
@@ -69,11 +69,11 @@ export function CoachDialogs({ page }: CoachDialogsProps) {
 
       <CoachConfirmationDialog
         open={Boolean(page.removeMembership)}
-        title="Retirer du groupe ?"
+        title="Retirer de la classe ?"
         description={
           page.removeMembership
             ? `${page.removeMembership.userEmail} sera retiré de ${page.removeMembership.groupName}.`
-            : "Cet utilisateur sera retiré du groupe."
+            : "Cet utilisateur sera retiré de la classe."
         }
         confirmLabel="Retirer"
         onOpenChange={(open) => !open && page.setRemoveMembership(null)}
@@ -89,11 +89,11 @@ export function CoachDialogs({ page }: CoachDialogsProps) {
 
       <CoachConfirmationDialog
         open={Boolean(page.removeCoach)}
-        title="Retirer ce coach du groupe ?"
+        title="Retirer ce coach de la classe ?"
         description={
           page.removeCoach
             ? `${page.removeCoach.userEmail} ne sera plus attribué à ${page.removeCoach.groupName}.`
-            : "Ce coach ne sera plus attribué au groupe."
+            : "Ce coach ne sera plus attribué à la classe."
         }
         confirmLabel="Retirer"
         onOpenChange={(open) => !open && page.setRemoveCoach(null)}
@@ -109,11 +109,11 @@ export function CoachDialogs({ page }: CoachDialogsProps) {
 
       <CoachConfirmationDialog
         open={Boolean(page.removeGroup)}
-        title="Supprimer ce groupe ?"
+        title="Supprimer cette classe ?"
         description={
           page.removeGroup
-            ? `Le groupe ${page.removeGroup.groupName} sera supprimé avec ses affectations.`
-            : "Le groupe sera supprimé."
+            ? `La classe ${page.removeGroup.groupName} sera supprimée avec ses affectations.`
+            : "La classe sera supprimée."
         }
         confirmLabel="Supprimer"
         isPending={page.isDeletingGroup}

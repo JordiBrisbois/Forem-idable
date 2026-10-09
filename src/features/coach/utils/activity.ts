@@ -38,7 +38,7 @@ export function buildCoachRecentActivity(
       continue;
     }
 
-    const groupLabel = user.groupNames[0] ?? "Aucun groupe";
+    const groupLabel = user.groupNames[0] ?? "Aucune classe";
     const userName = getCoachUserDisplayName(user);
 
     for (const application of user.applications) {
@@ -168,7 +168,7 @@ export function buildCoachPrioritySections(
         jobId: oldestDueApplication?.job.id ?? null,
         userName: getCoachUserDisplayName(user),
         userEmail: user.email,
-        groupLabel: user.groupNames[0] ?? "Aucun groupe",
+        groupLabel: user.groupNames[0] ?? "Aucune classe",
         badgeLabel: dueBadgeLabel,
         badgeTitle:
           dueApplications.length > 1
@@ -231,7 +231,7 @@ export function buildCoachPrioritySections(
         jobId: earliestInterviewApplication?.job.id ?? null,
         userName: getCoachUserDisplayName(user),
         userEmail: user.email,
-        groupLabel: user.groupNames[0] ?? "Aucun groupe",
+        groupLabel: user.groupNames[0] ?? "Aucune classe",
         badgeLabel: interviewBadgeLabel,
         badgeTitle:
           upcomingInterviews.length > 1
@@ -274,9 +274,9 @@ export function buildCoachPrioritySections(
         jobId: null,
         userName: getCoachUserDisplayName(user),
         userEmail: user.email,
-        groupLabel: user.groupNames[0] ?? "Aucun groupe",
-        badgeLabel: user.groupNames[0] ?? "Aucun groupe",
-        badgeTitle: user.groupNames[0] ?? "Aucun groupe",
+        groupLabel: user.groupNames[0] ?? "Aucune classe",
+        badgeLabel: user.groupNames[0] ?? "Aucune classe",
+        badgeTitle: user.groupNames[0] ?? "Aucune classe",
         summary: latestActivityTime
           ? `Inactif depuis ${differenceInCalendarDays(now, new Date(latestActivityTime))} jours`
           : "Aucune activité enregistrée",

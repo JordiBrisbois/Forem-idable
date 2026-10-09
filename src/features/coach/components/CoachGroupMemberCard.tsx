@@ -95,7 +95,7 @@ export const CoachGroupMemberCard = React.memo(function CoachGroupMemberCard({
                     }}
                   >
                     <Trash2 className="h-4 w-4" />
-                    Retirer du groupe
+                    Retirer de la classe
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -107,7 +107,7 @@ export const CoachGroupMemberCard = React.memo(function CoachGroupMemberCard({
           <p className="break-all text-xs text-muted-foreground">
             {entry.groupNames.length > 0
               ? entry.groupNames.join(" • ")
-              : "Sans groupe"}
+              : "Sans classe"}
           </p>
           <CoachUserActivityMeta
             user={entry}

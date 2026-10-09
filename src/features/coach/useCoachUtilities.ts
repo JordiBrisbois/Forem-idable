@@ -98,10 +98,10 @@ export function useCoachUtilities(input: {
   const exportGroupApplications = useCallback(
     (groupName: string, members: CoachUserSummary[]) => {
       const rows = buildGroupExportRows(groupName, members);
-      exportRows(`groupe-${groupName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`, rows);
+      exportRows(`classe-${groupName.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`, rows);
 
       if (members.every((entry) => entry.applications.length === 0)) {
-        input.setFeedback("Export généré avec des lignes vides: aucune candidature dans ce groupe.");
+        input.setFeedback("Export généré avec des lignes vides: aucune candidature dans cette classe.");
       }
     },
     [exportRows, input]
@@ -112,7 +112,7 @@ export function useCoachUtilities(input: {
       requestCalendarSubscription({
         scope: "group",
         groupId,
-        label: `groupe ${groupName}`,
+        label: `classe ${groupName}`,
       }),
     [requestCalendarSubscription]
   );
@@ -121,7 +121,7 @@ export function useCoachUtilities(input: {
     async () =>
       requestCalendarSubscription({
         scope: "all_groups",
-        label: "tous les groupes bénéficiaires",
+        label: "toutes les classes bénéficiaires",
       }),
     [requestCalendarSubscription]
   );

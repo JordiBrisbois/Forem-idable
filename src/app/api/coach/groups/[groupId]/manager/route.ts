@@ -52,7 +52,7 @@ export async function PUT(
 
       if (error instanceof Error && error.message === "Coach assignment required") {
         return NextResponse.json(
-          { error: "Le manager doit être un coach déjà attribué à ce groupe." },
+          { error: "Le manager doit être un coach déjà attribué à cette classe." },
           { status: 400 }
         );
       }

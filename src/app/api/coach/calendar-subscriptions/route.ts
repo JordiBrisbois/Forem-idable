@@ -81,10 +81,10 @@ export async function POST(request: NextRequest) {
       });
 
       if (message === "Group not found") {
-        return NextResponse.json({ error: "Groupe introuvable." }, { status: 404 });
+        return NextResponse.json({ error: "Classe introuvable." }, { status: 404 });
       }
       if (message === "Invalid group") {
-        return NextResponse.json({ error: "Groupe invalide." }, { status: 400 });
+        return NextResponse.json({ error: "Classe invalide." }, { status: 400 });
       }
 
       return NextResponse.json({ error: "Gestion du calendrier impossible." }, { status: 500 });

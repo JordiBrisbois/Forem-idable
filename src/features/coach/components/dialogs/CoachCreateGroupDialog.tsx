@@ -31,19 +31,19 @@ export function CoachCreateGroupDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Créer un groupe</DialogTitle>
+          <DialogTitle>Créer une classe</DialogTitle>
           <DialogDescription>
-            Les admins verront toujours le groupe. Un coach créateur y sera attribué automatiquement.
+            Les admins verront toujours la classe. Un coach créateur y sera attribué automatiquement.
           </DialogDescription>
         </DialogHeader>
         <FieldGroup>
           <Field>
-            <FieldLabel htmlFor="coach-group-name">Nom du groupe</FieldLabel>
+            <FieldLabel htmlFor="coach-group-name">Nom de la classe</FieldLabel>
             <Input
               id="coach-group-name"
               value={groupName}
               onChange={(event) => onGroupNameChange(event.target.value)}
-              placeholder="Nom du groupe"
+              placeholder="Nom de la classe"
             />
           </Field>
         </FieldGroup>

@@ -61,7 +61,7 @@ export function CoachUserSheetHeader({
           <SheetDescription className="space-y-1">
             <span className="block text-sm">{user.email}</span>
             <span className="block">
-              {user.groupNames.length > 0 ? user.groupNames.join(" • ") : "Aucun groupe assigné"}
+              {user.groupNames.length > 0 ? user.groupNames.join(" • ") : "Aucune classe assignée"}
             </span>
             <CoachUserActivityMeta user={user} as="span" className="block" />
             <CoachGoalBadge

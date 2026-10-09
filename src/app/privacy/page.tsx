@@ -23,7 +23,7 @@ const DATA_CATEGORIES: TextItem[] = [
   },
   {
     title: "Données de synchronisation calendrier",
-    text: "Lorsqu'un entretien est planifié, certaines informations strictement utiles à la synchronisation d'agenda peuvent être exposées dans un flux calendrier destiné aux personnes autorisées à suivre un groupe. Cela peut inclure la date et l'heure de l'entretien, l'identité du bénéficiaire, le nom de l'entreprise, le groupe concerné, le lieu et, si vous l'avez renseigné, un court détail d'entretien.",
+    text: "Lorsqu'un entretien est planifié, certaines informations strictement utiles à la synchronisation d'agenda peuvent être exposées dans un flux calendrier destiné aux personnes autorisées à suivre une classe. Cela peut inclure la date et l'heure de l'entretien, l'identité du bénéficiaire, le nom de l'entreprise, la classe concernée, le lieu et, si vous l'avez renseigné, un court détail d'entretien.",
   },
   {
     title: "Données locales",
@@ -62,7 +62,7 @@ const LEGAL_BASIS: TextItem[] = [
   },
   {
     title: "Coordination des entretiens",
-    text: "Mise à disposition, pour les personnes autorisées au suivi d'un groupe, d'un flux calendrier permettant de synchroniser les entretiens programmés dans un agenda externe. Base juridique principale: intérêt légitime à organiser l'accompagnement, la coordination et le suivi opérationnel, dans le respect du principe de minimisation.",
+    text: "Mise à disposition, pour les personnes autorisées au suivi d'une classe, d'un flux calendrier permettant de synchroniser les entretiens programmés dans un agenda externe. Base juridique principale: intérêt légitime à organiser l'accompagnement, la coordination et le suivi opérationnel, dans le respect du principe de minimisation.",
   },
   {
     title: "Réinitialisation de mot de passe",
@@ -87,7 +87,7 @@ const ACCESS_AND_RETENTION = [
     title: "Destinataires et accès aux données",
     paragraphs: [
       "Les données ne sont pas vendues. Elles peuvent être accessibles, dans la limite du nécessaire, au responsable du traitement et aux prestataires techniques indispensables au fonctionnement de l'application, comme l'hébergement, la base de données et les composants d'analyse activés avec consentement.",
-      "Certaines fonctionnalités donnent aussi accès aux données à d'autres utilisateurs autorisés dans l'application, notamment dans le cadre du suivi de groupes, des candidatures et, le cas échéant, de la synchronisation calendrier des entretiens.",
+      "Certaines fonctionnalités donnent aussi accès aux données à d'autres utilisateurs autorisés dans l'application, notamment dans le cadre du suivi de classes, des candidatures et, le cas échéant, de la synchronisation calendrier des entretiens.",
       "Si un transfert hors de l'Espace économique européen devait intervenir via un prestataire technique, il devrait être encadré par les garanties appropriées prévues par le RGPD.",
       "Si vous ou une personne autorisée choisissez d'abonner un agenda tiers, comme Google Calendar, Outlook ou Apple Calendar, les données incluses dans le flux calendrier seront également traitées par ce service tiers selon ses propres conditions et sa propre politique de confidentialité.",
     ],

@@ -336,7 +336,7 @@ export const coachImportRequestSchema = z
 
 export const coachGroupCreateSchema = z
   .object({
-    name: z.string().trim().min(1, "Nom de groupe requis.").max(200, "Nom de groupe trop long."),
+    name: z.string().trim().min(1, "Nom de classe requis.").max(200, "Nom de classe trop long."),
   })
   .strict();
 
