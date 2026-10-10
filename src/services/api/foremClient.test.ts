@@ -228,4 +228,41 @@ describe("foremClient", () => {
     expect(second.jobs).toHaveLength(1);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
+
+  it("filters contract types server-side with the dataset's real labels", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({ total_count: 0, results: [] }),
+    } as Response);
+
+    await fetchForemJobs({
+      keywords: ["ct-filter"],
+      contractTypes: ["CDD", "FREELANCE"],
+      limit: 5,
+      offset: 0,
+    });
+
+    const where = new URL(fetchSpy.mock.calls[0][0] as string).searchParams.get("where") ?? "";
+    expect(where).toContain("typecontrat in (");
+    expect(where).toContain('"Durée déterminée"');
+    expect(where).toContain('"Contrat collaboration indépendant"');
+    expect(where).not.toContain('"Intérimaire"');
+  });
+
+  it("returns nothing when a selected type maps to no dataset label", async () => {
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({ total_count: 0, results: [] }),
+    } as Response);
+
+    await fetchForemJobs({
+      keywords: ["ct-none"],
+      contractTypes: ["AUTRE"],
+      limit: 5,
+      offset: 0,
+    });
+
+    const where = new URL(fetchSpy.mock.calls[0][0] as string).searchParams.get("where") ?? "";
+    expect(where).toContain('"__no_match__"');
+  });
 });

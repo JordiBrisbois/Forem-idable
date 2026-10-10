@@ -24,6 +24,30 @@ export class ForemRateLimitedError extends Error {
     }
 }
 
+/**
+ * ODWB `typecontrat` uses long French labels that do not match our normalized
+ * buckets. This maps a bucket back to the exact dataset values so the filter is
+ * applied server-side (a client-side filter over a single page would miss
+ * matches on later pages — e.g. rare "CDD"/"Indépendant" offers).
+ *
+ * Values come from the dataset facet: `…/offres-d-emploi-forem/facets?facet=typecontrat`.
+ */
+const ODWB_CONTRACT_LABELS: Record<ContractType, string[]> = {
+    CDI: ["Durée indéterminée", "Durée Indéterminée"],
+    CDD: ["Durée déterminée", "Durée Déterminée"],
+    INTERIM: [
+        "Intérimaire",
+        "Intérimaire avec option sur durée indéterminée",
+        "Intérimaire avec option sur Durée indéterminée",
+    ],
+    FREELANCE: ["Contrat collaboration indépendant"],
+    STAGE: ["Stage", "STAGE", "Stagiaire"],
+    ALTERNANCE: ["Alternance", "Apprentissage"],
+    VIE: ["VIE", "Volontariat"],
+    CONTRAT_PRO: ["Contrat pro", "Professionnalisation"],
+    AUTRE: [],
+};
+
 export interface ForemSearchParams {
     keywords?: string[];
     locations?: LocationEntry[];
@@ -148,9 +172,20 @@ function clampRequestedLimit(limit?: number): number {
 async function buildWhereClause(params: ForemSearchParams): Promise<string | null> {
     const filters: string[] = [];
 
-    // Contract-type selection is applied client-side (normalizeContractType),
-    // because the dataset's `typecontrat` values are free-form and a strict
-    // `in (...)` match would miss most "stage"-like offers.
+    // Contract-type filtering happens server-side, on the dataset's real labels.
+    if (params.contractTypes && params.contractTypes.length > 0) {
+        const labels = Array.from(
+            new Set(params.contractTypes.flatMap((type) => ODWB_CONTRACT_LABELS[type] ?? []))
+        );
+        if (labels.length > 0) {
+            const quoted = labels.map((label) => `"${escapeOdsString(label)}"`).join(",");
+            filters.push(`typecontrat in (${quoted})`);
+        } else {
+            // Selected types map to no dataset label: return nothing.
+            filters.push(`typecontrat = "__no_match__"`);
+        }
+    }
+
     if (params.keywords && params.keywords.length > 0) {
         const joiner = params.booleanMode === 'AND' ? ' AND ' : ' OR ';
         const keywordQuery = params.keywords.map(kw => `search("${kw}")`).join(joiner);
