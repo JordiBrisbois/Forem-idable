@@ -13,11 +13,8 @@ import { LocationEntry } from "@/services/location/locationCache";
 import { BooleanMode, SearchQuery } from "@/types/search";
 import { FeaturedSearch } from "@/types/featuredSearch";
 import { SearchGoal } from "@/types/preferences";
-import {
-  CONTRACT_TYPE_LABELS,
-  FILTERABLE_CONTRACT_TYPES,
-  type ContractType,
-} from "@/lib/contractType";
+import { type ContractType } from "@/lib/contractType";
+import { useContractTypeOptions } from "@/features/jobs/hooks/useContractTypeOptions";
 
 export type SearchState = SearchQuery;
 
@@ -56,13 +53,13 @@ export function SearchEngine({
   );
 
   // The objective is kept in the query (URL, history, coaching) but no longer
-  // hard-filters the search. For an internship objective we simply pre-select
-  // the relevant contract types, while everything stays visible/selectable.
+  // hard-filters the search, and it does not pre-select anything: contract
+  // filters start empty ("all contracts") and are driven by the available data.
   const goal: SearchGoal = initialState?.goal ?? runtimeConfig.defaults.searchGoal;
   const [contractTypes, setContractTypes] = useState<ContractType[]>(
-    initialState?.contractTypes ??
-      (goal === "internship" ? ["STAGE", "ALTERNANCE"] : [])
+    initialState?.contractTypes ?? []
   );
+  const contractTypeOptions = useContractTypeOptions();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selectedLocationsLabel =
@@ -118,9 +115,12 @@ export function SearchEngine({
             onValueChange={(value) => setContractTypes(value as ContractType[])}
             className="flex-wrap"
           >
-            {FILTERABLE_CONTRACT_TYPES.map((type) => (
-              <ToggleGroupItem key={type} value={type} className="px-3">
-                {CONTRACT_TYPE_LABELS[type]}
+            {contractTypeOptions.map((option) => (
+              <ToggleGroupItem key={option.type} value={option.type} className="px-3">
+                {option.label}
+                {typeof option.count === "number" && option.count > 0
+                  ? ` (${option.count})`
+                  : ""}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
