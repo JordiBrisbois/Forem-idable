@@ -3,7 +3,7 @@
 import { canCoach } from "@/lib/authz";
 
 import { useMemo, useState } from "react";
-import { Archive, ArchiveRestore, GraduationCap, Plus, UserPlus, Users } from "lucide-react";
+import { Archive, ArchiveRestore, GraduationCap, Plus, Trash2, UserPlus, Users } from "lucide-react";
 import { UserPickerDialog } from "@/components/coach/UserPickerDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,11 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useAdminClasses } from "@/features/admin/useAdminClasses";
 import { labels } from "@/features/labels";
-import { CoachGroupSummary, CoachUserSummary } from "@/types/coach";
+import { CoachGroupMember, CoachGroupSummary, CoachUserSummary } from "@/types/coach";
+
+function memberLabel(entry: CoachGroupMember): string {
+  return `${entry.firstName} ${entry.lastName}`.trim() || entry.email;
+}
 
 interface AdminClassesSectionProps {
   groups: CoachGroupSummary[];
@@ -42,6 +46,7 @@ export function AdminClassesSection({
   const [memberGroup, setMemberGroup] = useState<CoachGroupSummary | null>(null);
   const [coachGroup, setCoachGroup] = useState<CoachGroupSummary | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<CoachGroupSummary | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<CoachGroupSummary | null>(null);
 
   const [newMember, setNewMember] = useState({ firstName: "", lastName: "", email: "" });
 
@@ -128,20 +133,63 @@ export function AdminClassesSection({
                   </div>
                 </div>
 
-                {group.members.length > 0 || group.coaches.length > 0 ? (
-                  <p className="text-xs text-muted-foreground">
-                    {group.members.length > 0
-                      ? `${labels.beneficiaryPlural}: ${group.members
-                          .map((member) => `${member.firstName} ${member.lastName}`.trim() || member.email)
-                          .join(" • ")}`
-                      : null}
-                    {group.members.length > 0 && group.coaches.length > 0 ? " — " : null}
-                    {group.coaches.length > 0
-                      ? `${labels.coachPlural}: ${group.coaches
-                          .map((coach) => `${coach.firstName} ${coach.lastName}`.trim() || coach.email)
-                          .join(" • ")}`
-                      : null}
-                  </p>
+                {group.members.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {labels.beneficiaryPlural}
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {group.members.map((member) => (
+                        <li
+                          key={member.id}
+                          className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-2 py-1"
+                        >
+                          <span className="min-w-0 truncate text-xs">{memberLabel(member)}</span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => void classes.removeMember(group.id, member.id)}
+                          >
+                            Retirer
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {group.coaches.length > 0 ? (
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {labels.coachPlural}
+                    </p>
+                    <ul className="flex flex-col gap-1">
+                      {group.coaches.map((coach) => (
+                        <li
+                          key={coach.id}
+                          className="flex items-center justify-between gap-2 rounded-lg border border-border/60 px-2 py-1"
+                        >
+                          <span className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-xs">{memberLabel(coach)}</span>
+                            {group.managerCoachId === coach.id ? (
+                              <Badge variant="outline">Manager</Badge>
+                            ) : null}
+                          </span>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            className="h-6 px-2 text-xs"
+                            onClick={() => void classes.removeCoach(group.id, coach.id)}
+                          >
+                            Retirer
+                          </Button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 ) : null}
 
                 <div className="flex flex-wrap gap-2">
@@ -175,6 +223,16 @@ export function AdminClassesSection({
                       <Archive data-icon="inline-start" />
                     )}
                     {group.archivedAt ? "Réactiver" : "Archiver"}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setDeleteTarget(group)}
+                  >
+                    <Trash2 data-icon="inline-start" />
+                    Supprimer
                   </Button>
                 </div>
               </div>
@@ -379,6 +437,38 @@ export function AdminClassesSection({
               }}
             >
               Confirmer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Delete confirm */}
+      <Dialog
+        open={Boolean(deleteTarget)}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Supprimer la classe ?</DialogTitle>
+            <DialogDescription>
+              {deleteTarget
+                ? `« ${deleteTarget.name} » sera supprimée définitivement, avec ses rattachements (membres, coachs, messagerie de classe).`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => setDeleteTarget(null)}>
+              Annuler
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={async () => {
+                if (!deleteTarget) return;
+                const ok = await classes.deleteClass(deleteTarget.id);
+                if (ok) setDeleteTarget(null);
+              }}
+            >
+              Supprimer
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -7,6 +7,8 @@ import {
   addCoachGroupMember,
   archiveCoachGroup,
   createCoachGroup,
+  deleteCoachGroup,
+  removeCoachGroupCoach,
   removeCoachGroupMember,
 } from "@/lib/api/coachGroups";
 import { createBeneficiaryAccount } from "@/features/admin/adminApi";
@@ -75,6 +77,21 @@ export function useAdminClasses({ refresh }: UseAdminClassesOptions) {
     [runAction]
   );
 
+  const removeCoach = useCallback(
+    async (groupId: number, coachUserId: number) =>
+      runAction(
+        () => removeCoachGroupCoach(groupId, coachUserId),
+        "Coach retiré de la classe."
+      ),
+    [runAction]
+  );
+
+  const deleteClass = useCallback(
+    async (groupId: number) =>
+      runAction(() => deleteCoachGroup(groupId), "Classe supprimée."),
+    [runAction]
+  );
+
   const archiveClass = useCallback(
     async (groupId: number, archived: boolean) =>
       runAction(
@@ -124,6 +141,8 @@ export function useAdminClasses({ refresh }: UseAdminClassesOptions) {
     addMember,
     removeMember,
     assignCoach,
+    removeCoach,
+    deleteClass,
     archiveClass,
     createAndAddBeneficiary,
   };
