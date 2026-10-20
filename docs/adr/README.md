@@ -11,6 +11,7 @@ choix « faits maison » : ils sont **volontaires**, et cet index explique pourq
 | [0003](0003-config-runtime.md) | Configuration white-label injectée au runtime | Accepté |
 | [0004](0004-vocabulaire-classe.md) | Vocabulaire UI « classe » / modèle technique « group » | Accepté |
 | [0005](0005-tables-mortes.md) | Suppression des tables inutilisées | Accepté |
+| [0006](0006-cache-budget-offres.md) | Cache L1/L2 et budget d'appels ODWB | Accepté |
 
 ## Format
 

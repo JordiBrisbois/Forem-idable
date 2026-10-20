@@ -39,10 +39,11 @@ Le module `FEATURE_JOB_SEARCH` interroge le jeu de données public
 **proxy serveur caché** (`/api/offers/odwb`) : toute l'instance partage un même flux
 d'appels, ce qui réduit fortement la consommation.
 
-Le palier **anonyme** d'Opendatasoft est plafonné (10 000 appels/jour). Pour plus de
-marge, créez une clé API gratuite et définissez `ODWB_API_KEY` (côté **serveur** :
-elle n'est jamais exposée au client). Sans clé, le module fonctionne mais peut
-renvoyer une erreur temporaire en cas de dépassement de quota.
+Sans clé, ODWB applique le palier **anonyme** (10 000 appels/jour, par IP). En créant
+une clé API (gratuite) et en la posant en `ODWB_API_KEY` (côté **serveur**, jamais
+exposée au client), le quota devient celui de votre espace de travail — souvent
+50 000 appels/jour. Le module applique de toute façon un **budget local** (voir
+ci-dessous) pour ne jamais s'en approcher.
 
 Un second fournisseur (**Adzuna**) peut être activé via `ADZUNA_ENABLED`,
 `ADZUNA_APP_ID` et `ADZUNA_APP_KEY`.

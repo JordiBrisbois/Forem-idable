@@ -151,9 +151,11 @@ changer le nom du produit.
 
 Les offres proviennent du jeu de données public **ODWB / Opendatasoft**
 « offres-d-emploi-forem », interrogé via un **proxy serveur caché** (`/api/offers/odwb`) :
-toute l'instance partage un même flux d'appels. Le palier anonyme étant plafonné,
-`ODWB_API_KEY` (clé serveur, jamais exposée au client) augmente le quota.
-Voir [SELF_HOSTING.md](SELF_HOSTING.md).
+toute l'instance partage un même flux d'appels. Le cache (**mémoire + Redis optionnel**)
+sert aussi des résultats expirés en cas d'erreur amont, et un **budget d'appels**
+(`OFFERS_API_DAILY_BUDGET`, défaut 15 000/24 h) empêche de dépasser le quota ODWB.
+`ODWB_API_KEY` (clé serveur, jamais exposée au client) augmente ce quota.
+Voir [SELF_HOSTING.md](SELF_HOSTING.md) et l'[ADR-0006](docs/adr/0006-cache-budget-offres.md).
 
 ## Documentation
 
