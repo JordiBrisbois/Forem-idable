@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { resetOdwbBudgetForTests } from "@/lib/server/cache/budget";
 
 vi.mock("@/lib/server/rateLimit", () => ({
   checkRateLimit: vi.fn(async () => ({ allowed: true })),
@@ -13,9 +14,11 @@ async function loadGet() {
 describe("GET /api/offers/contract-types", () => {
   beforeEach(() => {
     vi.resetModules();
+    resetOdwbBudgetForTests();
   });
 
   afterEach(() => {
+    vi.unstubAllEnvs();
     vi.restoreAllMocks();
   });
 
@@ -44,6 +47,7 @@ describe("GET /api/offers/contract-types", () => {
       types: Array<{ type: string; label: string; count: number }>;
     };
 
+    expect(response.headers.get("x-cache")).toBe("miss");
     expect(body.types).toEqual([
       { type: "INTERIM", label: "Intérim", count: 15 },
       { type: "CDI", label: "CDI", count: 7 },
@@ -57,5 +61,23 @@ describe("GET /api/offers/contract-types", () => {
     const GET = await loadGet();
     const response = await GET();
     await expect(response.json()).resolves.toEqual({ types: [] });
+    expect(response.headers.get("x-cache")).toBe("miss");
+  });
+
+  it("returns an empty list (no upstream call) when the budget is exhausted", async () => {
+    vi.stubEnv("OFFERS_API_DAILY_BUDGET", "0");
+    vi.stubEnv("OFFERS_API_MAX_CALLS_PER_MINUTE", "100");
+
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      json: async () => ({ facets: [] }),
+    } as Response);
+
+    const GET = await loadGet();
+    const response = await GET();
+
+    await expect(response.json()).resolves.toEqual({ types: [] });
+    expect(response.headers.get("x-cache")).toBe("budget");
+    expect(fetchSpy).not.toHaveBeenCalled();
   });
 });

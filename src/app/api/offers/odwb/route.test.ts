@@ -1,5 +1,7 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
+import { resetCachesForTests } from "@/lib/server/cache";
+import { resetOdwbBudgetForTests } from "@/lib/server/cache/budget";
 import { GET } from "./route";
 
 vi.mock("@/lib/server/rateLimit", () => ({
@@ -13,6 +15,11 @@ function request(query: string) {
 }
 
 describe("GET /api/offers/odwb", () => {
+  beforeEach(async () => {
+    await resetCachesForTests();
+    resetOdwbBudgetForTests();
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -40,6 +47,7 @@ describe("GET /api/offers/odwb", () => {
 
     expect(first.status).toBe(200);
     expect(first.headers.get("x-cache")).toBe("miss");
+    expect(first.headers.get("x-odwb-budget-remaining")).toBeTruthy();
     expect(second.headers.get("x-cache")).toBe("hit");
     expect(fetchSpy).toHaveBeenCalledTimes(1);
     await expect(second.json()).resolves.toEqual({
@@ -57,5 +65,27 @@ describe("GET /api/offers/odwb", () => {
 
     const response = await GET(request("?limit=5&offset=100&where=unique-429-query"));
     expect(response.status).toBe(429);
+    expect(response.headers.get("x-cache")).toBe("miss");
+  });
+
+  it("does not call the upstream once the ODWB budget is exhausted", async () => {
+    vi.stubEnv("OFFERS_API_DAILY_BUDGET", "1");
+    vi.stubEnv("OFFERS_API_MAX_CALLS_PER_MINUTE", "100");
+
+    const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      text: async () => OK_BODY,
+    } as Response);
+
+    const first = await GET(request("?limit=5&offset=0&where=budget-first"));
+    expect(first.status).toBe(200);
+
+    const denied = await GET(request("?limit=5&offset=0&where=budget-second"));
+    expect(denied.status).toBe(429);
+    expect(denied.headers.get("x-cache")).toBe("budget");
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+
+    vi.unstubAllEnvs();
   });
 });

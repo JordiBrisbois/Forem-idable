@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { appendOdwbApiKey } from "@/lib/odwbApiKey";
+import { reserveOdwbCall } from "@/lib/server/cache/budget";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 
 type LocationCategory =
@@ -238,7 +239,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Fallback source: ODWB offers snapshot
+    // Fallback source: ODWB offers snapshot (guarded by the shared ODWB budget).
+    const budget = await reserveOdwbCall();
+    if (!budget.allowed) {
+      return NextResponse.json({ entries: [], total: 0, source: "budget" });
+    }
+
     const odwbResponse = await fetch(appendOdwbApiKey(new URL(ODWB_RECORDS_URL)).toString(), {
       headers: { Accept: "application/json" },
       next: { revalidate: 60 * 60 * 12 },

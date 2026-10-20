@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidForemOfferId } from "@/lib/forem";
 import { appendOdwbApiKey } from "@/lib/odwbApiKey";
+import { reserveOdwbCall } from "@/lib/server/cache/budget";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 
 interface OfferHighlight {
@@ -266,6 +267,17 @@ export async function GET(
       if (normalized.description || normalized.highlights.length > 0) {
         return NextResponse.json(normalized);
       }
+    }
+
+    // ODWB fallback only: respect the shared upstream budget so we never exceed
+    // the ODWB quota (the primary leforem.be detail API is not affected).
+    const budget = await reserveOdwbCall();
+    if (!budget.allowed) {
+      return NextResponse.json<OfferDetailsResponse>({
+        source: "none",
+        highlights: [],
+        sections: [],
+      });
     }
 
     const odwbUrl = new URL(

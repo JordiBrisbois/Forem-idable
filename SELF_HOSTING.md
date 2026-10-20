@@ -47,6 +47,18 @@ renvoyer une erreur temporaire en cas de dépassement de quota.
 Un second fournisseur (**Adzuna**) peut être activé via `ADZUNA_ENABLED`,
 `ADZUNA_APP_ID` et `ADZUNA_APP_KEY`.
 
+### Cache et budget d'appels
+
+Les recherches passent par un **proxy serveur** avec un cache à deux niveaux :
+**mémoire** (par conteneur) + **Redis** si `REDIS_URL` est défini (partagé entre
+instances et conservé entre les redéploiements). Les réponses expirées sont
+resservies en cas d'erreur amont (*stale-on-error*), et un **budget d'appels**
+(`OFFERS_API_DAILY_BUDGET`, défaut **15 000 / 24 h**, plus un garde-fou
+`OFFERS_API_MAX_CALLS_PER_MINUTE`) empêche de dépasser le quota ODWB.
+
+En-têtes de diagnostic : `x-cache: hit|miss|stale|budget` et
+`x-odwb-budget-remaining`.
+
 ## 3. Lancer avec Docker Compose (recommandé)
 
 ```bash
