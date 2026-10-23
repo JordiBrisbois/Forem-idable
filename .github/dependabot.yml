@@ -1,0 +1,41 @@
+version: 2
+updates:
+  # Keep the runtime dependencies (Next.js, React, drizzle-orm, pg…) current:
+  # this is where the security-relevant advisories land.
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Brussels
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # One PR for the routine patch/minor noise.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+      # Security fixes never wait for the weekly window.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(ci)"
+
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore(docker)"
