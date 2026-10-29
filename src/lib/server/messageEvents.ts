@@ -1,12 +1,16 @@
-import { createClient } from "redis";
 import { db, ensureDatabase } from "@/lib/server/db";
 import { loadActiveConversationParticipantIds } from "@/lib/server/messaging.data";
 import { logServerEvent } from "@/lib/server/observability";
+import {
+  attachRedisErrorHandler,
+  connectRedis,
+  type RedisClient,
+} from "@/lib/server/redisConnection";
 import { MessageStreamEvent } from "@/types/messaging";
 
 type MessageEventListener = (event: MessageStreamEvent) => void;
 type MessageEventRegistry = Map<number, Set<MessageEventListener>>;
-type MessageEventRedisClient = ReturnType<typeof createClient>;
+type MessageEventRedisClient = RedisClient;
 type MessageEventRedisClients = {
   publisher: MessageEventRedisClient;
   subscriber: MessageEventRedisClient;
@@ -67,36 +71,39 @@ async function getRedisClients() {
     return globalThis.__foremRedisMessageEventPromise;
   }
 
-  const redisUrl = process.env.REDIS_URL?.trim();
-  if (!redisUrl) {
-    return null;
-  }
-
   globalThis.__foremRedisMessageEventPromise = (async () => {
-    try {
-      const publisher = createClient({ url: redisUrl });
-      const subscriber = publisher.duplicate();
-
-      publisher.on("error", (error) => {
-        console.error("Redis message events publisher error", error);
-      });
-      subscriber.on("error", (error) => {
-        console.error("Redis message events subscriber error", error);
-      });
-
-      await Promise.all([publisher.connect(), subscriber.connect()]);
-
-      globalThis.__foremRedisMessageEventPublisher = publisher;
-      globalThis.__foremRedisMessageEventSubscriber = subscriber;
-
-      return { publisher, subscriber };
-    } catch (error) {
-      console.error("Redis message events unavailable", error);
+    const publisher = await connectRedis("message-events");
+    if (!publisher) {
       return null;
-    } finally {
-      globalThis.__foremRedisMessageEventPromise = undefined;
     }
-  })();
+
+    // A subscribed client cannot issue other commands, so the listener always
+    // works on its own connection derived from the publisher.
+    const subscriber = publisher.duplicate();
+    attachRedisErrorHandler(subscriber, "message-events-subscriber");
+
+    try {
+      await subscriber.connect();
+    } catch (error) {
+      logServerEvent({
+        category: "cache",
+        action: "redis_unavailable",
+        level: "warn",
+        meta: {
+          purpose: "message-events-subscriber",
+          error: error instanceof Error ? error.message : String(error),
+        },
+      });
+      return null;
+    }
+
+    globalThis.__foremRedisMessageEventPublisher = publisher;
+    globalThis.__foremRedisMessageEventSubscriber = subscriber;
+
+    return { publisher, subscriber };
+  })().finally(() => {
+    globalThis.__foremRedisMessageEventPromise = undefined;
+  });
 
   return globalThis.__foremRedisMessageEventPromise;
 }

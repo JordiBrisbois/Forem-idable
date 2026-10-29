@@ -42,8 +42,17 @@ vi.mock("@/lib/server/observability", () => ({
   logServerEvent: vi.fn(),
 }));
 
+/**
+ * Lets every pending microtask settle.
+ *
+ * A macrotask is used on purpose: the pub/sub setup awaits several promises in
+ * a row (connect, duplicate, subscribe), so a fixed number of microtask ticks
+ * would couple the test to the exact number of `await`s in the implementation.
+ */
 function flushPromises() {
-  return Promise.resolve().then(() => Promise.resolve());
+  return new Promise<void>((resolve) => {
+    setTimeout(resolve, 0);
+  });
 }
 
 describe("messageEvents", () => {

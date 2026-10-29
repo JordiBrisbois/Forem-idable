@@ -1,9 +1,9 @@
 import { createHash } from "crypto";
 import { headers } from "next/headers";
-import { createClient } from "redis";
 import { logServerEvent, measureServerOperation } from "@/lib/server/observability";
+import { connectRedis, type RedisClient } from "@/lib/server/redisConnection";
 
-type RateLimitRedisClient = ReturnType<typeof createClient>;
+type RateLimitRedisClient = RedisClient;
 
 type Bucket = {
   count: number;
@@ -80,27 +80,11 @@ async function getRedisClient() {
     return globalThis.__foremIdableRedisRateLimitPromise;
   }
 
-  const redisUrl = process.env.REDIS_URL?.trim();
-  if (!redisUrl) {
-    return null;
-  }
-
-  globalThis.__foremIdableRedisRateLimitPromise = (async () => {
-    try {
-      const client = createClient({ url: redisUrl });
-      client.on("error", (error) => {
-        console.error("Redis rate limit error", error);
-      });
-      await client.connect();
-      globalThis.__foremIdableRedisRateLimitClient = client;
-      return client;
-    } catch (error) {
-      console.error("Redis rate limit unavailable", error);
-      return null;
-    } finally {
-      globalThis.__foremIdableRedisRateLimitPromise = undefined;
-    }
-  })();
+  globalThis.__foremIdableRedisRateLimitPromise = connectRedis("rate-limit").then((client) => {
+    globalThis.__foremIdableRedisRateLimitClient = client ?? undefined;
+    globalThis.__foremIdableRedisRateLimitPromise = undefined;
+    return client;
+  });
 
   return globalThis.__foremIdableRedisRateLimitPromise;
 }
