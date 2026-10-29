@@ -1,7 +1,6 @@
 "use client";
 
 import { useDeferredValue, useMemo, useState } from "react";
-import * as XLSX from "xlsx";
 import {
   ArrowUpDown,
   ChevronDown,
@@ -35,6 +34,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ScoutResult } from "../scoutSchemas";
+import { downloadScoutResults } from "../utils/exportResults";
 
 type SortColumn = "name" | "type" | "email" | "phone" | "website" | "address";
 type SortDirection = "asc" | "desc";
@@ -101,59 +101,6 @@ export function ScoutResultsTable({ results, onApply }: ScoutResultsTableProps) 
     ) : (
       <ChevronDown className="ml-1 h-3 w-3 text-primary" />
     );
-  }
-
-  function downloadExport(format: "excel" | "csv") {
-    const headers = ["Nom", "Type", "Email", "Téléphone", "Site web", "Adresse", "Ville", "Source email"];
-    const data = sorted.map((r) => ({
-      Nom: r.name,
-      Type: r.type,
-      Email: r.email ?? "",
-      Téléphone: r.phone ?? "",
-      "Site web": r.website ?? "",
-      Adresse: r.address ?? "",
-      Ville: r.town ?? "",
-      "Source email": r.emailSource,
-    }));
-
-    const filename = `scout-resultats-${new Date().toISOString().slice(0, 10)}`;
-
-    if (format === "excel") {
-      // Create a real XLSX file using SheetJS
-      const ws = XLSX.utils.json_to_sheet(data);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Résultats");
-      const excelBuffer = XLSX.write(wb, { bookType: "xlsx", type: "array" });
-      const blob = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      triggerDownload(blob, `${filename}.xlsx`);
-    } else {
-      // Create a proper CSV file with semicolon separator (compatible with Excel France)
-      const csvRows = [
-        headers.join(";"),
-        ...data.map((row) =>
-          Object.values(row)
-            .map((value) => {
-              const str = String(value);
-              if (str.includes(";") || str.includes('"') || str.includes("\n")) {
-                return `"${str.replace(/"/g, '""')}"`;
-              }
-              return str;
-            })
-            .join(";")
-        ),
-      ];
-      const csvContent = csvRows.join("\n");
-      const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-      triggerDownload(blob, `${filename}.csv`);
-    }
-  }
-
-  function triggerDownload(blob: Blob, filename: string) {
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = filename;
-    link.click();
-    URL.revokeObjectURL(link.href);
   }
 
   // Helper component pour afficher les détails dans un popover
@@ -260,12 +207,12 @@ export function ScoutResultsTable({ results, onApply }: ScoutResultsTableProps) 
           />
           {/* Export buttons */}
            <div className="flex gap-2 sm:w-auto">
-             <Button type="button" variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => downloadExport("excel")}>
+             <Button type="button" variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => { void downloadScoutResults(sorted, "excel"); }}>
                <Download className="mr-1.5 h-3.5 w-3.5" />
                <span className="hidden sm:inline">Excel</span>
                <span className="sm:hidden">XLSX</span>
              </Button>
-             <Button type="button" variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => downloadExport("csv")}>
+             <Button type="button" variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => { void downloadScoutResults(sorted, "csv"); }}>
                <Download className="mr-1.5 h-3.5 w-3.5" />
                <span className="hidden sm:inline">CSV</span>
                <span className="sm:hidden">CSV</span>

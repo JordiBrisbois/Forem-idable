@@ -7,19 +7,15 @@
  * `npm audit` has no ignore mechanism, so reviewed, non-reachable advisories are
  * listed in ACCEPTED below. Every entry must carry a reason and can be removed
  * once the dependency is replaced or patched.
+ *
+ * The list is currently empty: SheetJS (`xlsx`) was the only exempted package
+ * and it has been replaced by `write-excel-file` for the scout export. Adding an
+ * entry back means shipping a known advisory — treat it as a temporary debt with
+ * an owner and an exit condition, not as configuration.
  */
 import { execSync } from "node:child_process";
 
-const ACCEPTED = new Map([
-  [
-    "GHSA-4r6h-8v6p-xvw6",
-    "xlsx: prototype pollution in SheetJS parse(); this app only uses XLSX.write() on data it generates, never parses untrusted workbooks.",
-  ],
-  [
-    "GHSA-5pgg-2g8v-p4x9",
-    "xlsx: ReDoS in SheetJS parse(); same as above — no XLSX.read() call exists in the codebase.",
-  ],
-]);
+const ACCEPTED = new Map([]);
 
 const BLOCKING = new Set(["critical", "high"]);
 
