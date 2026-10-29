@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-alpine AS base
+# Pinned to an exact LTS patch: a floating 24-alpine tag turns every deploy
+# into an implicit runtime upgrade. Bump this deliberately, in its own change,
+# with a deploy verification — never through an automated tag bump.
+FROM node:24.22.2-alpine AS base
 RUN apk add --no-cache libc6-compat curl
 WORKDIR /app
 
