@@ -19,7 +19,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:reset": "node scripts/reset-demo.mjs",
     "maintenance:purge": "node scripts/purge-retention.mjs",
-    "audit:prod": "node scripts/check-audit.mjs"
+    "audit:prod": "node scripts/check-audit.mjs",
+    "docs:screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

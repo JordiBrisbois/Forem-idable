@@ -9,6 +9,7 @@ présentation du produit et le guide de démarrage.
 | [architecture.md](architecture.md) | Couches, cycle d'une requête, conventions transverses, ajouter une fonctionnalité |
 | [testing.md](testing.md) | Stratégie de test, périmètre de couverture, E2E, CI |
 | [security.md](security.md) | Modèle de menace et contrôles (auth, CSRF, RBAC, en-têtes, audit, dépendances) |
+| [technical-debt.md](technical-debt.md) | Dette assumée : impact, raison et condition de sortie de chaque point |
 | [adr/](adr/) | Décisions d'architecture, une par fichier, avec contexte et conséquences |
 | [../DOCAPI.md](../DOCAPI.md) | API externe (endpoints JSON/CSV, authentification par clé) |
 | [../SELF_HOSTING.md](../SELF_HOSTING.md) | Déploiement (Docker, VPS, Coolify, sauvegardes) |

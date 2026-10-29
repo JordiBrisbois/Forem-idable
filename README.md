@@ -1,6 +1,10 @@
-# Plateforme d'accompagnement
+# FOREM-idable — plateforme d'accompagnement
 
 [![CI](https://github.com/JordiBrisbois/Forem-idable/actions/workflows/ci.yml/badge.svg)](https://github.com/JordiBrisbois/Forem-idable/actions/workflows/ci.yml)
+[![Licence : AGPL-3.0](https://img.shields.io/badge/licence-AGPL--3.0-blue.svg)](LICENSE)
+[![Node ≥ 22](https://img.shields.io/badge/node-%E2%89%A522-339933.svg)](.nvmrc)
+
+**[Démo en ligne → forem.brisbois.dev](https://forem.brisbois.dev)** · **Code source : AGPL-3.0**
 
 Plateforme **auto-hébergeable** de suivi d'accompagnement : gestion des **coachs**,
 des **classes** et des **bénéficiaires**, suivi des candidatures, messagerie, et un
@@ -8,6 +12,38 @@ module optionnel de recherche d'offres.
 
 Chaque établissement déploie sa propre instance (mono-tenant) et personnalise le
 produit via des variables d'environnement (nom, branding, fonctionnalités).
+
+![Page d'accueil de FOREM-idable : recherche d'offres avec filtres par type de contrat](docs/screenshots/home-desktop.png)
+
+## Aperçu
+
+| Mobile (390 px) | À propos |
+|---|---|
+| ![Recherche sur mobile](docs/screenshots/home-mobile.png) | ![Page à propos](docs/screenshots/about.png) |
+
+Les captures sont générées depuis l'instance déployée avec
+`node scripts/capture-screenshots.mjs` — ce ne sont pas des maquettes.
+
+## Ce que ce projet démontre
+
+- **App Router Next.js 16 + React 19** : rendu serveur, configuration injectée au
+  rendu (`window.__APP_RUNTIME_CONFIG__`), donc un changement de branding ne
+  demande **aucun rebuild**.
+- **Authentification maison assumée** : sessions en base, `scrypt`, CSRF par
+  contrôle d'origine, protection du dernier administrateur — avec l'ADR qui
+  explique le choix et ses contreparties ([ADR-0001](docs/adr/0001-auth-maison.md)).
+- **Handlers de route minces** : authentification, RBAC, validation Zod et
+  mapping d'erreurs centralisés dans un wrapper typé
+  ([`apiHandler.ts`](src/lib/server/apiHandler.ts)).
+- **PostgreSQL + Drizzle**, SQL paramétré pour les requêtes complexes, migrations
+  versionnées.
+- **Redis optionnel** avec dégradation gracieuse : cache, rate limiting et pub/sub
+  continuent de fonctionner en mémoire si Redis tombe.
+- **Qualité vérifiée en CI** : `tsc` strict, ESLint, tests, build, audit des
+  dépendances de production bloquant, et E2E Playwright contre un vrai Postgres.
+- **Documentation d'ingénierie** : architecture, stratégie de test, modèle de
+  sécurité et décisions d'architecture dans [`docs/`](docs/README.md).
+
 
 ## Fonctionnalités
 
@@ -92,15 +128,19 @@ pas les features.
 
 ## Tests & CI
 
-- **Vitest** : logique métier, hooks, utilitaires serveur, et tests d'**intégration**
-  sur les wrappers de routes (CSRF, garde d'accès, validation, mapping d'erreurs).
-- **Playwright** : parcours critiques (auth, coach, messagerie, admin, conformité).
-- **Couverture** : `npm run test:coverage` mesure la couverture des modules de
-  logique — les entrées App Router sont couvertes en E2E — et **bloque la CI**
-  sous les seuils définis dans `vitest.config.mts` (cliquet, pas objectif).
+- **247 tests unitaires et d'intégration** (Vitest) : logique métier, hooks,
+  utilitaires serveur, et tests d'**intégration** sur les wrappers de routes
+  (CSRF, garde d'accès, validation Zod, mapping d'erreurs).
+- **12 parcours E2E** (Playwright) contre un vrai Postgres : auth, coach,
+  messagerie, admin, conformité, recherche.
+- **Couverture** : `npm run test:coverage` mesure les modules de logique — les
+  entrées App Router sont couvertes en E2E — et **bloque la CI** sous les seuils
+  définis dans `vitest.config.mts` (cliquet, pas objectif).
+- **Audit des dépendances** : `npm run audit:prod` échoue sur tout avis
+  `high`/`critical` en production, sans aucune exception acceptée.
 - **CI GitHub Actions** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) :
-  `tsc` · `eslint` · `vitest --coverage` · `next build` sur chaque push et pull
-  request.
+  `tsc` · `eslint` · `vitest --coverage` · `next build`, puis un job E2E
+  Playwright, sur chaque push et pull request.
 
 ## Démarrage local
 
@@ -116,11 +156,15 @@ Commandes utiles :
 ```bash
 npm run lint
 npm test
+npm run test:coverage
 npm run test:e2e
 npm run db:generate     # générer une migration
 npm run db:reset        # ⚠️ réinitialise la base (drop + migrations)
 npm run maintenance:purge
 npm run build && npm start
+
+# Régénérer les captures du README depuis une instance déployée
+node scripts/capture-screenshots.mjs
 ```
 
 Docker :
@@ -167,6 +211,7 @@ Voir [SELF_HOSTING.md](SELF_HOSTING.md) et l'[ADR-0006](docs/adr/0006-cache-budg
 - [Architecture](docs/architecture.md) — couches, cycle d'une requête, conventions
 - [Tests](docs/testing.md) — stratégie, couverture, E2E
 - [Sécurité](docs/security.md) — contrôles en place et limites · [politique de signalement](SECURITY.md)
+- [Dette technique suivie](docs/technical-debt.md) — ce qui est laissé en l'état, et pourquoi
 - [Auto-hébergement](SELF_HOSTING.md)
 - [API externe](DOCAPI.md)
 - [Conformité & RGPD](COMPLIANCE.md)
