@@ -2,11 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  ColumnDef,
+  createPaginatedRowModel,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
+  stockFeatures,
+  tableFeatures,
+  useTable,
+  type ColumnDef,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -33,6 +34,17 @@ import {
   formatPublicationDateTable,
   buildPaginationItems,
 } from "./jobTableUtils";
+
+/**
+ * Table v9 requires an explicit feature set, and row models live on it.
+ * `stockFeatures` restores the v8 set of features (selection, visibility, …);
+ * the pagination row model has to be registered on top, because `stockFeatures`
+ * only lists features.
+ */
+const jobTableFeatures = tableFeatures({
+  ...stockFeatures,
+  paginatedRowModel: createPaginatedRowModel(),
+});
 
 interface JobTableProps {
   data: Job[];
@@ -94,7 +106,7 @@ export function JobTable({
 }: JobTableProps) {
   const [shareJob, setShareJob] = useState<Job | null>(null);
 
-  const columns: ColumnDef<Job>[] = useMemo(
+  const columns: ColumnDef<typeof jobTableFeatures, Job>[] = useMemo(
     () => [
       {
         id: "selection",
@@ -231,16 +243,17 @@ export function JobTable({
     ]
   );
 
-  // TanStack Table exposes mutable callbacks; React Compiler can't safely memoize it yet.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  // v9 keeps its state in a TanStack Store, so the React Compiler lint rule that
+  // required an eslint-disable around the v8 `useReactTable` no longer fires.
+  const table = useTable({
+    // v9 requires an explicit feature set; `jobTableFeatures` registers the
+    // pagination feature and its row model, which is all this table uses.
+    features: jobTableFeatures,
     data,
     columns,
     autoResetPageIndex: false,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     initialState: {
-      pagination: { pageSize: 15 },
+      pagination: { pageIndex: 0, pageSize: 15 },
     },
   });
 
@@ -248,8 +261,9 @@ export function JobTable({
     table.setPageIndex(0);
   }, [resetPaginationToken, table]);
 
-  const currentPage = table.getState().pagination.pageIndex + 1;
-  const pageSize = table.getState().pagination.pageSize;
+  // v9 exposes state through the store-backed `table.state`; `getState()` is gone.
+  const currentPage = table.state.pagination.pageIndex + 1;
+  const pageSize = table.state.pagination.pageSize;
   const pageCount = table.getPageCount();
   const totalCount = data.length;
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -260,7 +274,11 @@ export function JobTable({
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    // One provider for the whole table: the mobile cards render JobActions,
+    // whose tooltips used to sit outside the provider that only wrapped the
+    // desktop body rows (Radix throws in that case).
+    <TooltipProvider delayDuration={120}>
+      <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:hidden">
         {table.getRowModel().rows.length ? (
           table.getRowModel().rows.map((row) => {
@@ -316,7 +334,7 @@ export function JobTable({
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
-              <TooltipProvider delayDuration={120}>
+              <>
                 {table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
@@ -348,7 +366,7 @@ export function JobTable({
                     ))}
                   </TableRow>
                 ))}
-              </TooltipProvider>
+              </>
             ) : (
               <TableRow className="hover:bg-transparent">
                 <TableCell
@@ -387,7 +405,8 @@ export function JobTable({
           if (!open) setShareJob(null);
         }}
       />
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
 
