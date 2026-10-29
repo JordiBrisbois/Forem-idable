@@ -332,6 +332,11 @@ export function useAdminPageState() {
   }, [disclosureLogsState]);
 
   const apiKeyStats = useMemo(() => {
+    // Display-only counters ("active now", "expiring within 14 days"). Reading
+    // the wall clock while rendering is deliberate here: the numbers are
+    // recomputed on every render and never feed a decision or a write, so there
+    // is nothing to memoise against and nothing that could diverge.
+    // eslint-disable-next-line react-hooks/purity
     const now = Date.now();
 
     return {

@@ -26,6 +26,10 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     "playwright-report/**",
     "test-results/**",
+    // Generated artefacts: linting them reports phantom problems in vendored
+    // reporter code and slows the run for nothing.
+    "coverage/**",
+    "node_modules/**",
   ]),
 ]);
 

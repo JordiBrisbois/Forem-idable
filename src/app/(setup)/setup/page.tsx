@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,6 +26,7 @@ import { fetchSetupStatus, submitSetup } from "@/lib/api/setup";
 import { SEARCH_GOAL_LABELS, SearchGoal } from "@/types/preferences";
 
 export default function SetupPage() {
+  const router = useRouter();
   const [checking, setChecking] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -69,7 +71,10 @@ export default function SetupPage() {
     try {
       await submitSetup({ email, password, firstName, lastName, searchGoal });
       toast.success("Instance configurée.");
-      window.location.assign("/admin");
+      // The setup route is gone once an admin exists: replace the history entry
+      // so "back" cannot land on a form that would now 404.
+      router.replace("/admin");
+      router.refresh();
     } catch {
       toast.error("Configuration impossible.");
       setSubmitting(false);

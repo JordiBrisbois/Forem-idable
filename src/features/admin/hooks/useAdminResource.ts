@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 interface ApiResponse<T> {
   response: Response;
@@ -23,13 +23,18 @@ export function useAdminResource<T>({
   const [isLoading, setIsLoading] = useState(false);
 
   // Keep the latest callbacks without invalidating the stable `load` reference.
+  // Synced in an effect rather than during render: writing a ref while rendering
+  // is what React 19 forbids, and the values are only read from `load`, which
+  // runs after commit.
   const fetchRef = useRef(fetchFn);
   const extractRef = useRef(extract);
   const messageRef = useRef(errorMessage);
 
-  fetchRef.current = fetchFn;
-  extractRef.current = extract;
-  messageRef.current = errorMessage;
+  useEffect(() => {
+    fetchRef.current = fetchFn;
+    extractRef.current = extract;
+    messageRef.current = errorMessage;
+  }, [fetchFn, extract, errorMessage]);
 
   const load = useCallback(async () => {
     if (!isAuthorized) {

@@ -57,7 +57,13 @@ export function useDataExports() {
   }, [load]);
 
   const download = useCallback((requestId: number) => {
-    window.location.href = `/api/account/data-export/${requestId}`;
+    // The endpoint answers with `Content-Disposition: attachment`, so this is a
+    // file download rather than a route change: an anchor keeps the browser
+    // semantics without navigating the SPA (which `location.href` would do).
+    const link = document.createElement("a");
+    link.href = `/api/account/data-export/${requestId}`;
+    link.rel = "noopener";
+    link.click();
   }, []);
 
   return {
