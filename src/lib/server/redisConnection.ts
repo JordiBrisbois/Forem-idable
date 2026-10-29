@@ -2,7 +2,17 @@ import { createClient } from "redis";
 
 import { logServerEvent } from "@/lib/server/observability";
 
-export type RedisClient = ReturnType<typeof createClient>;
+/**
+ * The client type is derived from the factory call rather than from
+ * `ReturnType<typeof createClient>`: in redis v6 `createClient` is generic over
+ * the module/script sets and its unbound `ReturnType` no longer matches what
+ * `createClient({ url })` actually returns.
+ */
+function createRedisClient(url: string) {
+  return createClient({ url });
+}
+
+export type RedisClient = ReturnType<typeof createRedisClient>;
 
 /**
  * Why a connection exists. It ends up in the log line, so an incident says
@@ -61,7 +71,7 @@ export async function connectRedis(purpose: RedisPurpose): Promise<RedisClient |
     return null;
   }
 
-  const client = createClient({ url: redisUrl });
+  const client = createRedisClient(redisUrl);
   attachRedisErrorHandler(client, purpose);
 
   try {

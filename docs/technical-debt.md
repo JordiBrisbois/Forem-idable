@@ -57,7 +57,6 @@ même commit.
 
 | Paquet | Installé | Dernière | Pourquoi en attente |
 |---|---|---|---|
-| `redis` | 4.7.1 | 6.x | Le chemin Redis n'est **pas vérifiable sans serveur Redis** : le client dégrade silencieusement vers la mémoire, donc un test « vert » ne prouverait rien. À faire après le test d'intégration Redis. |
 | `eslint` | 9.39.5 | 10.x | Impacte `eslint-config-next` ; à faire avec la migration des règles React Compiler. |
 | `typescript` | 5.9.3 | 7.x | **Bloqué en amont** : `typescript-eslint` (embarqué par `eslint-config-next`) refuse TS 7.0 au chargement — `npm run lint` échoue avant toute vérification. La PR #9 a été fermée pour cette raison ; à reprendre quand le support TS ≥ 7.1 arrive. |
 | `lucide-react` | 0.575 | 1.x | Bump d'icônes à fort diff visuel : à faire avec une passe de vérification UI. |

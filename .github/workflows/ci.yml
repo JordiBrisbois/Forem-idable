@@ -107,3 +107,40 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
+  redis:
+    name: Redis integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/app
+      AUDIT_HASH_SECRET: ci-audit-secret
+      REDIS_URL: redis://localhost:6379
+    services:
+      redis:
+        # Same major as the managed instance, so the client upgrade is validated
+        # against the server version actually deployed.
+        image: redis:7.2-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Redis integration tests
+        # Skipped elsewhere (no REDIS_URL), so this job is the only place the
+        # real protocol path runs.
+        run: npx vitest run src/lib/server/redis.integration.test.ts
+
