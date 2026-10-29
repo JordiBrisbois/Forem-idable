@@ -25,6 +25,18 @@
 - Documenter le pourquoi du SQL brut en commentaire dans le fichier
 - Toujours utiliser des requêtes paramétrées (`$1`, `$2`) — jamais d'interpolation
 
+### Dépendances et lockfile
+- **Générer `package-lock.json` avec le npm de la CI** (Node 22 → npm 10). Un lock
+  écrit par une version plus récente peut être refusé par `npm ci` côté CI avec
+  un `Missing: … from lock file` alors que tout fonctionne en local.
+- `npm ci` est la commande de référence, pas `npm install` : elle installe
+  exactement le lock et échoue si `package.json` et le lock divergent. La lancer
+  avant de pousser évite les échecs de CI les plus courants.
+- Ne pas utiliser `npm audit fix --force` : les mises à jour majeures se font
+  dans un commit dédié, avec les tests au vert.
+- `npm run audit:prod` doit rester vert ; la liste d'exceptions de
+  `scripts/check-audit.mjs` est vide et le reste par défaut.
+
 ### Tests
 - **Vitest** : logique métier, hooks React, utilitaires serveur
 - **Playwright** : flux utilisateur critiques (auth, suivi, messagerie, admin, compliance)
@@ -73,8 +85,9 @@ security: hash userIds in audit logs
 ## Pull Requests
 1. Créer une branche depuis `main`
 2. Faire les changements en respectant les conventions ci-dessus
-3. S'assurer que `npm run build` passe
-4. S'assurer que `npm test` ne régresse pas
+3. S'assurer que `npm ci` passe (et pas seulement `npm install`)
+4. S'assurer que `npm run build` passe
+5. S'assurer que `npm test` ne régresse pas
 5. Pour les features UI, vérifier le rendu mobile et desktop
 6. Squash merge sur `main`
 
