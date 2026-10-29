@@ -95,8 +95,12 @@ pas les features.
 - **Vitest** : logique métier, hooks, utilitaires serveur, et tests d'**intégration**
   sur les wrappers de routes (CSRF, garde d'accès, validation, mapping d'erreurs).
 - **Playwright** : parcours critiques (auth, coach, messagerie, admin, conformité).
+- **Couverture** : `npm run test:coverage` mesure la couverture des modules de
+  logique — les entrées App Router sont couvertes en E2E — et **bloque la CI**
+  sous les seuils définis dans `vitest.config.mts` (cliquet, pas objectif).
 - **CI GitHub Actions** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) :
-  `tsc` · `eslint` · `vitest` · `next build` sur chaque push et pull request.
+  `tsc` · `eslint` · `vitest --coverage` · `next build` sur chaque push et pull
+  request.
 
 ## Démarrage local
 
@@ -159,6 +163,10 @@ Voir [SELF_HOSTING.md](SELF_HOSTING.md) et l'[ADR-0006](docs/adr/0006-cache-budg
 
 ## Documentation
 
+- [Index de la documentation](docs/README.md) — point d'entrée
+- [Architecture](docs/architecture.md) — couches, cycle d'une requête, conventions
+- [Tests](docs/testing.md) — stratégie, couverture, E2E
+- [Sécurité](docs/security.md) — contrôles en place et limites · [politique de signalement](SECURITY.md)
 - [Auto-hébergement](SELF_HOSTING.md)
 - [API externe](DOCAPI.md)
 - [Conformité & RGPD](COMPLIANCE.md)
