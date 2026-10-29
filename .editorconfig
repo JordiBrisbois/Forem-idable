@@ -1,0 +1,22 @@
+# Editor defaults shared by every contributor.
+# ESLint owns the code rules; this file only covers what a formatter would
+# otherwise fight over (indentation, line endings, trailing whitespace).
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.md]
+# Trailing double spaces are meaningful in Markdown (hard line breaks).
+trim_trailing_whitespace = false
+
+[*.{yml,yaml}]
+indent_size = 2
+
+[*.{json,jsonc}]
+indent_size = 2
