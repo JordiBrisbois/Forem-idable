@@ -58,13 +58,10 @@ même commit.
 | Paquet | Installé | Dernière | Pourquoi en attente |
 |---|---|---|---|
 | `redis` | 4.7.1 | 6.x | Le chemin Redis n'est **pas vérifiable sans serveur Redis** : le client dégrade silencieusement vers la mémoire, donc un test « vert » ne prouverait rien. À faire après le test d'intégration Redis. |
-| `vitest` | 4.1.12 | 5.x | Major de l'outillage de test : à passer seul, avec `@vitest/coverage-v8` aligné (PR #8 ouverte). |
 | `eslint` | 9.39.5 | 10.x | Impacte `eslint-config-next` ; à faire avec la migration des règles React Compiler. |
-| `typescript` | 5.9.3 | 7.x | Aucun besoin fonctionnel ; le gain est nul et le risque de casse large (PR #9 ouverte). |
-| `@tanstack/react-table` | 8.21.3 | 9.x | Changement d'API de la table de résultats : à faire avec une passe de vérification UI (PR #7). |
-| `jsdom` | 26.1.0 | 30.x | Environnement de test uniquement ; à passer avec `vitest` (PR #6). |
+| `typescript` | 5.9.3 | 7.x | **Bloqué en amont** : `typescript-eslint` (embarqué par `eslint-config-next`) refuse TS 7.0 au chargement — `npm run lint` échoue avant toute vérification. La PR #9 a été fermée pour cette raison ; à reprendre quand le support TS ≥ 7.1 arrive. |
 | `lucide-react` | 0.575 | 1.x | Bump d'icônes à fort diff visuel : à faire avec une passe de vérification UI. |
-| Image Docker `node` | `24-alpine` | `25-alpine` | Change le runtime de production ; à valider sur une preview avant de suivre (PR #2). |
+| Image Docker `node` | `24.22.2-alpine` (épinglée) | 25 / 26 | La PR Dependabot proposait `25-alpine`, une ligne **non-LTS**. L'image est désormais épinglée à un patch LTS précis : un changement de runtime se fait volontairement, avec vérification du déploiement, jamais par un déplacement de tag. |
 
 **Sortie.** Un commit par ligne, tests au vert, et la ligne supprimée de ce
 tableau.
