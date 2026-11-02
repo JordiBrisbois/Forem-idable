@@ -37,15 +37,18 @@ export default defineConfig({
         "src/lib/server/schema.ts",
       ],
       // A ratchet, not a target: the numbers sit just under today's measured
-      // baseline so they cannot silently regress, and they are raised as tests
-      // are added (see docs/testing.md). They are deliberately not aspirational:
-      // a threshold nobody can meet gets skipped, one that matches reality gets
-      // maintained.
+      // baseline (≈ 25.8 % of lines) so they cannot silently regress, and they
+      // are raised as tests are added (see docs/testing.md). They are
+      // deliberately not aspirational: a threshold nobody can meet gets
+      // skipped, one that matches reality gets maintained.
+      //
+      // Note: the Postgres/Redis integration suites are skipped here (they run
+      // in their own CI jobs), so their coverage is not part of this ratchet.
       thresholds: {
-        statements: 22,
-        branches: 20,
-        functions: 22,
-        lines: 22,
+        statements: 24.5,
+        branches: 22.5,
+        functions: 25,
+        lines: 25.5,
       },
     },
   },

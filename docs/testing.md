@@ -7,8 +7,9 @@ fois :
 
 | Niveau | Outil | Ce qui est vérifié |
 |---|---|---|
-| **Unitaire** | Vitest (jsdom) | Logique pure : utilitaires, hooks, schémas Zod, calculs de coût/dates, mapping d'erreurs. |
-| **Intégration** | Vitest | Wrappers de routes (`withSessionHandler`) : CSRF, garde d'accès, validation du corps, mapping erreur → statut HTTP. Postgres et Redis sont mockés. |
+| **Unitaire** | Vitest (jsdom) | Logique pure : utilitaires, hooks, schémas Zod, calculs de coût/dates, mapping d'erreurs. Postgres et Redis sont mockés. |
+| **Intégration HTTP** | Vitest | Wrappers de routes (`withSessionHandler`) : CSRF, garde d'accès, validation du corps, mapping erreur → statut HTTP. Postgres et Redis sont mockés. |
+| **Intégration données** | Vitest + vrai Postgres/Redis | Le SQL réel : upserts, index d'unicité, jointures de permissions, visibilité des conversations, protocole Redis. Fichiers `*.integration.test.ts`, exécutés dans les jobs `postgres` et `redis`. |
 | **E2E** | Playwright | Parcours utilisateur complets contre un vrai Postgres : auth, espace coach, admin, messagerie, conformité, recherche. |
 
 Le découpage suit la règle « tester au niveau où le comportement existe » : une
@@ -34,9 +35,30 @@ Le périmètre est défini dans `vitest.config.mts` :
   (`src/lib/server/schema.ts`, sans comportement).
 
 Les **seuils sont un cliquet**, pas un objectif marketing : ils sont fixés juste
-sous la mesure courante (≈ 24 % de lignes) pour interdire une régression, et se
+sous la mesure courante (≈ 25,8 % de lignes) pour interdire une régression, et se
 relèvent au fur et à mesure que des tests sont ajoutés. Un seuil que personne
 n'atteint finit contourné ; un seuil qui suit la réalité est maintenu.
+
+Les suites `*.integration.test.ts` sont **skippées** dans cette mesure (pas de
+serveur dans le job `quality`) : leur couverture est réelle mais mesurée à part,
+dans les jobs `postgres` et `redis`. Le cliquet ne porte donc que sur la suite
+unitaire, ce qui le rend stable d'un run à l'autre.
+
+## Intégration données
+
+`npm test` les saute sans serveur. Pour les lancer en local :
+
+```bash
+RUN_DB_INTEGRATION=1 \
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/app \
+npx vitest run integration --no-file-parallelism
+```
+
+`RUN_DB_INTEGRATION` est le seul déclencheur : le job `quality` exporte lui aussi
+un `DATABASE_URL` (factice, requis par `next build`), donc la variable seule ne
+prouve pas qu'un serveur répond. Les suites partagent une base et tronquent
+avant chaque test, d'où le `--no-file-parallelism` : deux fichiers en parallèle
+se détruiraient mutuellement les données.
 
 Le chiffre global est bas parce que l'essentiel du volume est du JSX de pages et
 de composants, dont la valeur est vérifiée par les parcours E2E. La couverture
@@ -74,12 +96,14 @@ La CI fournit un service `postgres:18-alpine` et lance Chromium seul (voir
 
 ## CI
 
-Deux jobs, sur chaque push et pull request :
+Quatre jobs, sur chaque push et pull request :
 
 1. **quality** — `npm ci`, audit des dépendances de production, `tsc --noEmit`,
    ESLint, tests avec couverture (échec si sous les seuils), `next build`.
 2. **e2e** — Postgres en service, `playwright test`, rapport archivé en cas
    d'échec.
+3. **postgres** — Postgres en service, suites `*.integration.test.ts` du SQL réel.
+4. **redis** — Redis en service, protocole réel (rate limiter, pub/sub).
 
-Le job `quality` a un budget de 10 minutes : il doit rester le retour rapide,
-l'E2E est là pour la profondeur.
+Le job `quality` a un budget de 10 minutes : il doit rester le retour rapide ;
+les trois autres jobs sont là pour la profondeur et tournent en parallèle.

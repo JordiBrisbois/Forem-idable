@@ -34,24 +34,33 @@ par montage, et du bruit dans `npm run lint`.
 Une fois les 17 sites traités, passer la règle de `warn` à `error` dans
 `eslint.config.mjs` — c'est la vraie condition de fermeture.
 
-## 2. Couverture unitaire à ~24 %
+## 2. Couverture des modules de données restants
 
-**Constat.** Mesure actuelle : ~24 % de lignes, avec un périmètre qui exclut les
-entrées App Router (couvertes en E2E), les primitives shadcn et les déclarations
-Drizzle.
+**Constat.** Le harnais d'intégration Postgres existe désormais (job `postgres`,
+suites `*.integration.test.ts`, fixtures partagées) et couvre les trois modules
+les plus sensibles : `applicationStore`, `messaging` et `coachGroups`. Les seuils
+de `vitest.config.mts` ont été relevés en même temps (≈ 25,8 % de lignes).
 
-**Pourquoi c'est laissé.** Le volume non couvert est principalement du JSX de
-pages et des modules d'accès aux données (`applicationStore`, `messaging`,
-`coachGroups`) qui demandent un Postgres de test ; les parcours correspondants
-sont couverts par les 12 specs E2E.
+**Preuve que ça paye.** Ces suites ont trouvé, dès leur premier run, un vrai
+défaut : `canManageCoachAssignments` comparait un `bigint` rendu en `string` par
+`pg` à un `number`, donc aucun groupe n'était gérable par son manager non-admin
+(archivage, suppression, affectation de coachs). L'E2E ne l'avait pas vu parce
+qu'elle pilote ces écrans en administrateur.
 
-**Impact.** Une régression dans un module de données est attrapée par l'E2E, donc
+**Pourquoi le reste est laissé.** Les modules de données secondaires restent
+couverts uniquement par l'E2E : `applications.ts`, `coach.ts`,
+`calendarSubscriptions.ts`, `apiKeys.ts`, `accounts.ts`, `searchHistory.ts`,
+`compliance.ts`. Le volume non couvert du projet reste majoritairement du JSX de
+pages, hors de portée d'un test unitaire et déjà exercé par les parcours.
+
+**Impact.** Une régression dans un de ces modules est attrapée par l'E2E, donc
 plus tard et avec un message moins précis qu'un test d'intégration.
 
-**Sortie.** Ajouter une base Postgres jetable aux tests d'intégration (le service
-`postgres:18-alpine` existe déjà dans le job E2E) et couvrir les quatre modules
-les plus volumineux. Relever ensuite les seuils de `vitest.config.mts` dans le
-même commit.
+**Sortie.** Un fichier `*.integration.test.ts` par module restant, en réutilisant
+`tests/integration/fixtures.ts` ; les seuils de `vitest.config.mts` se relèvent
+dans le même commit. Quand un module n'a pas de logique propre à vérifier
+(cascade pure, simple CRUD), la sortie est de le retirer de cette liste avec une
+ligne de justification ici.
 
 ## 3. Mises à jour majeures non appliquées
 
