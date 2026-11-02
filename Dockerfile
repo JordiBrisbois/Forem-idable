@@ -13,6 +13,11 @@ RUN npm ci
 
 FROM base AS builder
 ENV NEXT_TELEMETRY_DISABLED=1
+# Declared here so the image builds from a clean checkout (CI, docker build) as
+# well as through Coolify, which injects these names as build args itself.
+# Declaring them is inert: with no value passed, the build behaves as before.
+ARG DATABASE_URL
+ARG AUDIT_HASH_SECRET
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

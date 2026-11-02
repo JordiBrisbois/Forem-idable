@@ -191,25 +191,58 @@ jobs:
     name: Docker image
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      DOCKER_BUILDKIT: "1"
     steps:
       - uses: actions/checkout@v7
 
-      # Coolify injects the build-time environment as Docker ARGs. Reproduce
-      # that injection so this job builds the real Dockerfile and its
-      # .dockerignore context, not the full git checkout that tsc and next build
-      # see in `quality`. This is the only job that catches a source import
-      # pointing outside the Docker build context.
+      # The only job that sees .dockerignore: `tsc` and `next build` in
+      # `quality` type-check the full checkout, so an import pointing outside
+      # the Docker build context passes there and fails at deploy time. This
+      # builds the real Dockerfile with the build args Coolify injects.
       - name: Build the production image
         run: |
-          awk '{ print } /^FROM base AS builder/ { print "ARG DATABASE_URL"; print "ARG AUDIT_HASH_SECRET" }' Dockerfile > Dockerfile.ci
           docker build \
             --progress=plain \
             --build-arg DATABASE_URL='postgres://postgres:postgres@localhost:5432/app' \
             --build-arg AUDIT_HASH_SECRET='ci-audit-secret' \
-            --file Dockerfile.ci \
             --tag forem-idable:ci \
             .
+
+      # Building is not booting: the runner stage (standalone output, the
+      # drizzle/ and scripts/ copies, `node server.js`) runs nowhere else in CI,
+      # and the E2E suite drives `next dev`. Any HTTP status proves the
+      # production server is listening; no database is attached here, so a 5xx
+      # is a valid answer and only a dead port fails.
+      - name: Smoke test the image
+        run: |
+          docker run --detach --name forem-ci --publish 3000:3000 \
+            --env DATABASE_URL='postgres://postgres:postgres@localhost:5432/app' \
+            --env AUDIT_HASH_SECRET='ci-audit-secret' \
+            forem-idable:ci
+
+          for second in $(seq 1 45); do
+            status=$(curl --silent --output /dev/null --write-out '%{http_code}' \
+              http://127.0.0.1:3000/ || true)
+            if [ "$status" != "000" ]; then
+              echo "production server answered HTTP $status after ${second}s"
+              exit 0
+            fi
+            if [ -z "$(docker ps --quiet --filter name=forem-ci)" ]; then
+              echo "container exited before answering a single request"
+              exit 1
+            fi
+            sleep 1
+          done
+
+          echo "container never answered on port 3000 within 45s"
+          exit 1
+
+      - name: Container logs
+        if: failure()
+        run: docker logs forem-ci || true
+
+      - name: Remove the container
+        if: always()
+        run: docker rm --force forem-ci || true
+
 
 

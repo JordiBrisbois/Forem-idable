@@ -112,9 +112,14 @@ Cinq jobs, sur chaque push et pull request :
 3. **postgres** — Postgres en service, suites `*.integration.test.ts` du SQL réel.
 4. **redis** — Redis en service, protocole réel (rate limiter, pub/sub).
 5. **docker** — construit la vraie image avec le `Dockerfile` et le
-   `.dockerignore` de production, en injectant les mêmes build args que Coolify.
+   `.dockerignore` de production, en injectant les mêmes build args que Coolify,
+   puis **démarre le conteneur** et attend une réponse HTTP sur le port 3000.
    C'est le seul job qui voit le contexte Docker : il attrape un import hors
    contexte que `tsc` et `next build` laissent passer sur le checkout complet.
+   Le démarrage est vérifié séparément de la construction parce que le stade
+   `runner` (sortie standalone, `drizzle/`, `scripts/`, `node server.js`) n'est
+   exécuté nulle part ailleurs en CI — les E2E pilotent `next dev`. Aucune base
+   n'est attachée : un `5xx` est une réponse valide, seul un port muet échoue.
 
 Le job `quality` a un budget de 10 minutes : il doit rester le retour rapide ;
 les quatre autres jobs sont là pour la profondeur et tournent en parallèle.
