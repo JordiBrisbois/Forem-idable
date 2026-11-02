@@ -9,10 +9,20 @@ updates:
       day: monday
       time: "06:00"
       timezone: Europe/Brussels
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     versioning-strategy: increase
     commit-message:
       prefix: "chore(deps)"
+    # Majors deliberately parked in docs/technical-debt.md §3. Silencing them
+    # here keeps the queue readable for the upgrades that are actually
+    # actionable; security updates are not affected by `update-types` ignores.
+    ignore:
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "lucide-react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
     groups:
       # One PR for the routine patch/minor noise.
       minor-and-patch:
@@ -39,3 +49,9 @@ updates:
       interval: monthly
     commit-message:
       prefix: "chore(docker)"
+    # The Node base image is pinned to an exact LTS patch on purpose: a runtime
+    # change ships as its own reviewed commit (Dockerfile + @types/node + the
+    # Node version used by CI), never as a tag move. See technical-debt.md §3.
+    ignore:
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]

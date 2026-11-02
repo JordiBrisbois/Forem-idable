@@ -57,13 +57,15 @@ même commit.
 
 | Paquet | Installé | Dernière | Pourquoi en attente |
 |---|---|---|---|
-| `eslint` | 9.39.5 | 10.x | Impacte `eslint-config-next` ; à faire avec la migration des règles React Compiler. |
 | `typescript` | 5.9.3 | 7.x | **Bloqué en amont** : `typescript-eslint` (embarqué par `eslint-config-next`) refuse TS 7.0 au chargement — `npm run lint` échoue avant toute vérification. La PR #9 a été fermée pour cette raison ; à reprendre quand le support TS ≥ 7.1 arrive. |
+| `@types/node` | 24.x | 26.x | Doit refléter le runtime réel de l'image (Node 24) : merger 26 laisserait TypeScript accepter des API absentes du conteneur. Bump couplé à la migration du runtime ci-dessous. |
 | `lucide-react` | 0.575 | 1.x | Bump d'icônes à fort diff visuel : à faire avec une passe de vérification UI. |
-| Image Docker `node` | `24.22.2-alpine` (épinglée) | 25 / 26 | La PR Dependabot proposait `25-alpine`, une ligne **non-LTS**. L'image est désormais épinglée à un patch LTS précis : un changement de runtime se fait volontairement, avec vérification du déploiement, jamais par un déplacement de tag. |
+| Image Docker `node` | `24.22.2-alpine` (épinglée) | 26.x (LTS depuis octobre 2026) | La PR Dependabot proposait d'abord `25-alpine`, une ligne **non-LTS** : refusée. L'image est désormais épinglée à un patch LTS précis : un changement de runtime se fait volontairement, dans son propre commit (Dockerfile + `@types/node` + Node de la CI), avec vérification du déploiement, jamais par un déplacement de tag. |
 
 **Sortie.** Un commit par ligne, tests au vert, et la ligne supprimée de ce
-tableau.
+tableau. Les majeures listées ici sont ignorées par Dependabot
+(`.github/dependabot.yml`) pour que la file de PR reste lisible ; les mises à
+jour de sécurité ne sont pas concernées par ces `ignore`.
 
 ## 4. Contrôles natifs conservés
 
