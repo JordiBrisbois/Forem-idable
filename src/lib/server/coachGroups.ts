@@ -56,7 +56,10 @@ export async function canManageCoachAssignments(actor: CoachCapableUser, groupId
     [groupId]
   );
 
-  return result.rows[0]?.manager_coach_user_id === actor.id;
+  // pg hands back bigint columns as strings (int8 does not fit a JS number
+  // safely), so this must be normalised before comparing with actor.id —
+  // otherwise every non-admin manager silently fails this check.
+  return toNumericId(result.rows[0]?.manager_coach_user_id ?? null) === actor.id;
 }
 
 export async function canRemoveCoachAssignmentFromGroup(

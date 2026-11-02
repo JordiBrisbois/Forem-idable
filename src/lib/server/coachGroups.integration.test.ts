@@ -73,12 +73,16 @@ describeWithDatabase("coachGroups permissions (integration)", () => {
     const beneficiary = await createUser();
 
     const created = await createCoachGroup("Groupe retour à l'emploi", coach);
-    const groupId = created.id;
+    const groupId = Number(created.id);
     await addUserToCoachGroup(groupId, beneficiary.id, coach);
 
     expect(await canManageCoachGroup(coach, groupId)).toBe(true);
     expect(await canAccessCoachUser(coach, beneficiary.id)).toBe(true);
     expect(await getManagedGroupIdsForCoach(coach.id)).toContain(groupId);
+
+    // Regression: the manager check used to compare a bigint string with a
+    // number, so a group creator could not archive their own group.
+    await expect(archiveCoachGroup(groupId, true, coach)).resolves.toBeUndefined();
 
     await removeUserFromCoachGroup(groupId, beneficiary.id, coach);
     expect(await canAccessCoachUser(coach, beneficiary.id)).toBe(false);
