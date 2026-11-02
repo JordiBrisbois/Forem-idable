@@ -35,6 +35,8 @@ export default defineConfig({
         "src/app/**",
         // Drizzle table declarations: types, no behaviour.
         "src/lib/server/schema.ts",
+        // Integration-suite factories: only stands up fixtures, asserts nothing.
+        "src/lib/server/testFixtures.ts",
       ],
       // A ratchet, not a target: the numbers sit just under today's measured
       // baseline (≈ 25.8 % of lines) so they cannot silently regress, and they

@@ -5,6 +5,12 @@ import type { AuthUser, UserRole } from "@/types/auth";
 /**
  * Shared setup for the Postgres-backed integration suites.
  *
+ * Lives under `src/` rather than `tests/` on purpose: `.dockerignore` drops
+ * `tests/`, while `next build` type-checks every file in the project, so
+ * anything the suites import has to be inside the Docker build context (same
+ * reason playwright.config.ts duplicates its constants instead of importing
+ * them). Getting this wrong builds fine locally and fails in Coolify.
+ *
  * The gate is RUN_DB_INTEGRATION, not DATABASE_URL: the `quality` CI job also
  * exports a DATABASE_URL (pointing at nothing, only needed by `next build`), so
  * the presence of that variable cannot mean "a server is reachable". Only the

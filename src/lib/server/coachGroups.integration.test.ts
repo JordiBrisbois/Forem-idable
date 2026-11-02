@@ -19,7 +19,7 @@ import {
   createUser,
   describeWithDatabase,
   resetDatabase,
-} from "../../../tests/integration/fixtures";
+} from "@/lib/server/testFixtures";
 
 /**
  * These functions decide who may read a beneficiary's data, so the matrix is

@@ -60,6 +60,13 @@ prouve pas qu'un serveur répond. Les suites partagent une base et tronquent
 avant chaque test, d'où le `--no-file-parallelism` : deux fichiers en parallèle
 se détruiraient mutuellement les données.
 
+Les fixtures vivent dans `src/lib/server/testFixtures.ts`, **pas** dans `tests/` :
+`.dockerignore` exclut `tests/` alors que `next build` type-check tout le projet,
+donc un import hors du contexte Docker casse la construction de l'image — et
+seulement elle : `tsc` et la CI passent, le déploiement échoue. C'est aussi la
+raison pour laquelle `playwright.config.ts` duplique ses constantes au lieu de
+les importer.
+
 Le chiffre global est bas parce que l'essentiel du volume est du JSX de pages et
 de composants, dont la valeur est vérifiée par les parcours E2E. La couverture
 utile est celle des modules de logique (`src/lib/server/`, `src/features/*/utils`),

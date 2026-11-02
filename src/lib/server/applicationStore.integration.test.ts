@@ -9,7 +9,7 @@ import {
 } from "@/lib/server/applicationStore";
 import type { JobApplication } from "@/types/application";
 import type { Job } from "@/types/job";
-import { createUser, describeWithDatabase, resetDatabase } from "../../../tests/integration/fixtures";
+import { createUser, describeWithDatabase, resetDatabase } from "@/lib/server/testFixtures";
 
 /**
  * The unit suite mocks `db`, so it proves the mapping but never that the SQL

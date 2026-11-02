@@ -14,7 +14,7 @@ import {
   createUser,
   describeWithDatabase,
   resetDatabase,
-} from "../../../tests/integration/fixtures";
+} from "@/lib/server/testFixtures";
 
 /**
  * Messaging is the only place where a user can read another user's data, so the
