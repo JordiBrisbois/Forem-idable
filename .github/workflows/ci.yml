@@ -144,3 +144,47 @@ jobs:
         # real protocol path runs.
         run: npx vitest run src/lib/server/redis.integration.test.ts
 
+  postgres:
+    name: Postgres integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      AUDIT_HASH_SECRET: ci-audit-secret
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/app
+      # The gate the suites look for. DATABASE_URL alone is not enough: the
+      # quality job exports one too, without a server behind it.
+      RUN_DB_INTEGRATION: "1"
+    services:
+      postgres:
+        # Same major as the E2E job and the deployment target, so the SQL is
+        # validated against the version that actually runs it.
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Postgres integration tests
+        # One file at a time: each suite truncates the shared tables in
+        # beforeEach, so files must not run concurrently against one database.
+        # Migrations are applied by ensureDatabase() on first use.
+        run: npx vitest run integration --no-file-parallelism
+
+
