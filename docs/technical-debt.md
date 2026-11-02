@@ -59,13 +59,23 @@ même commit.
 |---|---|---|---|
 | `typescript` | 5.9.3 | 7.x | **Bloqué en amont** : `typescript-eslint` (embarqué par `eslint-config-next`) refuse TS 7.0 au chargement — `npm run lint` échoue avant toute vérification. La PR #9 a été fermée pour cette raison ; à reprendre quand le support TS ≥ 7.1 arrive. |
 | `@types/node` | 24.x | 26.x | Doit refléter le runtime réel de l'image (Node 24) : merger 26 laisserait TypeScript accepter des API absentes du conteneur. Bump couplé à la migration du runtime ci-dessous. |
-| `lucide-react` | 0.575 | 1.x | Bump d'icônes à fort diff visuel : à faire avec une passe de vérification UI. |
-| Image Docker `node` | `24.22.2-alpine` (épinglée) | 26.x (LTS depuis octobre 2026) | La PR Dependabot proposait d'abord `25-alpine`, une ligne **non-LTS** : refusée. L'image est désormais épinglée à un patch LTS précis : un changement de runtime se fait volontairement, dans son propre commit (Dockerfile + `@types/node` + Node de la CI), avec vérification du déploiement, jamais par un déplacement de tag. |
 
 **Sortie.** Un commit par ligne, tests au vert, et la ligne supprimée de ce
 tableau. Les majeures listées ici sont ignorées par Dependabot
 (`.github/dependabot.yml`) pour que la file de PR reste lisible ; les mises à
 jour de sécurité ne sont pas concernées par ces `ignore`.
+
+**Runtime Node.** L'image est épinglée à un patch LTS précis (`node:24.22.2-alpine`)
+et la CI tourne sur le même major depuis #23 : un seul runtime, celui qui est
+réellement déployé. Un changement de major (26 LTS depuis octobre 2026) se fait
+dans son propre commit — Dockerfile + `@types/node` + `engines` + CI — avec
+vérification du déploiement, jamais par un déplacement de tag. Dependabot ignore
+les majeures sur cette image pour cette raison.
+
+**`lucide-react`.** Volontairement hors de ce tableau : la 0.x est activement
+publiée (0.577 aujourd'hui) et la 1.x n'apporte ni correctif ni fonctionnalité
+nécessaire, pour un diff visuel à re-vérifier partout. À reconsidérer le jour où
+une icône manque ou si la 0.x cesse d'être maintenue.
 
 ## 4. Contrôles natifs conservés
 

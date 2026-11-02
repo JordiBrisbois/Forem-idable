@@ -13,9 +13,11 @@ updates:
     versioning-strategy: increase
     commit-message:
       prefix: "chore(deps)"
-    # Majors deliberately parked in docs/technical-debt.md §3. Silencing them
-    # here keeps the queue readable for the upgrades that are actually
-    # actionable; security updates are not affected by `update-types` ignores.
+    # Majors deliberately parked: typescript and @types/node are covered in
+    # docs/technical-debt.md §3, lucide-react is a documented non-goal (the 0.x
+    # line is still actively released). Silencing them here keeps the queue
+    # readable for the upgrades that are actually actionable; security updates
+    # are not affected by `update-types` ignores.
     ignore:
       - dependency-name: "typescript"
         update-types: ["version-update:semver-major"]
