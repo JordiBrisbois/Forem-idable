@@ -187,4 +187,29 @@ jobs:
         # Migrations are applied by ensureDatabase() on first use.
         run: npx vitest run integration --no-file-parallelism
 
+  docker:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DOCKER_BUILDKIT: "1"
+    steps:
+      - uses: actions/checkout@v7
+
+      # Coolify injects the build-time environment as Docker ARGs. Reproduce
+      # that injection so this job builds the real Dockerfile and its
+      # .dockerignore context, not the full git checkout that tsc and next build
+      # see in `quality`. This is the only job that catches a source import
+      # pointing outside the Docker build context.
+      - name: Build the production image
+        run: |
+          awk '{ print } /^FROM base AS builder/ { print "ARG DATABASE_URL"; print "ARG AUDIT_HASH_SECRET" }' Dockerfile > Dockerfile.ci
+          docker build \
+            --progress=plain \
+            --build-arg DATABASE_URL='postgres://postgres:postgres@localhost:5432/app' \
+            --build-arg AUDIT_HASH_SECRET='ci-audit-secret' \
+            --file Dockerfile.ci \
+            --tag forem-idable:ci \
+            .
+
 

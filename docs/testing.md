@@ -103,7 +103,7 @@ La CI fournit un service `postgres:18-alpine` et lance Chromium seul (voir
 
 ## CI
 
-Quatre jobs, sur chaque push et pull request :
+Cinq jobs, sur chaque push et pull request :
 
 1. **quality** — `npm ci`, audit des dépendances de production, `tsc --noEmit`,
    ESLint, tests avec couverture (échec si sous les seuils), `next build`.
@@ -111,6 +111,10 @@ Quatre jobs, sur chaque push et pull request :
    d'échec.
 3. **postgres** — Postgres en service, suites `*.integration.test.ts` du SQL réel.
 4. **redis** — Redis en service, protocole réel (rate limiter, pub/sub).
+5. **docker** — construit la vraie image avec le `Dockerfile` et le
+   `.dockerignore` de production, en injectant les mêmes build args que Coolify.
+   C'est le seul job qui voit le contexte Docker : il attrape un import hors
+   contexte que `tsc` et `next build` laissent passer sur le checkout complet.
 
 Le job `quality` a un budget de 10 minutes : il doit rester le retour rapide ;
-les trois autres jobs sont là pour la profondeur et tournent en parallèle.
+les quatre autres jobs sont là pour la profondeur et tournent en parallèle.
