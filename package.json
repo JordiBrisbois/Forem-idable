@@ -23,7 +23,7 @@
     "docs:screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
-    "@hookform/resolvers": "^6.0.2",
+    "@hookform/resolvers": "^7.0.3",
     "@tanstack/react-table": "^9.3.1",
     "@types/papaparse": "^5.5.2",
     "@types/pg": "^8.23.1",
