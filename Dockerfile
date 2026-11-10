@@ -4,7 +4,10 @@
 # into an implicit runtime upgrade. Bump this deliberately, in its own change,
 # with a deploy verification — never through an automated tag bump.
 FROM node:24.22.2-alpine AS base
-RUN apk add --no-cache libc6-compat curl
+# Pull the patched Alpine packages (zlib, busybox, …) instead of waiting for a
+# new base tag: the image scanner reports the system packages of the image, and
+# `apk upgrade` is what actually moves them.
+RUN apk upgrade --no-cache && apk add --no-cache libc6-compat curl
 WORKDIR /app
 
 FROM base AS deps
@@ -29,6 +32,17 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001
+
+# npm (and corepack) are only needed to install and build. Removing them from the
+# runtime image also removes their bundled dependency tree — undici,
+# brace-expansion, glob, minimatch, ip-address, postcss-selector-parser — which
+# the image scanner reports as application vulnerabilities even though the app
+# never loads them. `node server.js` needs neither.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+           /usr/local/lib/node_modules/corepack \
+           /usr/local/bin/npm \
+           /usr/local/bin/npx \
+           /usr/local/bin/corepack
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
