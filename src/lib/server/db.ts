@@ -41,6 +41,20 @@ function createPool() {
     ssl: getSslConfig(),
   });
 
+  // An idle client that loses its connection (database restart, failover,
+  // network blip) emits an 'error' event on the pool. Without a listener, Node
+  // turns that into an uncaughtException and the process dies — which is what a
+  // Postgres restart used to do to this app. Logging it keeps the process alive
+  // and the pool reconnects on the next query.
+  pool.on("error", (error) => {
+    logServerEvent({
+      category: "db",
+      action: "pool_error",
+      level: "error",
+      meta: { error: error instanceof Error ? error.message : String(error) },
+    });
+  });
+
   function getStatementPreview(query: unknown) {
     if (typeof query === "string") {
       return query.trim().split(/\s+/).slice(0, 4).join(" ");
