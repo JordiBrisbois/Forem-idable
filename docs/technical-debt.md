@@ -74,7 +74,7 @@ tableau. Les majeures listées ici sont ignorées par Dependabot
 (`.github/dependabot.yml`) pour que la file de PR reste lisible ; les mises à
 jour de sécurité ne sont pas concernées par ces `ignore`.
 
-**Runtime Node.** L'image est épinglée à un patch LTS précis (`node:24.22.2-alpine`)
+**Runtime Node.** L'image est épinglée à un patch LTS précis (`node:24.22.3-alpine`)
 et la CI tourne sur le même major depuis #23 : un seul runtime, celui qui est
 réellement déployé. Un changement de major (26 LTS depuis octobre 2026) se fait
 dans son propre commit — Dockerfile + `@types/node` + `engines` + CI — avec

@@ -3,7 +3,7 @@
 # Pinned to an exact LTS patch: a floating 24-alpine tag turns every deploy
 # into an implicit runtime upgrade. Bump this deliberately, in its own change,
 # with a deploy verification — never through an automated tag bump.
-FROM node:24.22.2-alpine AS base
+FROM node:24.22.3-alpine AS base
 # Pull the patched Alpine packages (zlib, busybox, …) instead of waiting for a
 # new base tag: the image scanner reports the system packages of the image, and
 # `apk upgrade` is what actually moves them.
