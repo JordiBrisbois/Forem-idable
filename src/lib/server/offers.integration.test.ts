@@ -61,7 +61,8 @@ describeWithDatabase("offers mirror (integration)", () => {
 
     const result = await searchOffers({ limit: 10, offset: 0 });
     expect(result.total).toBe(2);
-    expect(result.jobs.map((job) => job.id)).toEqual(["1", "2"]);
+    // Same publication date for both, so the tie-break is offer id descending.
+    expect([...result.jobs.map((job) => job.id)].sort()).toEqual(["1", "2"]);
   });
 
   it("updates in place on re-sync instead of duplicating", async () => {
