@@ -1,5 +1,5 @@
 import { post } from "@/lib/api/client";
-import { ForemSearchParams } from "./foremClient";
+import { JobSearchParams } from "@/services/jobs/searchParams";
 import { Job } from "@/types/job";
 
 interface AdzunaSearchResponse {
@@ -9,7 +9,7 @@ interface AdzunaSearchResponse {
 }
 
 export async function fetchAdzunaJobs(
-  params: ForemSearchParams
+  params: JobSearchParams
 ): Promise<{ jobs: Job[]; total: number }> {
   try {
     const { data } = await post<AdzunaSearchResponse>("/api/providers/adzuna/search", params);

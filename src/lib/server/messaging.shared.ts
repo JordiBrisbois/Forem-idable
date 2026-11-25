@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { isValidForemOfferId } from "@/lib/forem";
-import { fetchForemJobByOfferId } from "@/services/api/foremClient";
+import { getOfferJob } from "@/lib/server/offers/repository";
 import { Job } from "@/types/job";
 import {
   ConversationMessage,
@@ -146,7 +146,7 @@ export async function resolveSharedJobMetadata(content: string): Promise<{
   }
 
   try {
-    const sharedJob = await fetchForemJobByOfferId(extracted.offerId);
+    const sharedJob = await getOfferJob(extracted.offerId);
     if (!sharedJob) {
       return sharedJobMetadataSchema.parse({
         type: "text",

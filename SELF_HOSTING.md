@@ -35,27 +35,31 @@ Voir [`env.example`](env.example) pour la liste complète (branding, rétention,
 ### Recherche d'offres (ODWB / Opendatasoft)
 
 Le module `FEATURE_JOB_SEARCH` interroge le jeu de données public
-**offres-d-emploi-forem** (ODWB / Opendatasoft). Les appels passent par un
-**proxy serveur caché** (`/api/offers/odwb`) : toute l'instance partage un même flux
-d'appels, ce qui réduit fortement la consommation.
+**offres-d-emploi-forem** (ODWB / Opendatasoft), mais **pas en direct** : le jeu est
+rapatrié dans la table `forem_offers` par une tâche de synchronisation, et la
+recherche lit PostgreSQL. C'est le seul montage fiable, car le jeu impose un plafond
+de **10 000 appels/jour partagé entre tous les consommateurs** : une clé API ne le
+relève pas, et un appel par recherche l'épuisait en quelques heures.
 
-Sans clé, ODWB applique le palier **anonyme** (10 000 appels/jour, par IP). En créant
-une clé API (gratuite) et en la posant en `ODWB_API_KEY` (côté **serveur**, jamais
-exposée au client), le quota devient celui de votre espace de travail — souvent
-50 000 appels/jour. Le module applique de toute façon un **budget local** (voir
-ci-dessous) pour ne jamais s'en approcher.
+La synchronisation tourne au démarrage, puis `OFFERS_SYNC_INTERVAL_HOURS` (défaut 6)
+plus tard ; en cas d'échec elle réessaie après `OFFERS_SYNC_RETRY_MINUTES` (défaut
+10) sans jamais effacer les offres déjà présentes. Une passe complète coûte ~250
+appels — soit 2,5 % du plafond quotidien, une fois par cycle.
+
+`ODWB_API_KEY` (côté **serveur**, jamais exposée au client) sert uniquement à cette
+synchronisation. `OFFERS_SYNC_ENABLED=0` la désactive (la recherche reste alors
+servie par les données déjà présentes).
 
 Un second fournisseur (**Adzuna**) peut être activé via `ADZUNA_ENABLED`,
 `ADZUNA_APP_ID` et `ADZUNA_APP_KEY`.
 
 ### Cache et budget d'appels
 
-Les recherches passent par un **proxy serveur** avec un cache à deux niveaux :
-**mémoire** (par conteneur) + **Redis** si `REDIS_URL` est défini (partagé entre
-instances et conservé entre les redéploiements). Les réponses expirées sont
-resservies en cas d'erreur amont (*stale-on-error*), et un **budget d'appels**
-(`OFFERS_API_DAILY_BUDGET`, défaut **15 000 / 24 h**, plus un garde-fou
-`OFFERS_API_MAX_CALLS_PER_MINUTE`) empêche de dépasser le quota ODWB.
+Les appels sortants restants (synchronisation des offres, référentiel géographique)
+respectent un **budget d'appels** (`OFFERS_API_DAILY_BUDGET`, défaut **15 000 / 24 h**,
+plus un garde-fou `OFFERS_API_MAX_CALLS_PER_MINUTE`). Le cache à deux niveaux
+(**mémoire** par conteneur + **Redis** si `REDIS_URL` est défini) sert encore le
+référentiel des localisations et absorbe les rafales.
 
 En-têtes de diagnostic : `x-cache: hit|miss|stale|budget` et
 `x-odwb-budget-remaining`.

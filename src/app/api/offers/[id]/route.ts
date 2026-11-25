@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { isValidForemOfferId } from "@/lib/forem";
-import { appendOdwbApiKey } from "@/lib/odwbApiKey";
-import { reserveOdwbCall } from "@/lib/server/cache/budget";
+import { getOfferPayload } from "@/lib/server/offers/repository";
 import { checkRateLimit } from "@/lib/server/rateLimit";
 
 interface OfferHighlight {
@@ -18,7 +17,7 @@ interface OfferDetailsResponse {
   description?: string;
   highlights: OfferHighlight[];
   sections: OfferSection[];
-  source: "forem-detail-api" | "odwb-fallback" | "none";
+  source: "forem-detail-api" | "mirror" | "none";
 }
 
 function asString(value: unknown): string | null {
@@ -217,7 +216,7 @@ function normalizeOdwbPayload(
     description,
     highlights,
     sections,
-    source: "odwb-fallback",
+    source: "mirror",
   };
 }
 
@@ -269,10 +268,10 @@ export async function GET(
       }
     }
 
-    // ODWB fallback only: respect the shared upstream budget so we never exceed
-    // the ODWB quota (the primary leforem.be detail API is not affected).
-    const budget = await reserveOdwbCall();
-    if (!budget.allowed) {
+    // Fallback: the mirrored ODWB record, read locally. This used to hit ODWB
+    // per detail view, which burned the shared dataset quota for a page render.
+    const mirrored = await getOfferPayload(id);
+    if (!mirrored) {
       return NextResponse.json<OfferDetailsResponse>({
         source: "none",
         highlights: [],
@@ -280,37 +279,7 @@ export async function GET(
       });
     }
 
-    const odwbUrl = new URL(
-      "https://www.odwb.be/api/explore/v2.1/catalog/datasets/offres-d-emploi-forem/records"
-    );
-    odwbUrl.searchParams.set("limit", "1");
-    odwbUrl.searchParams.set("where", `numerooffreforem="${id}"`);
-    appendOdwbApiKey(odwbUrl);
-
-    const odwbResponse = await fetch(odwbUrl.toString(), {
-      method: "GET",
-      headers: { Accept: "application/json" },
-    });
-
-    if (!odwbResponse.ok) {
-      return NextResponse.json<OfferDetailsResponse>({
-        source: "none",
-        highlights: [],
-        sections: [],
-      });
-    }
-
-    const data = await odwbResponse.json();
-    const first = Array.isArray(data?.results) ? data.results[0] : null;
-    if (!first || typeof first !== "object") {
-      return NextResponse.json<OfferDetailsResponse>({
-        source: "none",
-        highlights: [],
-        sections: [],
-      });
-    }
-
-    return NextResponse.json(normalizeOdwbPayload(first as Record<string, unknown>, id));
+    return NextResponse.json(normalizeOdwbPayload(mirrored, id));
   } catch (error) {
     console.error("Offer details route error:", error);
     return NextResponse.json<OfferDetailsResponse>({

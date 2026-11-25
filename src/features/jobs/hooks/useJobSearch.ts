@@ -5,16 +5,29 @@ import { toast } from "sonner";
 import { Job } from "@/types/job";
 import { SearchQuery } from "@/types/search";
 import { jobService } from "@/services/jobs/jobService";
-import { ForemRateLimitedError } from "@/services/api/foremClient";
+import { OffersUnavailableError } from "@/services/api/offersClient";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
 
-// Keep the preload small (1 ODWB request) and page on demand via `loadMore`,
-// to stay well under ODWB's anonymous quota.
 const INITIAL_FETCH_LIMIT = 100;
 const FETCH_CHUNK_SIZE = 100;
 
-const RATE_LIMIT_MESSAGE =
-  "Le service d'offres est momentanément limité (quota du fournisseur atteint). Réessayez plus tard.";
+const TOO_MANY_REQUESTS_MESSAGE =
+  "Trop de recherches en peu de temps. Réessayez dans quelques instants.";
+const UNAVAILABLE_MESSAGE =
+  "Le service d'offres est momentanément indisponible. Réessayez plus tard.";
+const INDEXING_MESSAGE =
+  "Les offres sont en cours d'indexation. Réessayez dans une minute.";
+
+function messageFor(error: OffersUnavailableError): string {
+  switch (error.reason) {
+    case "rate_limited":
+      return TOO_MANY_REQUESTS_MESSAGE;
+    case "indexing":
+      return INDEXING_MESSAGE;
+    default:
+      return UNAVAILABLE_MESSAGE;
+  }
+}
 
 export function useJobSearch() {
   const { history, addEntry, clearHistory, isLoaded: isHistoryLoaded } = useSearchHistory();
@@ -53,12 +66,13 @@ export function useJobSearch() {
       setHasMoreResults(response.jobs.length >= INITIAL_FETCH_LIMIT);
       return response.jobs;
     } catch (error) {
-      if (error instanceof ForemRateLimitedError) {
-        setSearchError(RATE_LIMIT_MESSAGE);
-        toast.error(RATE_LIMIT_MESSAGE);
+      if (error instanceof OffersUnavailableError) {
+        const message = messageFor(error);
+        setSearchError(message);
+        toast.error(message);
       } else {
         console.error("Erreur lors de la recherche", error);
-        setSearchError("Impossible de charger les offres pour le moment.");
+        setSearchError(UNAVAILABLE_MESSAGE);
       }
       setJobs([]);
       setNextOffset(0);
@@ -99,8 +113,8 @@ export function useJobSearch() {
       }
       setNextOffset((offset) => offset + FETCH_CHUNK_SIZE);
     } catch (error) {
-      if (error instanceof ForemRateLimitedError) {
-        toast.error(RATE_LIMIT_MESSAGE);
+      if (error instanceof OffersUnavailableError) {
+        toast.error(messageFor(error));
       } else {
         console.error("Erreur lors du chargement supplémentaire", error);
       }

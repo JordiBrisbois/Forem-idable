@@ -24,7 +24,7 @@ export const describeWithDatabase =
 export async function resetDatabase() {
   await ensureDatabase();
   await db.query(
-    "TRUNCATE TABLE users, coach_groups, conversations RESTART IDENTITY CASCADE"
+    "TRUNCATE TABLE users, coach_groups, conversations, forem_offers, forem_offers_sync_state RESTART IDENTITY CASCADE"
   );
 }
 

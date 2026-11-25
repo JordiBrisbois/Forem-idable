@@ -629,6 +629,60 @@ export const disclosureLogs = pgTable(
   })
 );
 
+/**
+ * Local mirror of the ODWB "offres-d-emploi-forem" dataset.
+ *
+ * Search reads from here instead of calling ODWB per query: the dataset has a
+ * shared 10 000 calls/day cap that any consumer can exhaust, and a valid API key
+ * does not lift it. One scheduled sync (~250 calls) replaces every search call.
+ *
+ * `localities` and `postalCodes` are stored lower-cased: they are search keys,
+ * not display values (the raw record is kept in `payload` for rendering).
+ */
+export const foremOffers = pgTable(
+  "forem_offers",
+  {
+    offerId: text("offer_id").primaryKey(),
+    title: text("title").notNull(),
+    company: text("company"),
+    contractType: text("contract_type").notNull().default("AUTRE"),
+    contractTypeRaw: text("contract_type_raw"),
+    region: text("region"),
+    localities: text("localities")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    postalCodes: text("postal_codes")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    metier: text("metier"),
+    publicationDate: timestamp("publication_date", { withTimezone: true }),
+    url: text("url").notNull(),
+    /** Lower-cased haystack for keyword search (title, company, metier, places). */
+    searchText: text("search_text").notNull().default(""),
+    /** Full upstream record, so offer details and new fields need no refetch. */
+    payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
+    sourceSyncedAt: timestamp("source_synced_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    contractTypeIdx: index("forem_offers_contract_type_idx").on(table.contractType),
+    publicationIdx: index("forem_offers_publication_idx").on(table.publicationDate),
+    regionIdx: index("forem_offers_region_idx").on(table.region),
+  })
+);
+
+/** Single-row bookkeeping for the offers mirror, so a failed sync is visible. */
+export const foremOffersSyncState = pgTable("forem_offers_sync_state", {
+  id: text("id").primaryKey(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  status: text("status").notNull().default("running"),
+  recordsSynced: integer("records_synced").notNull().default(0),
+  errorMessage: text("error_message"),
+});
+
 /** Scout discovery jobs (Overpass API + email scraping) with status tracking. */
 export const scoutJobs = pgTable(
   "scout_jobs",

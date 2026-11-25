@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, expect, it } from "vitest";
 import {
   addCoachToGroup,
   addUserToCoachGroup,

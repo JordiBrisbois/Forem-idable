@@ -1,9 +1,9 @@
 import { fetchAdzunaJobs } from "@/services/api/adzunaClient";
-import { ForemSearchParams } from "@/services/api/foremClient";
+import { JobSearchParams } from "@/services/jobs/searchParams";
 import { JobProvider } from "./types";
 
 export const adzunaProvider: JobProvider = {
   id: "adzuna",
-  search: async (params: ForemSearchParams) => fetchAdzunaJobs(params),
+  search: async (params: JobSearchParams) => fetchAdzunaJobs(params),
 };
 

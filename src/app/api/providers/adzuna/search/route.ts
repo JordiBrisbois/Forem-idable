@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { Job } from "@/types/job";
-import { ForemSearchParams } from "@/services/api/foremClient";
+import { JobSearchParams } from "@/services/jobs/searchParams";
 import { LocationEntry } from "@/services/location/locationCache";
 import { serverConfig } from "@/config/runtime.server";
 import { checkRateLimit } from "@/lib/server/rateLimit";
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     const parsedBody = providerSearchParamsSchema.safeParse(
-      (await request.json()) as ForemSearchParams
+      (await request.json()) as JobSearchParams
     );
     if (!parsedBody.success) {
       return NextResponse.json({ error: "Paramètres de recherche invalides." }, { status: 400 });

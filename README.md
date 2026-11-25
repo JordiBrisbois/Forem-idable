@@ -189,7 +189,7 @@ changer le nom du produit.
 |---|---|
 | Identité | `APP_NAME`, `APP_TITLE`, `APP_TITLE_SUFFIX`, `APP_TAGLINE` |
 | Fonctionnalités | `FEATURE_JOB_SEARCH`, `ALLOW_PUBLIC_REGISTRATION`, `DEFAULT_SEARCH_GOAL` |
-| Recherche d'offres | `ODWB_API_KEY` (quota), `ADZUNA_ENABLED` (+ `ADZUNA_APP_ID` / `ADZUNA_APP_KEY`) |
+| Recherche d'offres | `ODWB_API_KEY` (synchronisation), `OFFERS_SYNC_ENABLED`, `ADZUNA_ENABLED` (+ `ADZUNA_APP_ID` / `ADZUNA_APP_KEY`) |
 | Conformité | `PRIVACY_CONTROLLER_NAME`, `PRIVACY_CONTACT_EMAIL`, `PRIVACY_SOURCE_URL` |
 | Analytics | `UMAMI_ENABLED`, `NEXT_PUBLIC_UMAMI_WEBSITE_ID`, `UMAMI_ALLOWED_HOSTS` |
 
@@ -198,11 +198,16 @@ changer le nom du produit.
 ### Source des offres
 
 Les offres proviennent du jeu de données public **ODWB / Opendatasoft**
-« offres-d-emploi-forem », interrogé via un **proxy serveur caché** (`/api/offers/odwb`) :
-toute l'instance partage un même flux d'appels. Le cache (**mémoire + Redis optionnel**)
-sert aussi des résultats expirés en cas d'erreur amont, et un **budget d'appels**
-(`OFFERS_API_DAILY_BUDGET`, défaut 15 000/24 h) empêche de dépasser le quota ODWB.
-`ODWB_API_KEY` (clé serveur, jamais exposée au client) augmente ce quota.
+« offres-d-emploi-forem », **rapatrié dans la base locale** (`forem_offers`) par une
+tâche de synchronisation (`src/lib/server/offers/`). La recherche interroge
+PostgreSQL (`/api/offers/search`) et ne touche jamais ODWB : le jeu impose un
+plafond de 10 000 appels/jour **partagé entre tous les consommateurs**, qu'une clé
+API ne relève pas — un appel par recherche suffisait à l'épuiser.
+
+La synchronisation tourne au démarrage puis toutes les `OFFERS_SYNC_INTERVAL_HOURS`
+(défaut 6 h), réessaie toutes les `OFFERS_SYNC_RETRY_MINUTES` (défaut 10 min) en cas
+d'échec, et ne supprime jamais les offres existantes si la passe est incomplète.
+`ODWB_API_KEY` sert à cette synchronisation uniquement.
 Voir [SELF_HOSTING.md](SELF_HOSTING.md) et l'[ADR-0006](docs/adr/0006-cache-budget-offres.md).
 
 ## Documentation

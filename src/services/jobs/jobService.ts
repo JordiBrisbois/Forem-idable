@@ -1,6 +1,6 @@
 import { runtimeConfig } from "@/config/runtime";
 import { normalizeContractType } from "@/lib/contractType";
-import { ForemSearchParams } from '../api/foremClient';
+import { JobSearchParams } from "./searchParams";
 import { Job } from '@/types/job';
 import { adzunaProvider } from './providers/adzunaProvider';
 import { foremProvider } from './providers/foremProvider';
@@ -22,7 +22,7 @@ if (runtimeConfig.features.jobSearch) {
  * JobService acts as an abstraction layer across multiple potential job indexers.
  */
 export const jobService = {
-    searchJobs: async (params: ForemSearchParams): Promise<{ jobs: Job[]; total: number }> => {
+    searchJobs: async (params: JobSearchParams): Promise<{ jobs: Job[]; total: number }> => {
         if (providers.length === 0) {
             return { jobs: [], total: 0 };
         }
