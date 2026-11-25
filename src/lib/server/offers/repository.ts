@@ -40,7 +40,7 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
     })
     .from(foremOffers)
     .where(where)
-    .orderBy(desc(foremOffers.publicationDate), desc(foremOffers.offerId))
+    .orderBy(sql`${foremOffers.publicationDate} DESC NULLS LAST`, desc(foremOffers.offerId))
     .limit(criteria.limit)
     .offset(criteria.offset);
 

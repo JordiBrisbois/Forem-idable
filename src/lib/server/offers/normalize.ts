@@ -2,6 +2,7 @@ import { normalizeContractType } from "@/lib/contractType";
 import { appendForemTrackingParam } from "@/lib/forem";
 import type { Job } from "@/types/job";
 import type { OdwbOfferRecord } from "./odwbRecord";
+import { normalizeSearchText } from "./text";
 
 /** A row ready for `forem_offers`, derived from one ODWB record. */
 export interface NormalizedOffer {
@@ -92,17 +93,10 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
 
   const offerId = rawId ?? buildStableOfferId({ url, title, company, location: locationLabel });
 
-  const searchText = [
-    title,
-    company ?? "",
-    metier ?? "",
-    contractTypeRaw ?? "",
-    region ?? "",
-    ...localities,
-    locationLabel,
-  ]
-    .join(" ")
-    .toLowerCase();
+  // Accent- and case-insensitive, like the ODS `search()` it replaces.
+  const searchText = normalizeSearchText(
+    [title, company ?? "", metier ?? "", contractTypeRaw ?? "", region ?? "", ...localities, locationLabel].join(" ")
+  );
 
   return {
     offerId,
@@ -111,7 +105,7 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
     contractType: normalizeContractType(contractTypeRaw),
     contractTypeRaw,
     region,
-    localities: localities.map((entry) => entry.toLowerCase()),
+    localities: localities.map((entry) => normalizeSearchText(entry)),
     postalCodes,
     locationLabel,
     metier,

@@ -1,4 +1,6 @@
 import { logServerEvent } from "@/lib/server/observability";
+import { needsInitialSync } from "./repository";
+import { nextRunAfter } from "./schedule";
 import { runOffersSync } from "./sync";
 
 const DEFAULT_INTERVAL_HOURS = 12;
@@ -51,6 +53,11 @@ export function startOffersSyncWorker(): void {
     globalThis.__offersSyncTimer.unref?.();
   };
 
+  const scheduleNext = () => {
+    const delay = nextRunAfter(new Date(), intervalMs()).getTime() - Date.now();
+    schedule(delay);
+  };
+
   const tick = async () => {
     if (globalThis.__offersSyncInFlight) {
       schedule(retryMs());
@@ -61,7 +68,8 @@ export function startOffersSyncWorker(): void {
     try {
       const result = await runOffersSync();
       logServerEvent({ category: "offers", action: "sync_tick_done", meta: { ...result } });
-      schedule(intervalMs());
+      // Back on the daily anchor (just after the upstream counter resets).
+      scheduleNext();
     } catch (error) {
       logServerEvent({
         category: "offers",
@@ -78,8 +86,17 @@ export function startOffersSyncWorker(): void {
     }
   };
 
-  // First run at boot: the mirror may be empty on a fresh instance.
-  void tick();
+  // A fresh instance has nothing to serve: sync now. Otherwise wait for the
+  // anchored slot, which is deliberately right after the dataset quota resets.
+  void needsInitialSync()
+    .then((empty) => {
+      if (empty) {
+        void tick();
+      } else {
+        scheduleNext();
+      }
+    })
+    .catch(() => void tick());
 
   logServerEvent({
     category: "offers",

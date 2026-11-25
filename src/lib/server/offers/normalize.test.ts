@@ -28,7 +28,8 @@ describe("normalizeOffer", () => {
     expect(offer.locationLabel).toBe("Namur, Beez");
     expect(offer.postalCodes).toEqual(["5000", "5000"]);
     expect(offer.publicationDate?.toISOString()).toBe("2026-10-01T09:00:00.000Z");
-    expect(offer.searchText).toContain("développeur full-stack");
+    // Accent-insensitive: the haystack is normalised, like the ODS search it replaces.
+    expect(offer.searchText).toContain("developpeur full-stack");
     expect(offer.searchText).toContain("namur");
   });
 

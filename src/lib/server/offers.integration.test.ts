@@ -88,6 +88,14 @@ describeWithDatabase("offers mirror (integration)", () => {
     const byKeyword = await searchOffers({ keywords: ["développeur"], limit: 10, offset: 0 });
     expect(byKeyword.jobs.map((job) => job.id).sort()).toEqual(["1", "2"]);
 
+    // Accent-insensitive, like the ODS `search()` this replaces.
+    const unaccented = await searchOffers({ keywords: ["developpeur"], limit: 10, offset: 0 });
+    expect(unaccented.jobs.map((job) => job.id).sort()).toEqual(["1", "2"]);
+
+    // A multi-word phrase requires every token to match.
+    const phrase = await searchOffers({ keywords: ["developpeur react"], limit: 10, offset: 0 });
+    expect(phrase.jobs.map((job) => job.id)).toEqual(["1"]);
+
     const byContract = await searchOffers({ contractTypes: ["CDD"], limit: 10, offset: 0 });
     expect(byContract.jobs.map((job) => job.id)).toEqual(["2"]);
 
@@ -137,6 +145,20 @@ describeWithDatabase("offers mirror (integration)", () => {
     expect(page.jobs).toHaveLength(2);
     // Newest first: offset 2 lands on the third and fourth most recent.
     expect(page.jobs.map((job) => job.id)).toEqual(["3", "2"]);
+  });
+
+  it("orders undated offers last", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "dated", publication: "2026-10-01T09:00:00+00:00" }),
+        offer({ id: "undated", publication: "" }),
+      ],
+      syncedAt
+    );
+
+    const result = await searchOffers({ limit: 10, offset: 0 });
+
+    expect(result.jobs.map((job) => job.id)).toEqual(["dated", "undated"]);
   });
 
   it("exposes the raw payload for the detail view and shared messages", async () => {

@@ -2,6 +2,7 @@ import { and, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 import type { ContractType } from "@/lib/contractType";
 import type { LocationCategory } from "@/services/location/locationCache";
 import { foremOffers } from "@/lib/server/schema";
+import { normalizeSearchText, searchTokens } from "./text";
 
 /** Minimal location shape the search needs; matches the client `LocationEntry`. */
 export interface LocationFilter {
@@ -26,9 +27,9 @@ export function escapeLikePattern(value: string): string {
   return value.replace(/[\\%_]/g, (match) => `\\${match}`);
 }
 
-/** Strips a leading postal code ("5000 Namur" → "namur") and lower-cases. */
+/** Strips a leading postal code ("5000 Namur" → "namur") and normalises it. */
 function normalizeLabel(value: string): string {
-  return value.replace(/^\d{4}\s+/, "").trim().toLowerCase();
+  return normalizeSearchText(value.replace(/^\d{4}\s+/, ""));
 }
 
 /**
@@ -55,14 +56,24 @@ function likeAll(values: string[]): SQL {
 }
 
 function keywordCondition(keywords: string[], mode: "AND" | "OR"): SQL | undefined {
-  const clean = keywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean);
-  if (clean.length === 0) return undefined;
+  // A typed phrase ("développeur react") is split into tokens that must all
+  // match, the way the ODS `search()` it replaces behaved.
+  const phrases = keywords
+    .map((keyword) => searchTokens(keyword))
+    .filter((tokens) => tokens.length > 0);
 
-  const patterns = clean.map((keyword) =>
-    ilike(foremOffers.searchText, `%${escapeLikePattern(keyword)}%`)
+  if (phrases.length === 0) return undefined;
+
+  const phraseConditions = phrases.map(
+    (tokens) =>
+      and(
+        ...tokens.map((token) =>
+          ilike(foremOffers.searchText, `%${escapeLikePattern(token)}%`)
+        )
+      ) as SQL
   );
 
-  return (mode === "AND" ? and(...patterns) : or(...patterns)) as SQL;
+  return (mode === "AND" ? and(...phraseConditions) : or(...phraseConditions)) as SQL;
 }
 
 function contractCondition(contractTypes: ContractType[]): SQL | undefined {
