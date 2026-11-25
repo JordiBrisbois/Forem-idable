@@ -41,7 +41,7 @@ recherche lit PostgreSQL. C'est le seul montage fiable, car le jeu impose un pla
 de **10 000 appels/jour partagé entre tous les consommateurs** : une clé API ne le
 relève pas, et un appel par recherche l'épuisait en quelques heures.
 
-La synchronisation tourne au démarrage, puis `OFFERS_SYNC_INTERVAL_HOURS` (défaut 6)
+La synchronisation tourne au démarrage, puis `OFFERS_SYNC_INTERVAL_HOURS` (défaut 12)
 plus tard ; en cas d'échec elle réessaie après `OFFERS_SYNC_RETRY_MINUTES` (défaut
 10) sans jamais effacer les offres déjà présentes. Une passe complète coûte ~250
 appels — soit 2,5 % du plafond quotidien, une fois par cycle.

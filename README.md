@@ -205,7 +205,7 @@ plafond de 10 000 appels/jour **partagé entre tous les consommateurs**, qu'une 
 API ne relève pas — un appel par recherche suffisait à l'épuiser.
 
 La synchronisation tourne au démarrage puis toutes les `OFFERS_SYNC_INTERVAL_HOURS`
-(défaut 6 h), réessaie toutes les `OFFERS_SYNC_RETRY_MINUTES` (défaut 10 min) en cas
+(défaut 12 h), réessaie toutes les `OFFERS_SYNC_RETRY_MINUTES` (défaut 10 min) en cas
 d'échec, et ne supprime jamais les offres existantes si la passe est incomplète.
 `ODWB_API_KEY` sert à cette synchronisation uniquement.
 Voir [SELF_HOSTING.md](SELF_HOSTING.md) et l'[ADR-0006](docs/adr/0006-cache-budget-offres.md).

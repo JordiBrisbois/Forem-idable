@@ -1,7 +1,7 @@
 import { logServerEvent } from "@/lib/server/observability";
 import { runOffersSync } from "./sync";
 
-const DEFAULT_INTERVAL_HOURS = 6;
+const DEFAULT_INTERVAL_HOURS = 12;
 const DEFAULT_RETRY_MINUTES = 10;
 const MINUTE_MS = 60 * 1000;
 

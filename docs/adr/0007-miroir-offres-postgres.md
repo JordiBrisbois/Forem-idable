@@ -42,7 +42,7 @@ recherche lit la base. Le code est découpé par responsabilité dans
 Règles retenues :
 
 - **Un appel par cycle**, pas par recherche : ~250 pages de 100 offres, soit ~2,5 %
-  du plafond quotidien, une fois par cycle de 6 h au maximum.
+  du plafond quotidien, deux fois par jour au maximum (défaut 12 h).
 - **Élagage seulement après une passe complète** : une passe interrompue (quota,
   réseau) ne supprime jamais de lignes.
 - **Le payload amont est conservé** (`payload jsonb`) : la fiche détaillée et les
@@ -68,7 +68,7 @@ Règles retenues :
 lieu de ~300 ms), filtres exacts (contrat normalisé, codes postaux, localités),
 fiche détaillée servie sans appel amont, et un état de synchronisation observable.
 
-**Négatives / assumées** : la fraîcheur dépend du cycle (6 h par défaut, réglable) ;
+**Négatives / assumées** : la fraîcheur dépend du cycle (12 h par défaut, réglable) ;
 la table ajoute du stockage (le payload complet est conservé) ; la première
 synchronisation est nécessaire avant que la recherche ne renvoie des résultats, ce
 que l'API signale explicitement (`indexing: true`).
