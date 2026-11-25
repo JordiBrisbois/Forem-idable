@@ -29,6 +29,13 @@
       "when": 1795643617445,
       "tag": "0003_forem_offers_mirror",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795645421674,
+      "tag": "0004_forem_offers_location_label",
+      "breakpoints": true
     }
   ]
 }

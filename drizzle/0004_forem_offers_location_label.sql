@@ -1,0 +1,1 @@
+ALTER TABLE "forem_offers" ADD COLUMN "location_label" text DEFAULT '' NOT NULL;

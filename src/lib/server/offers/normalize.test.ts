@@ -25,6 +25,7 @@ describe("normalizeOffer", () => {
     expect(offer.contractType).toBe("CDI");
     expect(offer.region).toBe("Province de Namur");
     expect(offer.localities).toEqual(["namur", "beez"]);
+    expect(offer.locationLabel).toBe("Namur, Beez");
     expect(offer.postalCodes).toEqual(["5000", "5000"]);
     expect(offer.publicationDate?.toISOString()).toBe("2026-10-01T09:00:00.000Z");
     expect(offer.searchText).toContain("développeur full-stack");
@@ -63,7 +64,7 @@ describe("toJob", () => {
       title: offer.title,
       company: offer.company,
       contractType: offer.contractType,
-      localities: offer.localities,
+      locationLabel: offer.locationLabel,
       publicationDate: offer.publicationDate,
       url: offer.url,
       metier: offer.metier,
@@ -74,7 +75,7 @@ describe("toJob", () => {
       title: "Développeur full-stack",
       company: "Le Forem",
       contractType: "CDI",
-      location: "namur, beez",
+      location: "Namur, Beez",
       source: "forem",
     });
     expect(job.url).toContain("1836265");

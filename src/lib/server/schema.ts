@@ -656,6 +656,8 @@ export const foremOffers = pgTable(
       .array()
       .notNull()
       .default(sql`'{}'::text[]`),
+    /** Display form of `localities` ("Namur, Beez"); search keys stay lower-cased. */
+    locationLabel: text("location_label").notNull().default(""),
     metier: text("metier"),
     publicationDate: timestamp("publication_date", { withTimezone: true }),
     url: text("url").notNull(),

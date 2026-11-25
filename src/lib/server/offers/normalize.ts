@@ -13,6 +13,8 @@ export interface NormalizedOffer {
   region: string | null;
   localities: string[];
   postalCodes: string[];
+  /** Display form of the localities ("Namur, Beez"), unlike the lower-cased keys. */
+  locationLabel: string;
   metier: string | null;
   publicationDate: Date | null;
   url: string;
@@ -111,6 +113,7 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
     region,
     localities: localities.map((entry) => entry.toLowerCase()),
     postalCodes,
+    locationLabel,
     metier,
     publicationDate: toDate(record.datedebutdiffusion),
     url,
@@ -125,7 +128,7 @@ export function toJob(row: {
   title: string;
   company: string | null;
   contractType: string;
-  localities: string[];
+  locationLabel: string;
   publicationDate: Date | null;
   url: string;
   metier: string | null;
@@ -134,7 +137,7 @@ export function toJob(row: {
     id: row.offerId,
     title: row.title,
     company: row.company ?? undefined,
-    location: row.localities.length > 0 ? row.localities.join(", ") : FALLBACK_LOCATION,
+    location: row.locationLabel || FALLBACK_LOCATION,
     contractType: row.contractType,
     publicationDate: (row.publicationDate ?? new Date()).toISOString(),
     url: row.url,
