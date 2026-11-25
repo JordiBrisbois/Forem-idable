@@ -1,31 +1,27 @@
 import { appendOdwbApiKey } from "@/lib/odwbApiKey";
 import { reserveOdwbCall } from "@/lib/server/cache/budget";
 import { logServerEvent } from "@/lib/server/observability";
-import { odwbRecordsResponseSchema, type OdwbOfferRecord } from "./odwbRecord";
+import { normalizeOffer } from "../normalize";
+import { odwbRecordsResponseSchema } from "../odwbRecord";
+import {
+  OffersSourceError,
+  PAGE_SIZE,
+  type OfferPage,
+  type OfferPageFetcher,
+} from "./types";
 
 const ODWB_RECORDS_URL =
   "https://www.odwb.be/api/explore/v2.1/catalog/datasets/offres-d-emploi-forem/records";
 
-/** ODWB caps `/records` at 100 rows per call. */
-export const ODWB_PAGE_SIZE = 100;
-
-export class OffersSourceError extends Error {
-  constructor(
-    message: string,
-    readonly kind: "rate-limited" | "budget" | "upstream"
-  ) {
-    super(message);
-    this.name = "OffersSourceError";
-  }
-}
-
-export interface OfferPage {
-  records: OdwbOfferRecord[];
-  total: number;
-}
-
-/** One page of the upstream dataset, charged against the shared ODWB budget. */
-export async function fetchOffersPage(offset: number): Promise<OfferPage> {
+/**
+ * Primary source: the ODWB (Opendatasoft) dataset, authenticated with the
+ * workspace key.
+ *
+ * The dataset carries a daily call cap shared by every consumer, so this source
+ * can legitimately answer 429 through no fault of the instance — the sync then
+ * falls back to the Forem API (see `index.ts`).
+ */
+export const fetchOdwbPage: OfferPageFetcher = async (offset: number): Promise<OfferPage> => {
   const budget = await reserveOdwbCall();
   if (!budget.allowed) {
     throw new OffersSourceError(
@@ -35,7 +31,7 @@ export async function fetchOffersPage(offset: number): Promise<OfferPage> {
   }
 
   const url = appendOdwbApiKey(new URL(ODWB_RECORDS_URL));
-  url.searchParams.set("limit", String(ODWB_PAGE_SIZE));
+  url.searchParams.set("limit", String(PAGE_SIZE));
   url.searchParams.set("offset", String(offset));
   url.searchParams.set("order_by", "datedebutdiffusion desc");
 
@@ -56,7 +52,6 @@ export async function fetchOffersPage(offset: number): Promise<OfferPage> {
   if (response.status === 429) {
     throw new OffersSourceError("ODWB rate limit reached", "rate-limited");
   }
-
   if (!response.ok) {
     throw new OffersSourceError(`ODWB returned ${response.status}`, "upstream");
   }
@@ -67,13 +62,13 @@ export async function fetchOffersPage(offset: number): Promise<OfferPage> {
       category: "offers",
       action: "sync_payload_invalid",
       level: "error",
-      meta: { offset },
+      meta: { offset, source: "odwb" },
     });
     throw new OffersSourceError("ODWB payload did not match the expected shape", "upstream");
   }
 
   return {
-    records: parsed.data.results,
+    offers: parsed.data.results.map(normalizeOffer),
     total: parsed.data.total_count ?? 0,
   };
-}
+};

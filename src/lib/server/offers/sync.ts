@@ -1,5 +1,4 @@
 import { logServerEvent } from "@/lib/server/observability";
-import { normalizeOffer } from "./normalize";
 import {
   deleteOffersSyncedBefore,
   markSyncFailed,
@@ -7,9 +6,10 @@ import {
   markSyncSucceeded,
   upsertOffers,
 } from "./repository";
-import { fetchOffersPage, ODWB_PAGE_SIZE, type OfferPage } from "./source";
+import { fetchOdwbPage } from "./sources/odwb";
+import { isLastPage, PAGE_SIZE, type OfferPageFetcher } from "./sources/types";
 
-export type OfferPageFetcher = (offset: number) => Promise<OfferPage>;
+export type { OfferPageFetcher } from "./sources/types";
 
 export interface SyncOptions {
   /** Injected in tests; defaults to the real ODWB page fetch. */
@@ -34,7 +34,7 @@ const DEFAULT_MAX_PAGES = 400;
  * were simply not reached yet.
  */
 export async function runOffersSync(options: SyncOptions = {}): Promise<SyncResult> {
-  const fetchPage = options.fetchPage ?? fetchOffersPage;
+  const fetchPage = options.fetchPage ?? fetchOdwbPage;
   const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;
   const startedAt = new Date();
 
@@ -46,20 +46,18 @@ export async function runOffersSync(options: SyncOptions = {}): Promise<SyncResu
 
   try {
     for (let page = 0; page < maxPages; page += 1) {
-      const offset = page * ODWB_PAGE_SIZE;
-      const { records, total } = await fetchPage(offset);
+      const offset = page * PAGE_SIZE;
+      const { offers, total } = await fetchPage(offset);
 
-      if (records.length === 0) {
+      if (offers.length === 0) {
         finished = true;
         break;
       }
 
-      const normalized = records.map(normalizeOffer);
-      recordsSynced += await upsertOffers(normalized, startedAt);
+      recordsSynced += await upsertOffers(offers, startedAt);
       pagesFetched += 1;
 
-      // Reached the end: either the page was short or we covered `total_count`.
-      if (records.length < ODWB_PAGE_SIZE || (total > 0 && offset + records.length >= total)) {
+      if (isLastPage(offset, offers.length, total)) {
         finished = true;
         break;
       }

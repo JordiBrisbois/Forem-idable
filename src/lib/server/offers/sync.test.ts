@@ -26,14 +26,17 @@ vi.mock("@/lib/server/observability", () => ({
   logServerEvent: vi.fn(),
 }));
 
+import { normalizeOffer } from "./normalize";
 import { runOffersSync } from "./sync";
-import { ODWB_PAGE_SIZE } from "./source";
+import { PAGE_SIZE } from "./sources/types";
 
-function records(count: number) {
-  return Array.from({ length: count }, (_, index) => ({
-    numerooffreforem: String(index + 1),
-    titreoffre: `Offre ${index + 1}`,
-  }));
+function offers(count: number) {
+  return Array.from({ length: count }, (_, index) =>
+    normalizeOffer({
+      numerooffreforem: String(index + 1),
+      titreoffre: `Offre ${index + 1}`,
+    })
+  );
 }
 
 describe("runOffersSync", () => {
@@ -45,19 +48,19 @@ describe("runOffersSync", () => {
   it("walks every page and prunes only after a complete pass", async () => {
     const fetchPage = vi
       .fn()
-      .mockResolvedValueOnce({ records: records(ODWB_PAGE_SIZE), total: ODWB_PAGE_SIZE + 2 })
-      .mockResolvedValueOnce({ records: records(2), total: ODWB_PAGE_SIZE + 2 });
+      .mockResolvedValueOnce({ offers: offers(PAGE_SIZE), total: PAGE_SIZE + 2 })
+      .mockResolvedValueOnce({ offers: offers(2), total: PAGE_SIZE + 2 });
 
     const result = await runOffersSync({ fetchPage });
 
-    expect(result).toEqual({ recordsSynced: ODWB_PAGE_SIZE + 2, pagesFetched: 2, removed: 0 });
+    expect(result).toEqual({ recordsSynced: PAGE_SIZE + 2, pagesFetched: 2, removed: 0 });
     expect(markSyncStarted).toHaveBeenCalledOnce();
     expect(markSyncSucceeded).toHaveBeenCalledOnce();
     expect(deleteOffersSyncedBefore).toHaveBeenCalledOnce();
   });
 
   it("stops at maxPages without pruning", async () => {
-    const fetchPage = vi.fn(async () => ({ records: records(ODWB_PAGE_SIZE), total: 10_000 }));
+    const fetchPage = vi.fn(async () => ({ offers: offers(PAGE_SIZE), total: 10_000 }));
 
     const result = await runOffersSync({ fetchPage, maxPages: 2 });
 
@@ -68,7 +71,7 @@ describe("runOffersSync", () => {
   it("marks the sync as failed and keeps existing rows when upstream breaks", async () => {
     const fetchPage = vi
       .fn()
-      .mockResolvedValueOnce({ records: records(ODWB_PAGE_SIZE), total: 500 })
+      .mockResolvedValueOnce({ offers: offers(PAGE_SIZE), total: 500 })
       .mockRejectedValueOnce(new Error("ODWB rate limit reached"));
 
     await expect(runOffersSync({ fetchPage })).rejects.toThrow("ODWB rate limit reached");
@@ -79,7 +82,7 @@ describe("runOffersSync", () => {
   });
 
   it("finishes on an empty first page", async () => {
-    const fetchPage = vi.fn(async () => ({ records: [], total: 0 }));
+    const fetchPage = vi.fn(async () => ({ offers: [], total: 0 }));
 
     const result = await runOffersSync({ fetchPage });
 
