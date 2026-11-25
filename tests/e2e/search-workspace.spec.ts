@@ -157,30 +157,32 @@ async function mockSearchWorkspace(page: Page) {
     });
   });
 
-  await page.route("**/api/offers/odwb**", async (route: Route) => {
+  await page.route("**/api/offers/search", async (route: Route) => {
     await route.fulfill({
       json: {
-        total_count: 2,
-        results: [
+        total: 2,
+        jobs: [
           {
-            numerooffreforem: "forem-maintenance-1",
-            titreoffre: "Technicien de maintenance",
-            nomemployeur: "Atelier central",
-            lieuxtravaillocalite: ["Liège"],
-            typecontrat: "CDI",
-            datedebutdiffusion: "2026-03-24T08:00:00.000Z",
+            id: "forem-maintenance-1",
+            title: "Technicien de maintenance",
+            company: "Atelier central",
+            location: "Liège",
+            contractType: "CDI",
+            publicationDate: "2026-03-24T08:00:00.000Z",
             url: "https://example.test/offres/maintenance-1",
-            metier: "Technicien",
+            description: "Technicien",
+            source: "forem",
           },
           {
-            numerooffreforem: "forem-maintenance-2",
-            titreoffre: "Electromécanicien",
-            nomemployeur: "Usine pilote",
-            lieuxtravaillocalite: ["Seraing"],
-            typecontrat: "CDD",
-            datedebutdiffusion: "2026-03-23T08:00:00.000Z",
+            id: "forem-maintenance-2",
+            title: "Electromécanicien",
+            company: "Usine pilote",
+            location: "Seraing",
+            contractType: "CDD",
+            publicationDate: "2026-03-23T08:00:00.000Z",
             url: "https://example.test/offres/maintenance-2",
-            metier: "Electromécanicien",
+            description: "Electromécanicien",
+            source: "forem",
           },
         ],
       },

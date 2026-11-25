@@ -369,21 +369,23 @@ test("user can add a job to tracking and the coach can see it", async ({ page })
     await route.fulfill({ json: { history: [] } });
   });
 
-  await page.route("**/api/offers/odwb**", async (route: Route) => {
+  await page.route("**/api/offers/search", async (route: Route) => {
     await route.fulfill({
       json: {
-        results: [
+        total: 1,
+        jobs: [
           {
-            numerooffreforem: searchJob.id,
-            titreoffre: searchJob.title,
-            nomemployeur: searchJob.company,
-            lieuxtravaillocalite: [searchJob.location],
-            typecontrat: searchJob.contractType,
-            datedebutdiffusion: searchJob.publicationDate,
+            id: searchJob.id,
+            title: searchJob.title,
+            company: searchJob.company,
+            location: searchJob.location,
+            contractType: searchJob.contractType,
+            publicationDate: searchJob.publicationDate,
             url: searchJob.url,
+            description: "",
+            source: "forem",
           },
         ],
-        total_count: 1,
       },
     });
   });

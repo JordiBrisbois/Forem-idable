@@ -33,20 +33,21 @@ test("runs a featured search from the homepage", async ({ page }) => {
     });
   });
 
-  await page.route("**/api/offers/odwb**", async (route) => {
+  await page.route("**/api/offers/search", async (route) => {
     await route.fulfill({
       json: {
-        total_count: 1,
-        results: [
+        total: 1,
+        jobs: [
           {
-            numerooffreforem: "forem-salonspa-1",
-            titreoffre: "Conseiller emploi - Salon SPA",
-            nomemployeur: "Ville de Spa",
-            lieuxtravaillocalite: ["Spa"],
-            typecontrat: "CDD",
-            datedebutdiffusion: "2026-03-31T08:00:00.000Z",
+            id: "forem-salonspa-1",
+            title: "Conseiller emploi - Salon SPA",
+            company: "Ville de Spa",
+            location: "Spa",
+            contractType: "CDD",
+            publicationDate: "2026-03-31T08:00:00.000Z",
             url: "https://example.test/offres/salon-spa",
-            metier: "Conseiller",
+            description: "Conseiller",
+            source: "forem",
           },
         ],
       },
