@@ -41,8 +41,13 @@ recherche lit la base. Le code est découpé par responsabilité dans
 
 Règles retenues :
 
-- **Un appel par cycle**, pas par recherche : ~250 pages de 100 offres, soit ~2,5 %
-  du plafond quotidien, deux fois par jour au maximum (défaut 12 h).
+- **Un appel par cycle**, pas par recherche : le jeu est lu via l'endpoint
+  `exports/json` (une requête, ~26 Mo, 24 000 offres), soit ~0,01 % du plafond
+  quotidien, deux fois par jour au maximum (défaut 12 h). La pagination par
+  `/records` est inutilisable ici : Opendatasoft plafonne `offset` à 10 000.
+- **Un instantané, pas une accumulation** : le snapshot complet est écrit puis les
+  lignes absentes sont élaguées ; un instantané vide est refusé plutôt que de
+  vider le miroir.
 - **Élagage seulement après une passe complète** : une passe interrompue (quota,
   réseau) ne supprime jamais de lignes.
 - **Le payload amont est conservé** (`payload jsonb`) : la fiche détaillée et les

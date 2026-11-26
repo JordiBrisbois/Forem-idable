@@ -43,8 +43,9 @@ relève pas, et un appel par recherche l'épuisait en quelques heures.
 
 La synchronisation tourne au démarrage, puis `OFFERS_SYNC_INTERVAL_HOURS` (défaut 12)
 plus tard ; en cas d'échec elle réessaie après `OFFERS_SYNC_RETRY_MINUTES` (défaut
-10) sans jamais effacer les offres déjà présentes. Une passe complète coûte ~250
-appels — soit 2,5 % du plafond quotidien, une fois par cycle.
+10) sans jamais effacer les offres déjà présentes. Une passe complète tient en **un
+appel** (export JSON de tout le jeu, ~24 000 offres), soit une fraction infime du
+plafond quotidien, une fois par cycle.
 
 `ODWB_API_KEY` (côté **serveur**, jamais exposée au client) sert uniquement à cette
 synchronisation. `OFFERS_SYNC_ENABLED=0` la désactive (la recherche reste alors
