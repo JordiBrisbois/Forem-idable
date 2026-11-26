@@ -1,5 +1,5 @@
 import { logServerEvent } from "@/lib/server/observability";
-import { needsInitialSync } from "./repository";
+import { isMirrorFresh } from "./repository";
 import { nextRunAfter } from "./schedule";
 import { runOffersSync } from "./sync";
 
@@ -86,14 +86,15 @@ export function startOffersSyncWorker(): void {
     }
   };
 
-  // A fresh instance has nothing to serve: sync now. Otherwise wait for the
-  // anchored slot, which is deliberately right after the dataset quota resets.
-  void needsInitialSync()
-    .then((empty) => {
-      if (empty) {
-        void tick();
-      } else {
+  // Sync now unless the mirror is fresh: an empty or half-synced mirror must
+  // not wait for the next daily slot. The anchored slot is the fallback, and it
+  // sits right after the dataset quota resets.
+  void isMirrorFresh(intervalMs())
+    .then((fresh) => {
+      if (fresh) {
         scheduleNext();
+      } else {
+        void tick();
       }
     })
     .catch(() => void tick());

@@ -44,18 +44,37 @@ function budgetNamespace() {
   return process.env.APP_STORAGE_NAMESPACE?.trim() || "app";
 }
 
-/** Increments a fixed-window counter and returns the new value (null on error). */
+/**
+ * Increments a fixed-window counter and returns the new value (null on error).
+ *
+ * Bounded by a timeout: a Redis connection that stops answering must degrade to
+ * the in-memory counter, not freeze the caller. Without it a bulk sync hung at
+ * exactly one minute worth of calls and never finished or logged anything.
+ */
+const REDIS_TIMEOUT_MS = 2_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return Promise.race([
+    promise,
+    new Promise<null>((resolve) => {
+      const timer = setTimeout(() => resolve(null), ms);
+      timer.unref?.();
+    }),
+  ]);
+}
+
 async function incrementWindow(
   key: string,
   windowMs: number
 ): Promise<number | null> {
-  const client = await getRedisClient();
+  const client = await withTimeout(getRedisClient(), REDIS_TIMEOUT_MS);
   if (!client) return null;
 
   try {
-    const count = await client.incr(key);
+    const count = await withTimeout(client.incr(key), REDIS_TIMEOUT_MS);
+    if (count === null) return null;
     if (count === 1) {
-      await client.pExpire(key, windowMs);
+      await withTimeout(client.pExpire(key, windowMs), REDIS_TIMEOUT_MS);
     }
     return count;
   } catch {

@@ -242,3 +242,23 @@ export async function needsInitialSync(): Promise<boolean> {
   return (await countOffers()) === 0;
 }
 
+/**
+ * True when the newest row was synced less than `maxAgeMs` ago.
+ *
+ * The worker uses this instead of "is the table empty": a partially synced
+ * mirror is not empty, and waiting for the next daily slot would keep serving
+ * incomplete data for hours.
+ */
+export async function isMirrorFresh(maxAgeMs: number): Promise<boolean> {
+  const db = await database();
+  const [row] = await db
+    .select({ last: sql<Date | null>`max(${foremOffers.sourceSyncedAt})` })
+    .from(foremOffers);
+
+  const last = row?.last;
+  if (!last) return false;
+
+  const lastMs = last instanceof Date ? last.getTime() : new Date(last).getTime();
+  return Number.isFinite(lastMs) && Date.now() - lastMs < maxAgeMs;
+}
+
