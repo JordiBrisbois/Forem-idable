@@ -34,6 +34,7 @@ export async function runOffersSync(options: SyncOptions = {}): Promise<SyncResu
   const startedAt = new Date();
 
   await markSyncStarted(startedAt);
+  logServerEvent({ category: "offers", action: "sync_started" });
 
   try {
     const { offers } = await fetchOffers();

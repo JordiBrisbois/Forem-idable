@@ -243,22 +243,20 @@ export async function needsInitialSync(): Promise<boolean> {
 }
 
 /**
- * True when the newest row was synced less than `maxAgeMs` ago.
+ * True when the mirror was filled by a *successful* sync recently.
  *
- * The worker uses this instead of "is the table empty": a partially synced
- * mirror is not empty, and waiting for the next daily slot would keep serving
- * incomplete data for hours.
+ * Deliberately not based on the newest row: a partially written mirror is not
+ * stale by that measure, so an interrupted run would be trusted for a full
+ * cycle. Only a recorded success counts.
  */
 export async function isMirrorFresh(maxAgeMs: number): Promise<boolean> {
-  const db = await database();
-  const [row] = await db
-    .select({ last: sql<Date | null>`max(${foremOffers.sourceSyncedAt})` })
-    .from(foremOffers);
+  const state = await getSyncState();
+  if (!state || state.status !== "success" || !state.finishedAt) return false;
 
-  const last = row?.last;
-  if (!last) return false;
+  const finishedAt =
+    state.finishedAt instanceof Date ? state.finishedAt : new Date(state.finishedAt);
+  const finishedMs = finishedAt.getTime();
 
-  const lastMs = last instanceof Date ? last.getTime() : new Date(last).getTime();
-  return Number.isFinite(lastMs) && Date.now() - lastMs < maxAgeMs;
+  return Number.isFinite(finishedMs) && Date.now() - finishedMs < maxAgeMs;
 }
 
