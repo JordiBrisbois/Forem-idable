@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+/** Some ODWB fields are arrays in the live dataset but scalars in old exports. */
+const stringList = z.union([z.array(z.string()), z.string()]).nullish();
+
 /**
  * The subset of the ODWB "offres-d-emploi-forem" record we rely on. The record
  * is passed through: the dataset gains fields over time and the detail view
@@ -12,7 +15,10 @@ export const odwbOfferRecordSchema = z
     nomemployeur: z.string().nullish(),
     lieuxtravaillocalite: z.array(z.string()).nullish(),
     lieuxtravailcodepostal: z.array(z.string()).nullish(),
-    lieuxtravailregion: z.string().nullish(),
+    // Arrays in the live dataset ("Belgique", "Province du Hainaut", "RÉGION
+    // WALLONNE"). Typing this as a string made every page fail validation, so
+    // the sync never stored anything and reported a shape error instead.
+    lieuxtravailregion: stringList,
     typecontrat: z.string().nullish(),
     datedebutdiffusion: z.string().nullish(),
     url: z.string().nullish(),
@@ -20,11 +26,11 @@ export const odwbOfferRecordSchema = z
     referenceexterne: z.string().nullish(),
     regimetravail: z.string().nullish(),
     experiencerequise: z.string().nullish(),
-    permisdeconduire: z.string().nullish(),
+    permisdeconduire: stringList,
     datefindiffusion: z.string().nullish(),
-    langues: z.union([z.array(z.string()), z.string()]).nullish(),
-    niveauxetudes: z.union([z.array(z.string()), z.string()]).nullish(),
-    secteurs: z.union([z.array(z.string()), z.string()]).nullish(),
+    langues: stringList,
+    niveauxetudes: stringList,
+    secteurs: stringList,
     nombrepostes: z.union([z.number(), z.string()]).nullish(),
   })
   .passthrough();

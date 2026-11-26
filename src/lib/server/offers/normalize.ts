@@ -81,7 +81,10 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
   const company = asTrimmedString(record.nomemployeur);
   const localities = asStringList(record.lieuxtravaillocalite);
   const postalCodes = asStringList(record.lieuxtravailcodepostal);
-  const region = asTrimmedString(record.lieuxtravailregion);
+  // "Belgique", "Province du Hainaut", "RÉGION WALLONNE" — join so region and
+  // province filters can both match on the column.
+  const regions = asStringList(record.lieuxtravailregion);
+  const region = regions.length > 0 ? regions.join(", ") : null;
   const metier = asTrimmedString(record.metier);
   const contractTypeRaw = asTrimmedString(record.typecontrat);
 
