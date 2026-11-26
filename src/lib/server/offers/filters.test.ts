@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PgDialect } from "drizzle-orm/pg-core";
 import {
   buildOfferFilters,
+  datasetRegionLabel,
   escapeLikePattern,
   toPostgresArrayLiteral,
   type OfferSearchCriteria,
@@ -114,5 +115,18 @@ describe("compiled SQL", () => {
     const query = compile({ ...emptyCriteria, keywords: ["react"] });
 
     expect(query?.sql).toContain(foremOffers.title.name.length > 0 ? "forem_offers" : "");
+  });
+});
+
+describe("datasetRegionLabel", () => {
+  it("maps the UI wording to the dataset wording", () => {
+    expect(datasetRegionLabel("wallonie")).toBe("wallonne");
+    expect(datasetRegionLabel("Wallonie")).toBe("wallonne");
+    expect(datasetRegionLabel("Flandre")).toBe("flamande");
+    expect(datasetRegionLabel("Région de Bruxelles-Capitale")).toBe("bruxelles");
+  });
+
+  it("leaves other labels untouched", () => {
+    expect(datasetRegionLabel("Province de Namur")).toBe("province de namur");
   });
 });

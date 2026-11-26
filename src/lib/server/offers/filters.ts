@@ -55,6 +55,21 @@ function likeAll(values: string[]): SQL {
   ) as SQL;
 }
 
+/**
+ * The UI says "Wallonie", the dataset says "RÉGION WALLONNE": matching the
+ * region column needs the dataset's spelling, otherwise the filter returns only
+ * the rows that happen to contain the word elsewhere.
+ */
+export function datasetRegionLabel(label: string): string {
+  const normalized = normalizeSearchText(label);
+
+  if (normalized.includes("wallon")) return "wallonne";
+  if (normalized.includes("flandr")) return "flamande";
+  if (normalized.includes("bruxelles")) return "bruxelles";
+
+  return normalized;
+}
+
 function keywordCondition(keywords: string[], mode: "AND" | "OR"): SQL | undefined {
   // A typed phrase ("développeur react") is split into tokens that must all
   // match, the way the ODS `search()` it replaces behaved.
@@ -109,11 +124,13 @@ function locationCondition(location: LocationFilter): SQL | undefined {
       // Country-wide: no restriction at all.
       return undefined;
 
-    case "Régions":
+    case "Régions": {
+      const regionLabel = datasetRegionLabel(label);
       return or(
-        ilike(foremOffers.region, `%${escapeLikePattern(label)}%`),
-        likeAll([label])
+        ilike(foremOffers.region, `%${escapeLikePattern(regionLabel)}%`),
+        likeAll([regionLabel])
       ) as SQL;
+    }
 
     case "Provinces": {
       const withoutPrefix = label.replace(/^province\s+(de\s+|d')?/, "");
