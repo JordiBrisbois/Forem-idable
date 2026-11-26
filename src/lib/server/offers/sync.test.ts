@@ -51,7 +51,7 @@ describe("runOffersSync", () => {
       .mockResolvedValueOnce({ offers: offers(PAGE_SIZE), total: PAGE_SIZE + 2 })
       .mockResolvedValueOnce({ offers: offers(2), total: PAGE_SIZE + 2 });
 
-    const result = await runOffersSync({ fetchPage });
+    const result = await runOffersSync({ fetchPage, pageDelayMs: 0 });
 
     expect(result).toEqual({ recordsSynced: PAGE_SIZE + 2, pagesFetched: 2, removed: 0 });
     expect(markSyncStarted).toHaveBeenCalledOnce();
@@ -62,7 +62,7 @@ describe("runOffersSync", () => {
   it("stops at maxPages without pruning", async () => {
     const fetchPage = vi.fn(async () => ({ offers: offers(PAGE_SIZE), total: 10_000 }));
 
-    const result = await runOffersSync({ fetchPage, maxPages: 2 });
+    const result = await runOffersSync({ fetchPage, maxPages: 2, pageDelayMs: 0 });
 
     expect(result.pagesFetched).toBe(2);
     expect(deleteOffersSyncedBefore).not.toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe("runOffersSync", () => {
       .mockResolvedValueOnce({ offers: offers(PAGE_SIZE), total: 500 })
       .mockRejectedValueOnce(new Error("ODWB rate limit reached"));
 
-    await expect(runOffersSync({ fetchPage })).rejects.toThrow("ODWB rate limit reached");
+    await expect(runOffersSync({ fetchPage, pageDelayMs: 0 })).rejects.toThrow("ODWB rate limit reached");
 
     expect(markSyncFailed).toHaveBeenCalledOnce();
     expect(markSyncSucceeded).not.toHaveBeenCalled();
@@ -84,7 +84,7 @@ describe("runOffersSync", () => {
   it("finishes on an empty first page", async () => {
     const fetchPage = vi.fn(async () => ({ offers: [], total: 0 }));
 
-    const result = await runOffersSync({ fetchPage });
+    const result = await runOffersSync({ fetchPage, pageDelayMs: 0 });
 
     expect(result).toEqual({ recordsSynced: 0, pagesFetched: 0, removed: 0 });
     expect(upsertOffers).not.toHaveBeenCalled();

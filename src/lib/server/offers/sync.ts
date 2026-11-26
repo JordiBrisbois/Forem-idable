@@ -16,6 +16,13 @@ export interface SyncOptions {
   fetchPage?: OfferPageFetcher;
   /** Safety net: the dataset fits in ~250 pages today. */
   maxPages?: number;
+  /**
+   * Pause between pages. The shared call budget allows 60 calls/minute; a bulk
+   * sync without pacing trips it after the first minute ("burst") and the whole
+   * run aborts. Pacing at ~50 calls/minute stays inside the same guard the rest
+   * of the app relies on. Tests pass 0.
+   */
+  pageDelayMs?: number;
 }
 
 export interface SyncResult {
@@ -25,6 +32,16 @@ export interface SyncResult {
 }
 
 const DEFAULT_MAX_PAGES = 400;
+const DEFAULT_PAGE_DELAY_MS = 1_200;
+
+function defaultPageDelayMs(): number {
+  const raw = Number(process.env.OFFERS_SYNC_PAGE_DELAY_MS);
+  return Number.isFinite(raw) && raw >= 0 ? raw : DEFAULT_PAGE_DELAY_MS;
+}
+
+function sleep(ms: number): Promise<void> {
+  return ms > 0 ? new Promise((resolve) => setTimeout(resolve, ms)) : Promise.resolve();
+}
 
 /**
  * Mirrors the whole ODWB dataset into `forem_offers`.
@@ -36,6 +53,7 @@ const DEFAULT_MAX_PAGES = 400;
 export async function runOffersSync(options: SyncOptions = {}): Promise<SyncResult> {
   const fetchPage = options.fetchPage ?? fetchOdwbPage;
   const maxPages = options.maxPages ?? DEFAULT_MAX_PAGES;
+  const pageDelayMs = options.pageDelayMs ?? defaultPageDelayMs();
   const startedAt = new Date();
 
   await markSyncStarted(startedAt);
@@ -46,6 +64,10 @@ export async function runOffersSync(options: SyncOptions = {}): Promise<SyncResu
 
   try {
     for (let page = 0; page < maxPages; page += 1) {
+      if (page > 0) {
+        await sleep(pageDelayMs);
+      }
+
       const offset = page * PAGE_SIZE;
       const { offers, total } = await fetchPage(offset);
 
