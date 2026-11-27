@@ -57,7 +57,8 @@ Les captures sont générées depuis l'instance déployée avec
   du jeu Forem (recherche servie par PostgreSQL), filtres par **type de contrat**, **régime**,
   **secteur** et **langue**, tri par date ou pertinence, pagination serveur, recherche
   **autour d'un lieu** (le lieu déjà saisi, sinon la position du navigateur), recherche
-  partageable par URL.
+  partageable par URL, panneau de détail **adressable** (`?offre=`) et **page publique par
+  offre** (`/offres/[id]`, JSON-LD, sitemap progressif).
 - **Alertes email** : une recherche enregistrée peut envoyer **un seul email par jour**, toutes
   alertes regroupées (opt-in, désinscription en un clic ou en bloc depuis `/account`, RGPD —
   voir [COMPLIANCE.md](COMPLIANCE.md)).

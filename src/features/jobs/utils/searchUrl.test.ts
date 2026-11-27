@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { fromSearchParams, parseSearchLocation, parseSearchView, toSearchParams, toSearchPath } from "./searchUrl";
-import { SearchQuery, SearchView } from "@/types/search";
+import { DEFAULT_SEARCH_VIEW, SearchQuery, SearchView } from "@/types/search";
 
 describe("searchUrl utils", () => {
   it("serializes and parses a full search query", () => {
@@ -121,5 +121,35 @@ describe("around me in the URL", () => {
     const view = parseSearchView(new URLSearchParams("lat=50&lon=4&rayon=999"));
 
     expect(view.near).toBeUndefined();
+  });
+});
+
+describe("offer in the URL", () => {
+  it("round-trips the open panel", () => {
+    const query: SearchQuery = { keywords: ["react"], locations: [], booleanMode: "OR", goal: "job" };
+    const view = { ...DEFAULT_SEARCH_VIEW };
+
+    const path = toSearchPath("/", query, view, "2164057");
+    const parsed = parseSearchLocation(new URLSearchParams(path.split("?")[1]));
+
+    expect(parsed.offerId).toBe("2164057");
+    expect(parsed.query?.keywords).toEqual(["react"]);
+  });
+
+  it("keeps secondary-provider slugs, and rejects unsafe values", () => {
+    expect(parseSearchLocation(new URLSearchParams("offre=adzuna-42")).offerId).toBe("adzuna-42");
+    expect(parseSearchLocation(new URLSearchParams("offre=<script>")).offerId).toBeNull();
+    expect(parseSearchLocation(new URLSearchParams("offre=")).offerId).toBeNull();
+  });
+
+  it("is absent when the panel is closed", () => {
+    const path = toSearchPath("/", {
+      keywords: ["react"],
+      locations: [],
+      booleanMode: "OR",
+      goal: "job",
+    });
+
+    expect(path).not.toContain("offre=");
   });
 });

@@ -2,10 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { LocalPagination } from "@/components/ui/local-pagination";
-import {
-  Sheet,
-  SheetContent,
-} from "@/components/ui/sheet";
+import { Sheet } from "@/components/ui/sheet";
+import { SheetPanel, SheetPanelBody } from "@/components/ui/sheet-panel";
 import { CoachUserApplicationCard } from "@/features/coach/components/CoachUserApplicationCard";
 import { CoachUserSheetDialogs } from "@/features/coach/components/CoachUserSheetDialogs";
 import { CoachUserSheetHeader } from "@/features/coach/components/CoachUserSheetHeader";
@@ -72,7 +70,7 @@ export function CoachUserSheet({
 }: CoachUserSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full p-0 sm:max-w-[60vw]">
+      <SheetPanel size="xl">
         {user && (
           <CoachUserSheetBody
             key={`${user.id}:${initialJobId ?? "base"}`}
@@ -97,7 +95,7 @@ export function CoachUserSheet({
             onDeleteApplication={onDeleteApplication}
           />
         )}
-      </SheetContent>
+      </SheetPanel>
     </Sheet>
   );
 }
@@ -192,7 +190,7 @@ function CoachUserSheetBody({
         onOpenStageChange={onOpenStageChange}
       />
 
-      <div className="space-y-4 overflow-y-auto p-5">
+      <SheetPanelBody className="space-y-4">
         {sortedApplications.length > 0 ? (
           <>
           <LocalPagination
@@ -318,7 +316,7 @@ function CoachUserSheetBody({
             Aucune candidature enregistrée pour cet utilisateur.
           </div>
         )}
-      </div>
+      </SheetPanelBody>
 
       <CoachUserSheetDialogs
         user={user}

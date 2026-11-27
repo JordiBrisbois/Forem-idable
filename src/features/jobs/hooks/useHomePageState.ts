@@ -7,6 +7,7 @@ import { useApplications } from "@/hooks/useApplications";
 import { useSettings } from "@/hooks/useSettings";
 import { useExportJobs } from "@/features/jobs/hooks/useExportJobs";
 import { useJobSearch } from "@/features/jobs/hooks/useJobSearch";
+import { useOfferPanel } from "@/features/jobs/hooks/useOfferPanel";
 import { useSelectionJobs } from "@/features/jobs/hooks/useSelectionJobs";
 import { parseSearchLocation, toSearchPath } from "@/features/jobs/utils/searchUrl";
 import { fetchFeaturedSearches } from "@/lib/api/featuredSearches";
@@ -25,8 +26,7 @@ export function useHomePageState() {
   const selection = useSelectionJobs();
   const applications = useApplications();
   const exportState = useExportJobs();
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+
   const [isAuthRequiredOpen, setIsAuthRequiredOpen] = useState(false);
   const [pendingApplicationJobs, setPendingApplicationJobs] = useState<Job[]>([]);
   const [featuredSearches, setFeaturedSearches] = useState<FeaturedSearch[]>([]);
@@ -42,8 +42,22 @@ export function useHomePageState() {
     filters: jobSearch.filters,
   };
 
-  const updateUrlFromQuery = (query: SearchQuery, view: SearchView = currentView) => {
-    const nextPath = toSearchPath(pathname, query, view);
+  const {
+    job: selectedJob,
+    details: offerDetails,
+    status: offerDetailsStatus,
+    error: offerDetailsError,
+    prefetch: prefetchOfferDetails,
+  } = useOfferPanel({ jobs: jobSearch.jobs, offerId: location.offerId });
+
+  const lastOfferTrigger = useRef<HTMLElement | null>(null);
+
+  const updateUrlFromQuery = (
+    query: SearchQuery,
+    view: SearchView = currentView,
+    offerId: string | null = null
+  ) => {
+    const nextPath = toSearchPath(pathname, query, view, offerId);
     lastSyncedUrl.current = nextPath;
     router.replace(nextPath, { scroll: false });
   };
@@ -125,9 +139,23 @@ export function useHomePageState() {
     setPendingApplicationJobs([]);
   };
 
+  /** Opens the panel above the list and puts the offer in the URL. */
   const openJobDetails = (job: Job) => {
-    setSelectedJob(job);
-    setIsDetailsOpen(true);
+    if (typeof document !== "undefined") {
+      lastOfferTrigger.current = document.activeElement as HTMLElement | null;
+    }
+    if (!jobSearch.lastSearchQuery) return;
+    updateUrlFromQuery(jobSearch.lastSearchQuery, currentView, job.id);
+  };
+
+  /** Closes the panel, drops ?offre and gives focus back to the row. */
+  const closeJobDetails = () => {
+    if (jobSearch.lastSearchQuery) {
+      updateUrlFromQuery(jobSearch.lastSearchQuery, currentView, null);
+    }
+    if (typeof requestAnimationFrame !== "undefined") {
+      requestAnimationFrame(() => lastOfferTrigger.current?.focus());
+    }
   };
 
   /**
@@ -190,7 +218,12 @@ export function useHomePageState() {
     isPageReady: isLoaded,
     settings,
     selectedJob,
-    isDetailsOpen,
+    isDetailsOpen: Boolean(location.offerId && selectedJob),
+    offerDetails,
+    offerDetailsStatus,
+    offerDetailsError,
+    prefetchOfferDetails,
+    closeJobDetails,
     isAuthRequiredOpen,
     featuredSearches,
     isFeaturedSearchesLoading,
@@ -201,7 +234,7 @@ export function useHomePageState() {
     ...exportState,
     areApplicationsLoaded: applications.isLoaded,
     isApplicationAuth: applications.isAuthenticated,
-    setIsDetailsOpen,
+
     setIsAuthRequiredOpen,
     handleSearch,
     handleCopySearchLink,

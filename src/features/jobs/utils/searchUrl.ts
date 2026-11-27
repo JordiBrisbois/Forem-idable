@@ -72,7 +72,11 @@ function normalizeLocations(locations: LocationEntry[]): LocationEntry[] {
 }
 
 /** Serialises a search, including the result view so a link is reproducible. */
-export function toSearchParams(query: SearchQuery, view?: SearchView): URLSearchParams {
+export function toSearchParams(
+  query: SearchQuery,
+  view?: SearchView,
+  offerId?: string | null
+): URLSearchParams {
   const params = new URLSearchParams();
 
   query.keywords
@@ -113,11 +117,22 @@ export function toSearchParams(query: SearchQuery, view?: SearchView): URLSearch
     }
   }
 
+  // The panel state lives in the URL too, so a refresh or a shared link
+  // reopens the same offer above the same list.
+  if (offerId) {
+    params.set("offre", offerId);
+  }
+
   return params;
 }
 
-export function toSearchPath(pathname: string, query: SearchQuery, view?: SearchView): string {
-  const params = toSearchParams(query, view);
+export function toSearchPath(
+  pathname: string,
+  query: SearchQuery,
+  view?: SearchView,
+  offerId?: string | null
+): string {
+  const params = toSearchParams(query, view, offerId);
   const queryString = params.toString();
   return queryString ? `${pathname}?${queryString}` : pathname;
 }
@@ -157,6 +172,7 @@ function parseLocations(params: SearchParamsLike): LocationEntry[] {
 export function parseSearchLocation(params: SearchParamsLike): {
   query: SearchQuery | null;
   view: SearchView;
+  offerId: string | null;
 } {
   const keywords = params
     .getAll("kw")
@@ -173,8 +189,10 @@ export function parseSearchLocation(params: SearchParamsLike): {
   const locations = parseLocations(params);
   const view = parseSearchView(params);
 
+  const offerId = parseOfferId(params.get("offre"));
+
   if (keywords.length === 0 && locations.length === 0) {
-    return { query: null, view };
+    return { query: null, view, offerId };
   }
 
   const contractTypes = parseContractTypes(params.get("ct"));
@@ -183,7 +201,17 @@ export function parseSearchLocation(params: SearchParamsLike): {
     query.contractTypes = contractTypes;
   }
 
-  return { query, view };
+  return { query, view, offerId };
+}
+
+/**
+ * Offer ids are opaque: Forem uses numbers, secondary providers use slugs. Only
+ * the character set is constrained, so a crafted URL cannot inject anything.
+ */
+function parseOfferId(raw: string | null): string | null {
+  if (!raw) return null;
+  const trimmed = raw.trim();
+  return /^[A-Za-z0-9_-]{1,64}$/.test(trimmed) ? trimmed : null;
 }
 
 export function parseSearchView(params: SearchParamsLike): SearchView {

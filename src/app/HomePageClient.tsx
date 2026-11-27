@@ -6,7 +6,7 @@ import { FeaturedSearch } from "@/types/featuredSearch";
 import type { PageSize } from "@/types/search";
 import { SearchHistoryPanel } from "@/features/jobs/components/SearchHistoryPanel";
 import { ExportDialog } from "@/features/jobs/components/ExportDialog";
-import { JobDetailsSheet } from "@/features/jobs/components/JobDetailsSheet";
+import { OfferPanel } from "@/features/jobs/components/offer-panel/OfferPanel";
 import { AuthRequiredDialog } from "@/components/auth/AuthRequiredDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -231,10 +231,15 @@ function DashboardPageContent() {
         }
       />
 
-      <JobDetailsSheet
+      <OfferPanel
         job={page.selectedJob}
         open={page.isDetailsOpen}
-        onOpenChange={page.setIsDetailsOpen}
+        onOpenChange={(open) => {
+          if (!open) page.closeJobDetails();
+        }}
+        details={page.offerDetails}
+        status={page.offerDetailsStatus}
+        error={page.offerDetailsError}
         applied={page.selectedJob ? page.isApplied(page.selectedJob.id) : false}
         isAuthenticated={page.isApplicationAuth}
         isApplicationsLoaded={page.areApplicationsLoaded}

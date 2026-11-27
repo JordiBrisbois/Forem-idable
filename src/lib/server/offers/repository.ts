@@ -447,6 +447,20 @@ export async function getLocationCentroid(input: {
 
   return { lat: Number(row.lat), lon: Number(row.lon), offers: row.offers };
 }
+/** Cached detail whatever its age, so the route can serve it and refresh later. */
+export async function getOfferDetailCache(
+  offerId: string
+): Promise<{ detail: OfferDetails; fetchedAt: Date } | null> {
+  const db = await database();
+  const [row] = await db
+    .select({ detail: foremOfferDetails.detail, fetchedAt: foremOfferDetails.fetchedAt })
+    .from(foremOfferDetails)
+    .where(eq(foremOfferDetails.offerId, offerId));
+
+  if (!row) return null;
+  return { detail: row.detail as OfferDetails, fetchedAt: new Date(row.fetchedAt) };
+}
+
 /** Cached, normalised detail of one offer, if it is still fresh. */
 export async function getCachedOfferDetail(
   offerId: string,
@@ -474,4 +488,25 @@ export async function saveOfferDetail(offerId: string, detail: OfferDetails): Pr
       target: foremOfferDetails.offerId,
       set: { detail, fetchedAt: new Date() },
     });
+}
+/**
+ * Offers whose full detail is already cached.
+ *
+ * The sitemap only lists those: publishing 24 000 pages would make crawlers
+ * trigger 24 000 upstream fetches, so indexing grows with the cache instead.
+ */
+export async function listSitemapOfferIds(limit = 5000): Promise<Array<{ id: string; updatedAt: Date }>> {
+  const db = await database();
+  const rows = await db
+    .select({
+      id: foremOffers.offerId,
+      updatedAt: foremOfferDetails.fetchedAt,
+    })
+    .from(foremOfferDetails)
+    .innerJoin(foremOffers, eq(foremOffers.offerId, foremOfferDetails.offerId))
+    .where(sql`${foremOfferDetails.detail} ->> 'source' = 'forem-detail-api'`)
+    .orderBy(desc(foremOfferDetails.fetchedAt))
+    .limit(limit);
+
+  return rows;
 }

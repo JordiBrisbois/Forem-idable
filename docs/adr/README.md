@@ -14,6 +14,7 @@ choix « faits maison » : ils sont **volontaires**, et cet index explique pourq
 | [0006](0006-cache-budget-offres.md) | Cache L1/L2 et budget d'appels ODWB | Accepté |
 | [0007](0007-miroir-offres-postgres.md) | Rapatriement du jeu d'offres Forem dans PostgreSQL | Accepté |
 | [0008](0008-alertes-email-rgpd.md) | Alertes email sur recherche enregistrée et conformité RGPD | Accepté |
+| [0009](0009-panneau-offre-et-page-publique.md) | Panneau d'offre partageable et page publique indexable | Accepté |
 
 ## Format
 

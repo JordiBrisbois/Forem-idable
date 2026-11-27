@@ -6,14 +6,13 @@ import { CalendarDays, FilePenLine, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+  SheetPanel,
+  SheetPanelBody,
+  SheetPanelFooter,
+  SheetPanelHeader,
+} from "@/components/ui/sheet-panel";
 import { ApplicationsOfferButtons } from "@/features/applications/components/ApplicationsOfferButtons";
 import { useApplicationDerivedState } from "@/features/applications/hooks/useApplicationDerivedState";
 import { ApplicationStatusSelect } from "@/features/applications/components/ApplicationStatusSelect";
@@ -78,7 +77,7 @@ export function ApplicationDetailsSheet({
 }: ApplicationDetailsSheetProps) {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full p-0 sm:max-w-[60vw]">
+      <SheetPanel size="xl">
         {application ? (
           <ApplicationDetailsSheetBody
             key={application.job.id}
@@ -98,7 +97,7 @@ export function ApplicationDetailsSheet({
             onRequestDelete={onRequestDelete}
           />
         ) : null}
-      </SheetContent>
+      </SheetPanel>
     </Sheet>
   );
 }
@@ -159,7 +158,7 @@ function ApplicationDetailsSheetBody({
 
   return (
     <>
-      <SheetHeader className="border-b bg-muted/30 p-5 pr-12">
+      <SheetPanelHeader>
         <SheetTitle>{application.job.title}</SheetTitle>
         <SheetDescription>
           {application.job.company || "Entreprise non précisée"} • {application.job.location}
@@ -209,9 +208,9 @@ function ApplicationDetailsSheetBody({
             Supprimer
           </Button>
         </div>
-      </SheetHeader>
+      </SheetPanelHeader>
 
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto p-5 text-sm">
+      <SheetPanelBody className="flex flex-col gap-5">
         <DetailsSection title="Informations de l&apos;offre">
           <OfferDetailsSection
             application={application}
@@ -296,9 +295,9 @@ function ApplicationDetailsSheetBody({
             </DetailsSection>
           </>
         ) : null}
-      </div>
+      </SheetPanelBody>
 
-      <SheetFooter className="border-t bg-background/95 p-4">
+      <SheetPanelFooter>
         <div className="flex w-full flex-col gap-2">
           <ApplicationsOfferButtons application={application} layout="sheet" />
           <div className="grid gap-2 sm:grid-cols-2">
@@ -323,7 +322,7 @@ function ApplicationDetailsSheetBody({
             </Button>
           </div>
         </div>
-      </SheetFooter>
+      </SheetPanelFooter>
     </>
   );
 }

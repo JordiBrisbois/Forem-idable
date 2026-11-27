@@ -10,7 +10,7 @@ fois :
 | **Unitaire** | Vitest (jsdom) | Logique pure : utilitaires, hooks, schémas Zod, calculs de coût/dates, mapping d'erreurs. Postgres et Redis sont mockés. |
 | **Intégration HTTP** | Vitest | Wrappers de routes (`withSessionHandler`) : CSRF, garde d'accès, validation du corps, mapping erreur → statut HTTP. Postgres et Redis sont mockés. |
 | **Intégration données** | Vitest + vrai Postgres/Redis | Le SQL réel : upserts, index d'unicité, jointures de permissions, visibilité des conversations, facettes et filtres du miroir d'offres, alertes email (consentement, désinscription, sélection des alertes dues), protocole Redis. Fichiers `*.integration.test.ts`, exécutés dans les jobs `postgres` et `redis`. |
-| **E2E** | Playwright | Parcours utilisateur complets contre un vrai Postgres : auth, espace coach, admin, messagerie, conformité, recherche. |
+| **E2E** | Playwright | Parcours utilisateur complets : auth, espace coach, admin, messagerie, conformité, recherche et panneau d'offre (`?offre=`, URL rechargée, `Échap`). Base réelle ou API mockée selon le job. |
 
 Le découpage suit la règle « tester au niveau où le comportement existe » : une
 règle métier se teste sans navigateur, un parcours se teste sans mock.

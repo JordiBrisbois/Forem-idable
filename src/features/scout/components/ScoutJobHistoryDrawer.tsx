@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { LocalPagination } from "@/components/ui/local-pagination";
 import {
   Sheet,
-  SheetContent,
-  SheetHeader,
+
   SheetTitle,
 } from "@/components/ui/sheet";
+import { SheetPanel, SheetPanelBody, SheetPanelHeader } from "@/components/ui/sheet-panel";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -99,8 +99,8 @@ export function ScoutJobHistoryDrawer({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="flex w-full max-w-full flex-col gap-0 overflow-hidden sm:max-w-lg md:max-w-xl">
-        <SheetHeader className="space-y-4 pb-4">
+      <SheetPanel size="xl" className="overflow-hidden">
+        <SheetPanelHeader className="space-y-4 pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle className="flex min-w-0 items-center gap-2 pr-8 text-lg">
               <History className="h-5 w-5 text-primary" />
@@ -130,9 +130,9 @@ export function ScoutJobHistoryDrawer({
               </TabsList>
             </Tabs>
           </div>
-        </SheetHeader>
+        </SheetPanelHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto py-2">
+        <SheetPanelBody className="py-2">
           {visible.length === 0 ? (
             <div className="mx-4 flex h-40 flex-col items-center justify-center rounded-lg border border-dashed text-sm text-muted-foreground">
               Aucune recherche ne correspond aux filtres.
@@ -253,7 +253,7 @@ export function ScoutJobHistoryDrawer({
               </div>
             </>
           )}
-        </div>
+        </SheetPanelBody>
 
         {filtered.length > pageSize && (
           <div className="border-t px-4 pb-4 pt-4">
@@ -268,7 +268,7 @@ export function ScoutJobHistoryDrawer({
             />
           </div>
         )}
-      </SheetContent>
+      </SheetPanel>
     </Sheet>
   );
 }
