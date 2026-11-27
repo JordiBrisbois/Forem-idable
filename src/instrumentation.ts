@@ -10,5 +10,9 @@ export async function register() {
     // Keeps the local Forem offers mirror fresh; search reads only that mirror.
     const { startOffersSyncWorker } = await import("@/lib/server/offers/worker");
     startOffersSyncWorker();
+
+    // Daily "new offers" digest for saved searches (opt-out, needs Resend).
+    const { startAlertsWorker } = await import("@/lib/server/alerts/worker");
+    startAlertsWorker();
   }
 }

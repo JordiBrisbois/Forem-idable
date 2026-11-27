@@ -53,9 +53,12 @@ Les captures sont générées depuis l'instance déployée avec
 - **Bénéficiaire** : objectif de recherche (**stage** ou **emploi** commutable), suivi de candidatures.
 - **Mode autonome** : un utilisateur sans classe utilise la recherche et la sauvegarde d'offres, sans coaching.
 - **Messagerie** : canaux de classe et messages privés (SSE, Redis optionnel).
-- **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, sources
-  pluggables (ODWB/Forem, Adzuna optionnel), filtre par **type de contrat** (stage, alternance,
-  CDI…), recherche partageable par URL.
+- **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, miroir local
+  du jeu Forem (recherche servie par PostgreSQL), filtres par **type de contrat**, **régime**,
+  **secteur** et **langue**, tri par date ou pertinence, pagination serveur, recherche
+  partageable par URL.
+- **Alertes email** : une recherche enregistrée peut envoyer **un email par jour** avec les
+  nouvelles offres (opt-in, désinscription en un clic, RGPD — voir [COMPLIANCE.md](COMPLIANCE.md)).
 - **API externe** : endpoints JSON/CSV pour reporting (coach/admin).
 
 ## Préparation d'une instance

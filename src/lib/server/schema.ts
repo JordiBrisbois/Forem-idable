@@ -787,3 +787,55 @@ export const companyCache = pgTable(
     scrapedAtIdx: index("company_cache_scraped_at_idx").on(table.scrapedAt),
   })
 );
+
+/**
+ * Saved search that emails new matching offers.
+ *
+ * GDPR: the row only exists after an explicit opt-in (the UI posts from an
+ * authenticated user), carries the consent timestamp, a single-purpose
+ * unsubscribe token, and is deleted with the account (cascade).
+ */
+export const jobAlerts = pgTable(
+  "job_alerts",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    userId: bigint("user_id", { mode: "number" })
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    name: text("name").notNull().default(""),
+    keywords: text("keywords")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    locations: jsonb("locations").notNull().default(sql`'[]'::jsonb`),
+    booleanMode: text("boolean_mode").notNull().default("OR"),
+    goal: text("goal").notNull().default("job"),
+    contractTypes: text("contract_types")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    regimes: text("regimes")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    sectors: text("sectors")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    languages: text("languages")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    frequency: text("frequency").notNull().default("daily"),
+    isActive: boolean("is_active").notNull().default(true),
+    consentAt: timestamp("consent_at", { withTimezone: true }).notNull().defaultNow(),
+    unsubscribeToken: text("unsubscribe_token").notNull().unique(),
+    lastSentAt: timestamp("last_sent_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    userIdx: index("job_alerts_user_idx").on(table.userId),
+    activeIdx: index("job_alerts_active_idx").on(table.isActive, table.frequency),
+  })
+);

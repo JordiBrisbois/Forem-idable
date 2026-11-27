@@ -29,6 +29,7 @@ import { JobActions } from "./JobActions";
 import { JobMobileCard } from "./JobMobileCard";
 import { JobTablePagination } from "./JobTablePagination";
 import { ShareOfferDialog } from "@/features/jobs/components/ShareOfferDialog";
+import { useSeenOffers } from "@/features/jobs/hooks/useSeenOffers";
 import {
   formatPublicationDateCompact,
   formatPublicationDateTable,
@@ -107,6 +108,12 @@ export function JobTable({
   onRequireAuth,
 }: JobTableProps) {
   const [shareJob, setShareJob] = useState<Job | null>(null);
+  const { seen, markSeen } = useSeenOffers();
+
+  const openDetails = (job: Job) => {
+    markSeen(job.id);
+    onOpenDetails?.(job);
+  };
 
   const columns: ColumnDef<typeof jobTableFeatures, Job>[] = useMemo(
     () => [
@@ -287,7 +294,7 @@ export function JobTable({
                 onToggleSelection={onToggleSelection}
                 onTrackApplication={onTrackApplication}
                 onRequireAuth={onRequireAuth}
-                onOpenDetails={onOpenDetails}
+                onOpenDetails={openDetails}
                 onShareJob={
                   isAuthenticated ? (selectedJob) => setShareJob(selectedJob) : undefined
                 }
@@ -333,15 +340,14 @@ export function JobTable({
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
                     className={cn(
+                      seen.has(row.original.id) && "opacity-60",
                       row.index % 2 === 0
                         ? "bg-background"
                         : "bg-muted/30 dark:bg-muted/20",
                       "group border-border/60 hover:bg-muted/45 dark:hover:bg-muted/35 data-[state=selected]:bg-primary/6",
                       onOpenDetails ? "cursor-pointer" : undefined
                     )}
-                    onClick={
-                      onOpenDetails ? () => onOpenDetails(row.original) : undefined
-                    }
+                    onClick={onOpenDetails ? () => openDetails(row.original) : undefined}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell

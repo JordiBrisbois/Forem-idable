@@ -350,3 +350,38 @@ export async function isMirrorFresh(maxAgeMs: number): Promise<boolean> {
   return Number.isFinite(finishedMs) && Date.now() - finishedMs < maxAgeMs;
 }
 
+
+export interface MirrorStatus {
+  offers: number;
+  lastSyncAt: string | null;
+  lastSyncStatus: string | null;
+  ageMinutes: number | null;
+  stale: boolean;
+}
+
+/** Freshness of the mirror, for the "données mises à jour il y a X" badge. */
+export async function getMirrorStatus(maxAgeMs: number): Promise<MirrorStatus> {
+  const [offers, state] = await Promise.all([countOffers(), getSyncState()]);
+  const lastSyncAt = state?.finishedAt ? new Date(state.finishedAt) : null;
+  const ageMinutes = lastSyncAt
+    ? Math.max(0, Math.round((Date.now() - lastSyncAt.getTime()) / 60000))
+    : null;
+
+  return {
+    offers,
+    lastSyncAt: lastSyncAt ? lastSyncAt.toISOString() : null,
+    lastSyncStatus: state?.status ?? null,
+    ageMinutes,
+    stale: state?.status !== "success" || (ageMinutes ?? Infinity) * 60000 > maxAgeMs,
+  };
+}
+
+/** Offers ingested after `since`, i.e. what is new for a given visitor. */
+export async function countOffersFirstSeenSince(since: Date): Promise<number> {
+  const db = await database();
+  const [row] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(foremOffers)
+    .where(sql`${foremOffers.firstSeenAt} > ${since}`);
+  return row?.total ?? 0;
+}

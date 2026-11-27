@@ -1,11 +1,12 @@
 "use client";
 
 import { Job } from "@/types/job";
-import type { SearchFilters, SearchSort } from "@/types/search";
+import type { SearchFilters, SearchQuery, SearchSort } from "@/types/search";
 import { JobTable } from "@/components/jobs/JobTable";
 import { ForemDataAttribution } from "@/features/jobs/components/ForemDataAttribution";
 import { ResultsToolbar } from "@/features/jobs/components/ResultsToolbar";
 import { SearchFiltersBar } from "@/features/jobs/components/SearchFiltersBar";
+import { JobAlertDialog } from "@/features/jobs/components/JobAlertDialog";
 import { SelectionPanel } from "@/features/jobs/components/SelectionPanel";
 
 interface HomeSearchResultsSectionProps {
@@ -15,6 +16,7 @@ interface HomeSearchResultsSectionProps {
   pageSize: number;
   sort: SearchSort;
   filters: SearchFilters;
+  query: SearchQuery | null;
   selectedJobs: Job[];
   selectedJobIds: Set<string>;
   hasSearched: boolean;
@@ -48,6 +50,7 @@ export function HomeSearchResultsSection({
   pageSize,
   sort,
   filters,
+  query,
   selectedJobs,
   selectedJobIds,
   hasSearched,
@@ -108,6 +111,14 @@ export function HomeSearchResultsSection({
             hasKeywords={hasKeywords}
             disabled={isSearching}
           />
+          <div className="flex flex-wrap items-center gap-2">
+            <JobAlertDialog
+              query={query}
+              filters={filters}
+              isAuthenticated={isAuthenticated}
+              onRequireAuth={() => onRequireAuth(jobs[0])}
+            />
+          </div>
         </div>
 
         <div className="p-4 sm:p-5">

@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useOfferFacets, type OfferFacetValue } from "@/features/jobs/hooks/useOfferFacets";
+import { formatFreshness, useMirrorStatus } from "@/features/jobs/hooks/useMirrorStatus";
 import type { SearchFilters, SearchSort } from "@/types/search";
 
 interface SearchFiltersBarProps {
@@ -86,6 +87,7 @@ export function SearchFiltersBar({
   disabled = false,
 }: SearchFiltersBarProps) {
   const { facets, isLoading } = useOfferFacets();
+  const mirror = useMirrorStatus();
   const [open, setOpen] = useState(false);
 
   const activeCount =
@@ -101,6 +103,14 @@ export function SearchFiltersBar({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {mirror ? (
+        <p className="mr-auto text-xs text-muted-foreground" title={mirror.lastSyncAt ?? undefined}>
+          Données {formatFreshness(mirror.ageMinutes)}
+          {mirror.newOffers && mirror.newOffers > 0
+            ? ` · ${mirror.newOffers} nouvelle${mirror.newOffers > 1 ? "s" : ""} offre${mirror.newOffers > 1 ? "s" : ""} depuis votre dernière visite`
+            : ""}
+        </p>
+      ) : null}
       <Select
         value={sort}
         onValueChange={(value) => onSortChange(value as SearchSort)}

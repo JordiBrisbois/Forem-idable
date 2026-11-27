@@ -113,12 +113,24 @@ Ensuite, depuis l'administration (`/admin`) vous pouvez :
 4. Renseignez les variables d'environnement (voir `env.example`).
 5. Activez le **webhook d'auto-deploy** pour redéployer à chaque `git push`.
 
-Healthcheck recommandé : `GET /` sur le port `3000`.
+Healthcheck : `GET /api/health` sur le port `3000` (il vérifie aussi la base).
 
 ## 7. Sauvegardes
 
-- Base de données : `pg_dump` régulier du volume PostgreSQL.
-- Les fichiers ne sont pas persistés côté application (tout est en base).
+La base contient à la fois les comptes/candidatures **et** le miroir des offres.
+Le miroir est reconstructible (une synchronisation), les candidatures non :
+
+```bash
+# Sauvegarde logique (à planifier côté Coolify ou par cron)
+docker exec <conteneur_postgres> pg_dump -U forem_idable -Fc forem_idable > forem_idable.dump
+
+# Restauration dans une base neuve
+pg_restore -d "$DATABASE_URL" --clean --if-exists forem_idable.dump
+```
+
+Vérifiez une restauration au moins une fois : un dump jamais testé n'est pas une
+sauvegarde. Les migrations étant appliquées au démarrage, une base restaurée
+reprend l'application sans intervention.
 
 ## 8. Maintenance
 
@@ -134,3 +146,33 @@ node scripts/reset-demo.mjs
 > le temps d'un redéploiement : la base est vidée puis le schéma baseline est
 > rejoué au démarrage. **Repassez ce flag à `false` juste après**, sinon chaque
 > redémarrage effacera les données.
+
+## 9. Alertes email (recherches enregistrées)
+
+Un utilisateur connecté peut enregistrer une recherche et recevoir **un email
+par jour** listant les offres parues depuis l'envoi précédent. Le digest est
+calculé à partir du miroir local (`first_seen_at`), donc sans appel
+supplémentaire à ODWB.
+
+Prérequis : `RESEND_API_KEY` (et idéalement un domaine vérifié dans Resend pour
+`RESEND_FROM_EMAIL`). L'offre gratuite de Resend plafonne à **100 emails/jour** :
+avec quelques testeurs, un envoi quotidien par alerte reste très en dessous.
+`JOB_ALERTS_ENABLED=0` désactive le worker, et l'heure d'envoi se règle avec
+`JOB_ALERTS_UTC_HOUR` (8 par défaut).
+
+Chaque email contient le lien de désinscription (sans session, idempotent) et le
+responsable de traitement. Maximum 5 alertes par compte, consentement horodaté,
+suppression en cascade avec le compte — voir [COMPLIANCE.md](COMPLIANCE.md).
+
+## 10. Forcer une synchronisation des offres
+
+Le miroir se rafraîchit seul (au démarrage puis toutes les 12 h, avec reprise
+après échec). Après un incident côté ODWB, un administrateur peut forcer une
+passe sans attendre :
+
+```bash
+curl -X POST https://votre-domaine/api/admin/offers/sync --cookie "session=…"
+```
+
+L'endpoint est réservé au rôle admin : une synchronisation consomme un appel du
+quota partagé du jeu de données.

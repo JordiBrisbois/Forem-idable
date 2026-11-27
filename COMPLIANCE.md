@@ -48,6 +48,28 @@ Variables d'environnement optionnelles:
 - échappement du contenu des messages côté serveur (prévention XSS)
 - durée de session limitée à 7 jours avec renouvellement glissant à chaque utilisation
 
+## Alertes email
+
+Les alertes sur recherche enregistrée sont un traitement de prospection
+fonctionnelle, fondé sur le **consentement** de la personne :
+
+- **Opt-in explicite** : la case à cocher est obligatoire, le consentement est
+  horodaté en base (`job_alerts.consent_at`) et l'API refuse toute création sans
+  `consent: true` ;
+- **Minimisation** : seuls l'adresse email (déjà détenue pour le compte) et les
+  critères de recherche sont stockés ; aucune donnée de navigation n'est
+  transmise pour calculer les « nouveautés » ;
+- **Droit de retrait** : lien de désinscription en un clic dans chaque email,
+  sans authentification, avec un token dédié ; l'alerte passe en inactif
+  immédiatement ;
+- **Effacement** : supprimer une alerte supprime ses données, supprimer le
+  compte les supprime en cascade ; aucune copie n'est conservée ;
+- **Information** : chaque email rappelle la raison de l'envoi, le responsable de
+  traitement, le contact et la durée de conservation.
+
+Le fournisseur d'envoi (Resend) agit comme sous-traitant : seuls l'adresse, le
+contenu du message et l'identifiant technique lui sont transmis.
+
 ## Hors périmètre de cette phase
 
 - centre admin complet de gestion conformité

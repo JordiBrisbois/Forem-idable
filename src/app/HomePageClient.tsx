@@ -148,6 +148,7 @@ function DashboardPageContent() {
             pageSize={page.pageSize}
             sort={page.sort}
             filters={page.filters}
+            query={page.lastSearchQuery}
             selectedJobs={page.selectedJobs}
             selectedJobIds={page.selectedJobIds}
             hasSearched={page.hasSearched}

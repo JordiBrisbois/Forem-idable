@@ -9,7 +9,7 @@ fois :
 |---|---|---|
 | **Unitaire** | Vitest (jsdom) | Logique pure : utilitaires, hooks, schémas Zod, calculs de coût/dates, mapping d'erreurs. Postgres et Redis sont mockés. |
 | **Intégration HTTP** | Vitest | Wrappers de routes (`withSessionHandler`) : CSRF, garde d'accès, validation du corps, mapping erreur → statut HTTP. Postgres et Redis sont mockés. |
-| **Intégration données** | Vitest + vrai Postgres/Redis | Le SQL réel : upserts, index d'unicité, jointures de permissions, visibilité des conversations, protocole Redis. Fichiers `*.integration.test.ts`, exécutés dans les jobs `postgres` et `redis`. |
+| **Intégration données** | Vitest + vrai Postgres/Redis | Le SQL réel : upserts, index d'unicité, jointures de permissions, visibilité des conversations, facettes et filtres du miroir d'offres, alertes email (consentement, désinscription, sélection des alertes dues), protocole Redis. Fichiers `*.integration.test.ts`, exécutés dans les jobs `postgres` et `redis`. |
 | **E2E** | Playwright | Parcours utilisateur complets contre un vrai Postgres : auth, espace coach, admin, messagerie, conformité, recherche. |
 
 Le découpage suit la règle « tester au niveau où le comportement existe » : une
@@ -109,7 +109,8 @@ Cinq jobs, sur chaque push et pull request :
    ESLint, tests avec couverture (échec si sous les seuils), `next build`.
 2. **e2e** — Postgres en service, `playwright test`, rapport archivé en cas
    d'échec.
-3. **postgres** — Postgres en service, suites `*.integration.test.ts` du SQL réel.
+3. **postgres** — Postgres en service, suites `*.integration.test.ts` du SQL réel
+   (recherche, filtres, alertes).
 4. **redis** — Redis en service, protocole réel (rate limiter, pub/sub).
 5. **docker** — construit la vraie image avec le `Dockerfile` et le
    `.dockerignore` de production, en injectant les mêmes build args que Coolify,

@@ -25,6 +25,8 @@ export interface OfferSearchCriteria {
   /** Lower-cased language labels ("francais", "fr", …). */
   languages?: string[];
   sort?: "date" | "relevance";
+  /** Only offers ingested after this instant (used by the alert digest). */
+  firstSeenAfter?: Date;
   /** Beneficiary preference: stages lead when searching for an internship. */
   goal?: "job" | "internship";
   limit: number;
@@ -183,6 +185,10 @@ export function buildOfferFilters(criteria: OfferSearchCriteria): SQL | undefine
     clauses.push(
       sql`${foremOffers.sectors} && ${toPostgresArrayLiteral(criteria.sectors)}::text[]`
     );
+  }
+
+  if (criteria.firstSeenAfter) {
+    clauses.push(sql`${foremOffers.firstSeenAt} > ${criteria.firstSeenAfter}`);
   }
 
   if (criteria.languages && criteria.languages.length > 0) {

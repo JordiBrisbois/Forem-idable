@@ -43,6 +43,13 @@
       "when": 1795789738389,
       "tag": "0005_offers_search_facets",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795790581408,
+      "tag": "0006_job_alerts",
+      "breakpoints": true
     }
   ]
 }
