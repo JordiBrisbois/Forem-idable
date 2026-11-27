@@ -54,14 +54,14 @@ test.describe("offer panel", () => {
 
     await page.locator("tbody").getByText(job.title).first().click();
 
-    await expect(page.getByRole("dialog", { name: new RegExp(job.title) })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: job.title })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`offre=${offerId}`));
     await expect(page.getByText("Description complète de l'offre.")).toBeVisible();
     await expect(page.getByRole("heading", { name: "Comment postuler" })).toBeVisible();
 
     await page.reload();
 
-    await expect(page.getByRole("dialog", { name: new RegExp(job.title) })).toBeVisible();
+    await expect(page.getByRole("dialog", { name: job.title })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`offre=${offerId}`));
   });
 
@@ -69,7 +69,7 @@ test.describe("offer panel", () => {
     await mockSearch(page);
     await page.goto(`/?kw=E2E&bm=OR&goal=job&offre=${offerId}`);
 
-    const panel = page.getByRole("dialog", { name: new RegExp(job.title) });
+    const panel = page.getByRole("dialog", { name: job.title });
     await expect(panel).toBeVisible();
 
     await page.keyboard.press("Escape");

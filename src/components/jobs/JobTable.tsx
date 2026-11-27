@@ -357,7 +357,17 @@ export function JobTable({
                       "group border-border/60 hover:bg-muted/45 dark:hover:bg-muted/35 data-[state=selected]:bg-primary/6",
                       onOpenDetails ? "cursor-pointer" : undefined
                     )}
-                    onClick={onOpenDetails ? () => openDetails(row.original) : undefined}
+                    onClick={
+                      onOpenDetails
+                        ? (event) => {
+                            // A click on a row action (share, apply, PDF…) must
+                            // not also open the offer panel.
+                            const target = event.target as HTMLElement | null;
+                            if (target?.closest("button, a, input, [role='checkbox']")) return;
+                            openDetails(row.original);
+                          }
+                        : undefined
+                    }
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
