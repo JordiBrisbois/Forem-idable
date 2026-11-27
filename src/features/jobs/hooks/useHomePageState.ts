@@ -8,11 +8,11 @@ import { useSettings } from "@/hooks/useSettings";
 import { useExportJobs } from "@/features/jobs/hooks/useExportJobs";
 import { useJobSearch } from "@/features/jobs/hooks/useJobSearch";
 import { useSelectionJobs } from "@/features/jobs/hooks/useSelectionJobs";
-import { fromSearchParams, toSearchPath } from "@/features/jobs/utils/searchUrl";
+import { parseSearchLocation, toSearchPath } from "@/features/jobs/utils/searchUrl";
 import { fetchFeaturedSearches } from "@/lib/api/featuredSearches";
 import { FeaturedSearch } from "@/types/featuredSearch";
 import { Job } from "@/types/job";
-import { SearchQuery } from "@/types/search";
+import { SearchQuery, SearchView } from "@/types/search";
 
 export function useHomePageState() {
   const router = useRouter();
@@ -31,17 +31,27 @@ export function useHomePageState() {
   const [pendingApplicationJobs, setPendingApplicationJobs] = useState<Job[]>([]);
   const [featuredSearches, setFeaturedSearches] = useState<FeaturedSearch[]>([]);
   const [isFeaturedSearchesLoading, setIsFeaturedSearchesLoading] = useState(true);
-  const urlQuery = fromSearchParams(searchParams);
+  const location = parseSearchLocation(searchParams);
+  const urlQuery = location.query;
+  const lastSyncedUrl = useRef<string | null>(null);
 
-  const updateUrlFromQuery = (query: SearchQuery) => {
-    const nextPath = toSearchPath(pathname, query);
+  const currentView: SearchView = {
+    sort: jobSearch.sort,
+    page: jobSearch.page,
+    pageSize: jobSearch.pageSize,
+    filters: jobSearch.filters,
+  };
+
+  const updateUrlFromQuery = (query: SearchQuery, view: SearchView = currentView) => {
+    const nextPath = toSearchPath(pathname, query, view);
+    lastSyncedUrl.current = nextPath;
     router.replace(nextPath, { scroll: false });
   };
 
   const handleCopySearchLink = async () => {
     if (!jobSearch.lastSearchQuery) return;
 
-    const path = toSearchPath(pathname, jobSearch.lastSearchQuery);
+    const path = toSearchPath(pathname, jobSearch.lastSearchQuery, currentView);
     const absoluteUrl =
       typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
 
@@ -81,8 +91,31 @@ export function useHomePageState() {
 
     if (!urlQuery) return;
 
-    void jobSearch.executeSearch(urlQuery, { persistInHistory: false });
-  }, [jobSearch, urlQuery]);
+    void jobSearch.executeSearch(urlQuery, {
+      persistInHistory: false,
+      view: location.view,
+    });
+  }, [jobSearch, urlQuery, location.view]);
+
+  // Keep the URL in step with the view (page, sort, filters) so a copied link
+  // reproduces the exact screen the user is looking at.
+  useEffect(() => {
+    if (!jobSearch.lastSearchQuery || !jobSearch.hasSearched) return;
+
+    const nextPath = toSearchPath(pathname, jobSearch.lastSearchQuery, currentView);
+    if (lastSyncedUrl.current === nextPath) return;
+    lastSyncedUrl.current = nextPath;
+    router.replace(nextPath, { scroll: false });
+  }, [
+    jobSearch.lastSearchQuery,
+    jobSearch.hasSearched,
+    jobSearch.page,
+    jobSearch.pageSize,
+    jobSearch.sort,
+    jobSearch.filters,
+    pathname,
+    router,
+  ]);
 
   const handleSearch = async (state: SearchQuery) => {
     selection.resetSelection();

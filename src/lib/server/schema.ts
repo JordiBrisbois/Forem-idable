@@ -3,6 +3,7 @@ import {
   boolean,
   bigint,
   bigserial,
+  doublePrecision,
   index,
   integer,
   jsonb,
@@ -659,12 +660,30 @@ export const foremOffers = pgTable(
     /** Display form of `localities` ("Namur, Beez"); search keys stay lower-cased. */
     locationLabel: text("location_label").notNull().default(""),
     metier: text("metier"),
+    /** Work regime as published ("Temps plein", "Temps partiel", …). */
+    regime: text("regime"),
+    /** Lower-cased sectors and language labels, used as filter keys. */
+    sectors: text("sectors")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    languages: text("languages")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
     publicationDate: timestamp("publication_date", { withTimezone: true }),
     url: text("url").notNull(),
     /** Lower-cased haystack for keyword search (title, company, metier, places). */
     searchText: text("search_text").notNull().default(""),
     /** Full upstream record, so offer details and new fields need no refetch. */
     payload: jsonb("payload").notNull().default(sql`'{}'::jsonb`),
+    /**
+     * Set once, on first insert: lets the UI show "new since your last visit"
+     * without a second table, and survives re-syncs (upserts keep it).
+     */
+    firstSeenAt: timestamp("first_seen_at", { withTimezone: true }).notNull().defaultNow(),
     sourceSyncedAt: timestamp("source_synced_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -672,6 +691,8 @@ export const foremOffers = pgTable(
     contractTypeIdx: index("forem_offers_contract_type_idx").on(table.contractType),
     publicationIdx: index("forem_offers_publication_idx").on(table.publicationDate),
     regionIdx: index("forem_offers_region_idx").on(table.region),
+    regimeIdx: index("forem_offers_regime_idx").on(table.regime),
+    firstSeenIdx: index("forem_offers_first_seen_idx").on(table.firstSeenAt),
   })
 );
 

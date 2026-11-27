@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import { SearchEngine, SearchState } from "@/components/search/SearchEngine";
 import { FeaturedSearch } from "@/types/featuredSearch";
+import type { PageSize } from "@/types/search";
 import { SearchHistoryPanel } from "@/features/jobs/components/SearchHistoryPanel";
 import { ExportDialog } from "@/features/jobs/components/ExportDialog";
 import { JobDetailsSheet } from "@/features/jobs/components/JobDetailsSheet";
@@ -142,20 +143,25 @@ function DashboardPageContent() {
 
           <HomeSearchResultsSection
             jobs={page.jobs}
+            total={page.total}
+            page={page.page}
+            pageSize={page.pageSize}
+            sort={page.sort}
+            filters={page.filters}
             selectedJobs={page.selectedJobs}
             selectedJobIds={page.selectedJobIds}
             hasSearched={page.hasSearched}
             isSearching={page.isSearching}
-            isLoadingMore={page.isLoadingMore}
-            hasMoreResults={page.hasMoreResults}
-            searchSessionId={page.searchSessionId}
             isAuthenticated={page.isApplicationAuth}
             isApplicationsLoaded={page.areApplicationsLoaded}
-            jobsCount={page.jobs.length}
             selectedCount={page.selectedJobs.length}
             canCopySearchLink={Boolean(page.lastSearchQuery)}
+            hasKeywords={(page.lastSearchQuery?.keywords.length ?? 0) > 0}
             isApplied={page.isApplied}
-            onLoadMore={page.loadMore}
+            onPageChange={(nextPage) => void page.goToPage(nextPage)}
+            onPageSizeChange={(size) => void page.setPageSize(size as PageSize)}
+            onSortChange={(nextSort) => void page.setSort(nextSort)}
+            onFiltersChange={(nextFilters) => void page.setFilters(nextFilters)}
             onOpenDetails={page.openJobDetails}
             onToggleSelection={page.toggleSelection}
             onResetSelection={page.resetSelection}

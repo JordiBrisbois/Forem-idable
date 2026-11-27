@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Pagination,
   PaginationContent,
@@ -10,13 +9,21 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PAGE_SIZES } from "@/types/search";
 import { PaginationItem as PaginationItemType } from "./jobTableUtils";
 
 interface JobTablePaginationProps {
   currentPage: number;
   pageCount: number;
-  isLoadingMore: boolean;
-  hasMoreResults: boolean;
+  pageSize: number;
+  isLoading: boolean;
   canPreviousPage: boolean;
   canNextPage: boolean;
   paginationItems: PaginationItemType[];
@@ -26,14 +33,14 @@ interface JobTablePaginationProps {
   onPreviousPage: () => void;
   onSelectPage: (page: number) => void;
   onNextPage: () => void;
-  onLoadMore?: () => void;
+  onPageSizeChange?: (pageSize: number) => void;
 }
 
 export function JobTablePagination({
   currentPage,
   pageCount,
-  isLoadingMore,
-  hasMoreResults,
+  pageSize,
+  isLoading,
   canPreviousPage,
   canNextPage,
   paginationItems,
@@ -43,23 +50,21 @@ export function JobTablePagination({
   onPreviousPage,
   onSelectPage,
   onNextPage,
-  onLoadMore,
+  onPageSizeChange,
 }: JobTablePaginationProps) {
-  const showLoadMoreOnLastPage = hasMoreResults && currentPage === pageCount && onLoadMore;
-
-  if (pageCount <= 1 && !showLoadMoreOnLastPage) {
+  if (pageCount <= 1 && !onPageSizeChange) {
     return null;
   }
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border border-border/60 bg-muted/15 px-4 py-4">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground" aria-live="polite">
           {startItem}-{endItem} sur {totalCount} offres
         </p>
         <p className="text-sm text-muted-foreground">
           Page {currentPage} sur {pageCount}
-          {isLoadingMore ? " · Chargement..." : ""}
+          {isLoading ? " · Chargement..." : ""}
         </p>
       </div>
 
@@ -86,25 +91,30 @@ export function JobTablePagination({
               )
             )}
             <PaginationItem>
-              <PaginationNext
-                onClick={showLoadMoreOnLastPage ? onLoadMore : onNextPage}
-                disabled={!canNextPage && !showLoadMoreOnLastPage}
-              >
-                {showLoadMoreOnLastPage ? "Charger plus" : undefined}
-              </PaginationNext>
+              <PaginationNext onClick={onNextPage} disabled={!canNextPage} />
             </PaginationItem>
           </PaginationContent>
         </Pagination>
 
-        {showLoadMoreOnLastPage ? (
-          <Button
-            variant="outline"
-            onClick={onLoadMore}
-            disabled={isLoadingMore}
-            className="rounded-full"
-          >
-            {isLoadingMore ? "Chargement..." : "Charger plus d'offres"}
-          </Button>
+        {onPageSizeChange ? (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Par page</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(value) => onPageSizeChange(Number(value))}
+            >
+              <SelectTrigger className="h-9 w-[84px] rounded-full" aria-label="Offres par page">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZES.map((size) => (
+                  <SelectItem key={size} value={String(size)}>
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         ) : null}
       </div>
     </div>

@@ -16,6 +16,13 @@ export interface NormalizedOffer {
   postalCodes: string[];
   /** Display form of the localities ("Namur, Beez"), unlike the lower-cased keys. */
   locationLabel: string;
+  /** Work regime as published ("Temps plein", …), used as a filter key. */
+  regime: string | null;
+  /** Lower-cased sector and language labels, used as filter keys. */
+  sectors: string[];
+  languages: string[];
+  latitude: number | null;
+  longitude: number | null;
   metier: string | null;
   publicationDate: Date | null;
   url: string;
@@ -87,6 +94,17 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
   const region = regions.length > 0 ? regions.join(", ") : null;
   const metier = asTrimmedString(record.metier);
   const contractTypeRaw = asTrimmedString(record.typecontrat);
+  const regime = asTrimmedString(record.regimetravail);
+  const sectors = asStringList(record.secteurs).map((entry) => normalizeSearchText(entry));
+  const languages = asStringList(record.langues).map((entry) => normalizeSearchText(entry));
+
+  // The dataset carries one geo entry per workplace; the first is the reference
+  // point for distance sorting.
+  const geo = (record.lieuxtravailgeo ?? []).find(
+    (entry) => typeof entry?.lat === "number" && typeof entry?.lon === "number"
+  );
+  const latitude = typeof geo?.lat === "number" ? geo.lat : null;
+  const longitude = typeof geo?.lon === "number" ? geo.lon : null;
 
   const locationLabel = localities.length > 0 ? localities.join(", ") : FALLBACK_LOCATION;
   const url = appendForemTrackingParam(
@@ -111,6 +129,11 @@ export function normalizeOffer(record: OdwbOfferRecord): NormalizedOffer {
     localities: localities.map((entry) => normalizeSearchText(entry)),
     postalCodes,
     locationLabel,
+    regime,
+    sectors,
+    languages,
+    latitude,
+    longitude,
     metier,
     publicationDate: toDate(record.datedebutdiffusion),
     url,
@@ -125,6 +148,7 @@ export function toJob(row: {
   title: string;
   company: string | null;
   contractType: string;
+  contractTypeRaw?: string | null;
   locationLabel: string;
   publicationDate: Date | null;
   url: string;
@@ -136,6 +160,7 @@ export function toJob(row: {
     company: row.company ?? undefined,
     location: row.locationLabel || FALLBACK_LOCATION,
     contractType: row.contractType,
+    contractTypeRaw: row.contractTypeRaw ?? undefined,
     publicationDate: (row.publicationDate ?? new Date()).toISOString(),
     url: row.url,
     description: row.metier ?? "",

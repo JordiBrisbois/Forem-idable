@@ -18,6 +18,15 @@ export interface OfferSearchCriteria {
   booleanMode?: "AND" | "OR";
   contractTypes?: ContractType[];
   locations?: LocationFilter[];
+  /** Work regime labels, as published ("Temps plein", …). */
+  regimes?: string[];
+  /** Lower-cased sector labels. */
+  sectors?: string[];
+  /** Lower-cased language labels ("francais", "fr", …). */
+  languages?: string[];
+  sort?: "date" | "relevance";
+  /** Beneficiary preference: stages lead when searching for an internship. */
+  goal?: "job" | "internship";
   limit: number;
   offset: number;
 }
@@ -165,6 +174,22 @@ export function buildOfferFilters(criteria: OfferSearchCriteria): SQL | undefine
 
   const contracts = contractCondition(criteria.contractTypes ?? []);
   if (contracts) clauses.push(contracts);
+
+  if (criteria.regimes && criteria.regimes.length > 0) {
+    clauses.push(inArray(foremOffers.regime, criteria.regimes));
+  }
+
+  if (criteria.sectors && criteria.sectors.length > 0) {
+    clauses.push(
+      sql`${foremOffers.sectors} && ${toPostgresArrayLiteral(criteria.sectors)}::text[]`
+    );
+  }
+
+  if (criteria.languages && criteria.languages.length > 0) {
+    clauses.push(
+      sql`${foremOffers.languages} && ${toPostgresArrayLiteral(criteria.languages)}::text[]`
+    );
+  }
 
   // A "Pays" entry yields no clause (no restriction), and a search restricted
   // to a country alone must not OR an empty list into a false condition.

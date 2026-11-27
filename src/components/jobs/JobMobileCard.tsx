@@ -4,6 +4,7 @@ import { MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Job } from "@/types/job";
 import { ContractTypeBadge } from "./ContractTypeBadge";
+import { contractBadgeLabel } from "@/features/jobs/utils/contractLabel";
 import { JobActions } from "./JobActions";
 import { formatPublicationDateCompact } from "./jobTableUtils";
 
@@ -42,7 +43,7 @@ export function JobMobileCard({
     >
       <div className="flex flex-col gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <ContractTypeBadge contractType={job.contractType} />
+          <ContractTypeBadge contractType={contractBadgeLabel(job)} />
           <span className="text-xs text-muted-foreground">
             {formatPublicationDateCompact(job.publicationDate)}
           </span>

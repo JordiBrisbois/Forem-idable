@@ -19,6 +19,14 @@ export const odwbOfferRecordSchema = z
     // WALLONNE"). Typing this as a string made every page fail validation, so
     // the sync never stored anything and reported a shape error instead.
     lieuxtravailregion: stringList,
+    /** `[{ lat, lon }]` — used for the "around me" sort. */
+    lieuxtravailgeo: z
+      .array(
+        z
+          .object({ lat: z.number().nullish(), lon: z.number().nullish() })
+          .passthrough()
+      )
+      .nullish(),
     typecontrat: z.string().nullish(),
     datedebutdiffusion: z.string().nullish(),
     url: z.string().nullish(),

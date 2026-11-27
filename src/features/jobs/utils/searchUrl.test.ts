@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { fromSearchParams, toSearchParams } from "./searchUrl";
-import { SearchQuery } from "@/types/search";
+import { fromSearchParams, parseSearchLocation, parseSearchView, toSearchParams, toSearchPath } from "./searchUrl";
+import { SearchQuery, SearchView } from "@/types/search";
 
 describe("searchUrl utils", () => {
   it("serializes and parses a full search query", () => {
@@ -64,5 +64,37 @@ describe("searchUrl utils", () => {
 
     const parsed = fromSearchParams(params);
     expect(parsed?.contractTypes).toEqual(["STAGE", "ALTERNANCE"]);
+  });
+});
+
+describe("search view in the URL", () => {
+  it("round-trips sort, page, page size and filters", () => {
+    const query: SearchQuery = {
+      keywords: ["react"],
+      locations: [],
+      booleanMode: "OR",
+      goal: "job",
+    };
+    const view: SearchView = {
+      sort: "relevance",
+      page: 3,
+      pageSize: 25,
+      filters: { regimes: ["Temps plein"], sectors: ["informatique"], languages: ["francais"] },
+    };
+
+    const path = toSearchPath("/", query, view);
+    const params = new URLSearchParams(path.split("?")[1]);
+    const parsed = parseSearchLocation(params);
+
+    expect(parsed.query?.keywords).toEqual(["react"]);
+    expect(parsed.view).toEqual(view);
+  });
+
+  it("falls back to defaults for unknown values", () => {
+    const view = parseSearchView(new URLSearchParams("tri=n-importe&page=-4&taille=999"));
+
+    expect(view.sort).toBe("date");
+    expect(view.page).toBe(1);
+    expect(view.pageSize).toBe(15);
   });
 });

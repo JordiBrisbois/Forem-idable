@@ -4,6 +4,7 @@ import { normalizeOffer, type NormalizedOffer } from "./offers/normalize";
 import {
   countOffers,
   countOffersByContractType,
+  getOfferFacets,
   deleteOffersSyncedBefore,
   getOfferJob,
   getOfferPayload,
@@ -214,5 +215,68 @@ describeWithDatabase("offers mirror (integration)", () => {
       status: "failed",
       errorMessage: "ODWB rate limit reached",
     });
+  });
+});
+
+describeWithDatabase("offers search refinements (integration)", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  it("filters on regime, sector and language", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "1", title: "Développeur", localities: ["Namur"] }),
+        offer({ id: "2", title: "Vendeur", localities: ["Liège"] }),
+      ],
+      syncedAt
+    );
+
+    const db = (await import("@/lib/server/db")).db;
+    await db.query(
+      `UPDATE forem_offers SET regime = 'Temps plein', sectors = ARRAY['informatique'], languages = ARRAY['francais'] WHERE offer_id = '1'`
+    );
+    await db.query(
+      `UPDATE forem_offers SET regime = 'Temps partiel', sectors = ARRAY['commerce'], languages = ARRAY['neerlandais'] WHERE offer_id = '2'`
+    );
+
+    expect((await searchOffers({ regimes: ["Temps plein"], limit: 10, offset: 0 })).jobs.map((job) => job.id)).toEqual(["1"]);
+    expect((await searchOffers({ sectors: ["commerce"], limit: 10, offset: 0 })).jobs.map((job) => job.id)).toEqual(["2"]);
+    expect((await searchOffers({ languages: ["francais"], limit: 10, offset: 0 })).jobs.map((job) => job.id)).toEqual(["1"]);
+  });
+
+  it("puts internships first for an internship goal, without hiding jobs", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "job", contractType: "Durée indéterminée", publication: "2026-10-02T09:00:00+00:00" }),
+        offer({ id: "stage", contractType: "Stage", publication: "2026-10-01T09:00:00+00:00" }),
+      ],
+      syncedAt
+    );
+
+    const result = await searchOffers({ goal: "internship", limit: 10, offset: 0 });
+
+    expect(result.jobs.map((job) => job.id)).toEqual(["stage", "job"]);
+  });
+
+  it("exposes regime, sector and language facets with counts", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "1", contractType: "Durée indéterminée" }),
+        offer({ id: "2", contractType: "Stage" }),
+      ],
+      syncedAt
+    );
+
+    const db = (await import("@/lib/server/db")).db;
+    await db.query(
+      `UPDATE forem_offers SET regime = 'Temps plein', sectors = ARRAY['informatique'], languages = ARRAY['francais']`
+    );
+
+    const facets = await getOfferFacets();
+
+    expect(facets.regimes).toEqual([{ value: "Temps plein", count: 2 }]);
+    expect(facets.sectors).toEqual([{ value: "informatique", count: 2 }]);
+    expect(facets.languages).toEqual([{ value: "francais", count: 2 }]);
   });
 });

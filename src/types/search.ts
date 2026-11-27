@@ -14,6 +14,37 @@ export interface SearchQuery {
   contractTypes?: ContractType[];
 }
 
+/** Result ordering the user can pick. */
+export type SearchSort = "date" | "relevance";
+
+/** Filters applied on top of the query, from the mirror's own values. */
+export interface SearchFilters {
+  /** Published work regime labels ("Temps plein", …). */
+  regimes: string[];
+  /** Lower-cased sector labels. */
+  sectors: string[];
+  /** Lower-cased language labels. */
+  languages: string[];
+}
+
+export const PAGE_SIZES = [15, 25, 50] as const;
+export type PageSize = (typeof PAGE_SIZES)[number];
+
+/** Presentation state of a result set, shareable through the URL. */
+export interface SearchView {
+  sort: SearchSort;
+  page: number;
+  pageSize: PageSize;
+  filters: SearchFilters;
+}
+
+export const DEFAULT_SEARCH_VIEW: SearchView = {
+  sort: "date",
+  page: 1,
+  pageSize: 15,
+  filters: { regimes: [], sectors: [], languages: [] },
+};
+
 export const booleanModeSchema = z.enum(["AND", "OR"]);
 
 export const locationEntrySchema = z.object({

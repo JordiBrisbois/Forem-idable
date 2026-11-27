@@ -1,43 +1,37 @@
-import { dedupeAndSortJobs } from "./mergeJobs";
+import { describe, expect, it } from "vitest";
 import { Job } from "@/types/job";
+import { mergeUniqueJobs } from "./mergeJobs";
 
-function makeJob(partial: Partial<Job>): Job {
+function job(overrides: Partial<Job> & { id: string }): Job {
   return {
-    id: partial.id || "id",
-    title: partial.title || "Titre",
-    location: partial.location || "Liège",
-    contractType: partial.contractType || "CDI",
-    publicationDate: partial.publicationDate || "2026-01-01",
-    url: partial.url || "https://example.com/a",
-    source: partial.source || "forem",
-    company: partial.company,
-    description: partial.description,
-    pdfUrl: partial.pdfUrl,
-  };
+    title: `Offre ${overrides.id}`,
+    location: "Liège",
+    contractType: "CDI",
+    publicationDate: "2026-03-20T09:00:00.000Z",
+    url: `https://example.test/${overrides.id}`,
+    source: "forem",
+    ...overrides,
+  } as Job;
 }
 
-describe("dedupeAndSortJobs", () => {
-  it("deduplicates jobs using url/title/company/location signature", () => {
-    const jobs: Job[] = [
-      makeJob({ id: "1", url: "https://x", title: "Dev", company: "ACME", location: "Liège" }),
-      makeJob({ id: "2", url: "https://x", title: "Dev", company: "ACME", location: "Liège" }),
-      makeJob({ id: "3", url: "https://y", title: "QA", company: "ACME", location: "Namur" }),
-    ];
+describe("mergeUniqueJobs", () => {
+  it("keeps the incoming order instead of re-sorting by date", () => {
+    const result = mergeUniqueJobs([
+      job({ id: "a", publicationDate: "2026-01-01T00:00:00.000Z" }),
+      job({ id: "b", publicationDate: "2026-06-01T00:00:00.000Z" }),
+    ]);
 
-    const result = dedupeAndSortJobs(jobs);
-    expect(result).toHaveLength(2);
-    expect(result.map((job) => job.id)).toEqual(["1", "3"]);
+    // The server decided this order (relevance); the merge must not undo it.
+    expect(result.map((entry) => entry.id)).toEqual(["a", "b"]);
   });
 
-  it("sorts by publication date descending", () => {
-    const jobs: Job[] = [
-      makeJob({ id: "a", publicationDate: "2026-01-01", url: "https://a" }),
-      makeJob({ id: "b", publicationDate: "2026-03-01", url: "https://b" }),
-      makeJob({ id: "c", publicationDate: "2025-12-01", url: "https://c" }),
-    ];
+  it("drops duplicates on the same offer across providers", () => {
+    const first = job({ id: "a", title: "Même offre", url: "https://example.test/same" });
+    const duplicate = job({ id: "a-copy", title: "Même offre", url: "https://example.test/same" });
 
-    const result = dedupeAndSortJobs(jobs);
-    expect(result.map((job) => job.id)).toEqual(["b", "a", "c"]);
+    const result = mergeUniqueJobs([first, duplicate]);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].id).toBe("a");
   });
 });
-

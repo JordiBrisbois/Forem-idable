@@ -4,6 +4,8 @@ export interface Job {
   company?: string;
   location: string;
   contractType: string;
+  /** Raw upstream label, shown when the normalized bucket is AUTRE. */
+  contractTypeRaw?: string;
   publicationDate: string;
   url: string;
   description?: string;

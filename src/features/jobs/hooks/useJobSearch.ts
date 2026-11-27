@@ -1,15 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Job } from "@/types/job";
-import { SearchQuery } from "@/types/search";
+import { DEFAULT_SEARCH_VIEW, PageSize, SearchFilters, SearchQuery, SearchSort, SearchView } from "@/types/search";
 import { jobService } from "@/services/jobs/jobService";
 import { OffersUnavailableError } from "@/services/api/offersClient";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
-
-const INITIAL_FETCH_LIMIT = 100;
-const FETCH_CHUNK_SIZE = 100;
 
 const TOO_MANY_REQUESTS_MESSAGE =
   "Trop de recherches en peu de temps. Réessayez dans quelques instants.";
@@ -29,27 +26,35 @@ function messageFor(error: OffersUnavailableError): string {
   }
 }
 
+interface FetchRequest {
+  query: SearchQuery;
+  view: SearchView;
+}
+
+/**
+ * Search state for the results page.
+ *
+ * Pagination, sorting and filters are server-side: every change fetches the
+ * matching page from the mirror, and `total` comes from the database so the
+ * pager is exact instead of "load more" guesses.
+ */
 export function useJobSearch() {
   const { history, addEntry, clearHistory, isLoaded: isHistoryLoaded } = useSearchHistory();
   const [jobs, setJobs] = useState<Job[]>([]);
+  const [total, setTotal] = useState(0);
+  const [view, setView] = useState<SearchView>(DEFAULT_SEARCH_VIEW);
   const [isSearching, setIsSearching] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [hasMoreResults, setHasMoreResults] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [searchSessionId, setSearchSessionId] = useState(0);
   const [hasSearched, setHasSearched] = useState(false);
   const [lastSearchQuery, setLastSearchQuery] = useState<SearchQuery | null>(null);
-  const [nextOffset, setNextOffset] = useState(0);
 
-  const executeSearch = async (query: SearchQuery, options?: { persistInHistory?: boolean }) => {
-    const persistInHistory = options?.persistInHistory ?? true;
+  const requestRef = useRef<FetchRequest | null>(null);
 
-    setLastSearchQuery(query);
-    if (persistInHistory) addEntry(query);
+  const run = useCallback(async (request: FetchRequest) => {
+    const { query, view: nextView } = request;
     setIsSearching(true);
-    setHasSearched(true);
     setSearchError(null);
-    setSearchSessionId((id) => id + 1);
 
     try {
       const response = await jobService.searchJobs({
@@ -58,12 +63,17 @@ export function useJobSearch() {
         booleanMode: query.booleanMode,
         goal: query.goal,
         contractTypes: query.contractTypes,
-        limit: INITIAL_FETCH_LIMIT,
-        offset: 0,
+        regimes: nextView.filters.regimes,
+        sectors: nextView.filters.sectors,
+        languages: nextView.filters.languages,
+        sort: nextView.sort,
+        limit: nextView.pageSize,
+        offset: (nextView.page - 1) * nextView.pageSize,
       });
+
       setJobs(response.jobs);
-      setNextOffset(INITIAL_FETCH_LIMIT);
-      setHasMoreResults(response.jobs.length >= INITIAL_FETCH_LIMIT);
+      setTotal(response.total);
+      setView(nextView);
       return response.jobs;
     } catch (error) {
       if (error instanceof OffersUnavailableError) {
@@ -75,66 +85,95 @@ export function useJobSearch() {
         setSearchError(UNAVAILABLE_MESSAGE);
       }
       setJobs([]);
-      setNextOffset(0);
-      setHasMoreResults(false);
+      setTotal(0);
       return [];
     } finally {
       setIsSearching(false);
     }
-  };
+  }, []);
 
-  const loadMore = async () => {
-    if (!lastSearchQuery || isSearching || isLoadingMore || !hasMoreResults) return;
+  const executeSearch = useCallback(
+    async (
+      query: SearchQuery,
+      options?: { persistInHistory?: boolean; view?: SearchView }
+    ) => {
+      const persistInHistory = options?.persistInHistory ?? true;
 
-    setIsLoadingMore(true);
-    try {
-      const response = await jobService.searchJobs({
-        keywords: lastSearchQuery.keywords,
-        locations: lastSearchQuery.locations,
-        booleanMode: lastSearchQuery.booleanMode,
-        goal: lastSearchQuery.goal,
-        contractTypes: lastSearchQuery.contractTypes,
-        limit: FETCH_CHUNK_SIZE,
-        offset: nextOffset,
-      });
+      setLastSearchQuery(query);
+      setHasSearched(true);
+      setSearchSessionId((id) => id + 1);
+      if (persistInHistory) addEntry(query);
 
-      setJobs((current) => {
-        const seen = new Set(current.map((job) => job.id));
-        const incoming = response.jobs.filter((job) => {
-          if (seen.has(job.id)) return false;
-          seen.add(job.id);
-          return true;
-        });
+      const request: FetchRequest = {
+        query,
+        view: options?.view ?? {
+          ...DEFAULT_SEARCH_VIEW,
+          filters: view.filters,
+        },
+      };
+      requestRef.current = request;
+      return run(request);
+    },
+    [addEntry, run, view.filters]
+  );
 
-        return [...current, ...incoming];
-      });
-      if (response.jobs.length < FETCH_CHUNK_SIZE) {
-        setHasMoreResults(false);
-      }
-      setNextOffset((offset) => offset + FETCH_CHUNK_SIZE);
-    } catch (error) {
-      if (error instanceof OffersUnavailableError) {
-        toast.error(messageFor(error));
-      } else {
-        console.error("Erreur lors du chargement supplémentaire", error);
-      }
-      setHasMoreResults(false);
-    } finally {
-      setIsLoadingMore(false);
-    }
-  };
+  /** Fetches another page of the current search. */
+  const goToPage = useCallback(
+    async (page: number) => {
+      const current = requestRef.current;
+      if (!current) return;
+      const target = Math.max(1, page);
+      await run({ query: current.query, view: { ...current.view, page: target } });
+    },
+    [run]
+  );
+
+  const applyView = useCallback(
+    async (patch: Partial<Omit<SearchView, "filters">> & { filters?: SearchFilters }) => {
+      const current = requestRef.current;
+      if (!current) return;
+
+      const nextView: SearchView = {
+        ...current.view,
+        ...patch,
+        filters: patch.filters ?? current.view.filters,
+        // Any change other than the page itself restarts at page 1.
+        page: patch.page ?? 1,
+      };
+
+      requestRef.current = { query: current.query, view: nextView };
+      await run({ query: current.query, view: nextView });
+    },
+    [run]
+  );
+
+  const setSort = useCallback((sort: SearchSort) => void applyView({ sort }), [applyView]);
+  const setPageSize = useCallback(
+    (pageSize: PageSize) => void applyView({ pageSize }),
+    [applyView]
+  );
+  const setFilters = useCallback(
+    (filters: SearchFilters) => void applyView({ filters }),
+    [applyView]
+  );
 
   return {
     jobs,
+    total,
+    page: view.page,
+    pageSize: view.pageSize,
+    sort: view.sort,
+    filters: view.filters,
     isSearching,
-    isLoadingMore,
-    hasMoreResults,
     searchError,
     searchSessionId,
     hasSearched,
     lastSearchQuery,
     executeSearch,
-    loadMore,
+    goToPage,
+    setSort,
+    setPageSize,
+    setFilters,
     history,
     clearHistory,
     isHistoryLoaded,

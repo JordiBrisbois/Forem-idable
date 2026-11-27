@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, sql, type SQL } from "drizzle-orm";
 import type { ContractType } from "@/lib/contractType";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { foremOffers, foremOffersSyncState } from "@/lib/server/schema";
@@ -33,6 +33,7 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
       title: foremOffers.title,
       company: foremOffers.company,
       contractType: foremOffers.contractType,
+      contractTypeRaw: foremOffers.contractTypeRaw,
       locationLabel: foremOffers.locationLabel,
       publicationDate: foremOffers.publicationDate,
       url: foremOffers.url,
@@ -40,7 +41,7 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
     })
     .from(foremOffers)
     .where(where)
-    .orderBy(sql`${foremOffers.publicationDate} DESC NULLS LAST`, desc(foremOffers.offerId))
+    .orderBy(...orderClauses(criteria))
     .limit(criteria.limit)
     .offset(criteria.offset);
 
@@ -53,6 +54,34 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
     jobs: rows.map(toJob),
     total: countRow?.total ?? rows.length,
   };
+}
+
+/**
+ * Ordering for a search:
+ * 1. text relevance when asked and keywords exist (GIN-indexed tsvector);
+ * 2. internship preference: stages and work-study contracts first, without
+ *    hiding jobs (a student still sees a matching CDI);
+ * 3. newest first, undated last, stable on the offer id.
+ */
+function orderClauses(criteria: OfferSearchCriteria): SQL[] {
+  const clauses: SQL[] = [];
+  const keywords = (criteria.keywords ?? []).map((keyword) => keyword.trim()).filter(Boolean);
+
+  if (criteria.sort === "relevance" && keywords.length > 0) {
+    const query = criteria.booleanMode === "AND" ? keywords.join(" ") : keywords.join(" OR ");
+    clauses.push(
+      sql`ts_rank(to_tsvector('french', ${foremOffers.searchText}), websearch_to_tsquery('french', ${query})) DESC`
+    );
+  }
+
+  if (criteria.goal === "internship") {
+    clauses.push(
+      sql`CASE WHEN ${foremOffers.contractType} IN ('STAGE', 'ALTERNANCE') THEN 0 ELSE 1 END`
+    );
+  }
+
+  clauses.push(sql`${foremOffers.publicationDate} DESC NULLS LAST`, desc(foremOffers.offerId));
+  return clauses;
 }
 
 /** Full upstream payload of one offer, for the details view. */
@@ -108,6 +137,57 @@ export async function countOffers(): Promise<number> {
   return row?.total ?? 0;
 }
 
+export interface FacetValue {
+  value: string;
+  count: number;
+}
+
+export interface OfferFacets {
+  regimes: FacetValue[];
+  sectors: FacetValue[];
+  languages: FacetValue[];
+}
+
+/**
+ * Filter values actually present in the mirror, with counts, so the UI never
+ * offers a filter that returns nothing. Computed locally: no upstream call.
+ */
+export async function getOfferFacets(limit = 20): Promise<OfferFacets> {
+  const db = await database();
+
+  const [regimeRows, sectorResult, languageResult] = await Promise.all([
+    db
+      .select({ value: foremOffers.regime, count: sql<number>`count(*)::int` })
+      .from(foremOffers)
+      .where(sql`${foremOffers.regime} IS NOT NULL AND ${foremOffers.regime} <> ''`)
+      .groupBy(foremOffers.regime)
+      .orderBy(desc(sql`count(*)`))
+      .limit(limit),
+    db.execute<{ value: string; count: number }>(
+      sql`SELECT unnest(${foremOffers.sectors}) AS value, count(*)::int AS count
+          FROM ${foremOffers}
+          GROUP BY 1
+          ORDER BY 2 DESC
+          LIMIT ${limit}`
+    ),
+    db.execute<{ value: string; count: number }>(
+      sql`SELECT unnest(${foremOffers.languages}) AS value, count(*)::int AS count
+          FROM ${foremOffers}
+          GROUP BY 1
+          ORDER BY 2 DESC
+          LIMIT ${limit}`
+    ),
+  ]);
+
+  return {
+    regimes: regimeRows
+      .filter((row): row is { value: string; count: number } => Boolean(row.value))
+      .map((row) => ({ value: row.value, count: row.count })),
+    sectors: sectorResult.rows.map((row) => ({ value: row.value, count: Number(row.count) })),
+    languages: languageResult.rows.map((row) => ({ value: row.value, count: Number(row.count) })),
+  };
+}
+
 /** Inserts or refreshes offers. Returns the number of rows written. */
 export async function upsertOffers(offers: NormalizedOffer[], syncedAt: Date): Promise<number> {
   if (offers.length === 0) return 0;
@@ -131,6 +211,11 @@ export async function upsertOffers(offers: NormalizedOffer[], syncedAt: Date): P
           postalCodes: offer.postalCodes,
           locationLabel: offer.locationLabel,
           metier: offer.metier,
+          regime: offer.regime,
+          sectors: offer.sectors,
+          languages: offer.languages,
+          latitude: offer.latitude,
+          longitude: offer.longitude,
           publicationDate: offer.publicationDate,
           url: offer.url,
           searchText: offer.searchText,
@@ -151,6 +236,11 @@ export async function upsertOffers(offers: NormalizedOffer[], syncedAt: Date): P
           postalCodes: sql`excluded.postal_codes`,
           locationLabel: sql`excluded.location_label`,
           metier: sql`excluded.metier`,
+          regime: sql`excluded.regime`,
+          sectors: sql`excluded.sectors`,
+          languages: sql`excluded.languages`,
+          latitude: sql`excluded.latitude`,
+          longitude: sql`excluded.longitude`,
           publicationDate: sql`excluded.publication_date`,
           url: sql`excluded.url`,
           searchText: sql`excluded.search_text`,

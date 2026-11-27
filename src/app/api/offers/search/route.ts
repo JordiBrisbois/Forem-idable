@@ -22,6 +22,11 @@ const searchBodySchema = z.object({
   booleanMode: z.enum(["AND", "OR"]).optional(),
   contractTypes: z.array(contractTypeSchema).max(12).optional(),
   locations: z.array(locationSchema).max(10).optional(),
+  regimes: z.array(z.string().min(1).max(60)).max(5).optional(),
+  sectors: z.array(z.string().min(1).max(120)).max(5).optional(),
+  languages: z.array(z.string().min(1).max(40)).max(5).optional(),
+  sort: z.enum(["date", "relevance"]).optional(),
+  goal: z.enum(["job", "internship"]).optional(),
   limit: z.number().int().min(1).max(MAX_RESULTS_PER_PAGE).optional(),
   offset: z.number().int().min(0).max(MAX_OFFSET).optional(),
 });
@@ -66,6 +71,11 @@ export async function POST(request: Request) {
       booleanMode: parsed.data.booleanMode,
       contractTypes: parsed.data.contractTypes,
       locations: parsed.data.locations,
+      regimes: parsed.data.regimes,
+      sectors: parsed.data.sectors,
+      languages: parsed.data.languages,
+      sort: parsed.data.sort,
+      goal: parsed.data.goal,
       limit: parsed.data.limit ?? MAX_RESULTS_PER_PAGE,
       offset: parsed.data.offset ?? 0,
     });

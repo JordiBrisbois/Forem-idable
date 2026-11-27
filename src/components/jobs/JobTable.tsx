@@ -24,6 +24,7 @@ import { Job } from "@/types/job";
 import { MapPin, CalendarDays } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ContractTypeBadge } from "./ContractTypeBadge";
+import { contractBadgeLabel } from "@/features/jobs/utils/contractLabel";
 import { JobActions } from "./JobActions";
 import { JobMobileCard } from "./JobMobileCard";
 import { JobTablePagination } from "./JobTablePagination";
@@ -42,15 +43,15 @@ import {
  */
 const jobTableFeatures = tableFeatures({ ...stockFeatures });
 
-/** Rows per page. Pagination is applied by slicing `data` (see JobTable). */
-const PAGE_SIZE = 15;
-
 interface JobTableProps {
+  /** Rows of the current page (already paginated by the server). */
   data: Job[];
-  resetPaginationToken?: number;
-  isLoadingMore?: boolean;
-  hasMoreResults?: boolean;
-  onLoadMore?: () => void;
+  totalCount: number;
+  pageIndex: number;
+  pageSize: number;
+  onPageChange: (page: number) => void;
+  onPageSizeChange?: (pageSize: number) => void;
+  isLoading?: boolean;
   selectedJobIds?: Set<string>;
   onToggleSelection?: (job: Job) => void;
   onOpenDetails?: (job: Job) => void;
@@ -90,10 +91,12 @@ const COLUMN_CLASSES: Record<string, { head?: string; cell?: string }> = {
 
 export function JobTable({
   data,
-  resetPaginationToken,
-  isLoadingMore = false,
-  hasMoreResults = false,
-  onLoadMore,
+  totalCount,
+  pageIndex,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+  isLoading = false,
   selectedJobIds,
   onToggleSelection,
   onOpenDetails,
@@ -189,8 +192,7 @@ export function JobTable({
         accessorKey: "contractType",
         header: "Contrat",
         cell: ({ row }) => {
-          const type = row.getValue("contractType") as string;
-          return <ContractTypeBadge contractType={type} />;
+          return <ContractTypeBadge contractType={contractBadgeLabel(row.original)} />;
         },
       },
       {
@@ -242,44 +244,23 @@ export function JobTable({
     ]
   );
 
-  // Pagination is sliced here rather than by TanStack: in v9 the pagination
-  // state lives in the table store and `setPageIndex` did not reach the rendered
-  // rows, so the pager looked dead. Slicing keeps one source of truth (React
-  // state) and the table only renders what it is given.
-  const [pageIndex, setPageIndex] = useState(0);
-  const pageCount = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
-  const safePageIndex = Math.min(pageIndex, pageCount - 1);
-  const pageData = useMemo(
-    () => data.slice(safePageIndex * PAGE_SIZE, (safePageIndex + 1) * PAGE_SIZE),
-    [data, safePageIndex]
-  );
+  // Pagination is server-side: `data` is already the requested page, and the
+  // pager drives the page index held by the search hook.
+  const pageCount = Math.max(1, Math.ceil(totalCount / pageSize));
+  const currentPage = Math.min(Math.max(pageIndex, 1), pageCount);
+  const safePageIndex = currentPage - 1;
 
   // v9 keeps its state in a TanStack Store, so the React Compiler lint rule that
   // required an eslint-disable around the v8 `useReactTable` no longer fires.
   const table = useTable({
     features: jobTableFeatures,
-    data: pageData,
+    data,
     columns,
     autoResetPageIndex: false,
   });
 
-  // A new search starts on the first page, and a shrinking result set must not
-  // leave the user on a page that no longer exists.
-  useEffect(() => {
-    setPageIndex(0);
-  }, [resetPaginationToken]);
-
-  useEffect(() => {
-    if (pageIndex > pageCount - 1) {
-      setPageIndex(pageCount - 1);
-    }
-  }, [pageCount, pageIndex]);
-
-  const currentPage = safePageIndex + 1;
-  const pageSize = PAGE_SIZE;
-  const totalCount = data.length;
-  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
-  const endItem = Math.min(currentPage * pageSize, totalCount);
+  const startItem = totalCount === 0 ? 0 : safePageIndex * pageSize + 1;
+  const endItem = Math.min((safePageIndex + 1) * pageSize, totalCount);
   const paginationItems = useMemo(
     () => buildPaginationItems(currentPage, pageCount, 1),
     [currentPage, pageCount]
@@ -396,18 +377,18 @@ export function JobTable({
       <JobTablePagination
         currentPage={currentPage}
         pageCount={pageCount}
-        isLoadingMore={isLoadingMore}
-        hasMoreResults={hasMoreResults}
+        pageSize={pageSize}
+        isLoading={isLoading}
         canPreviousPage={safePageIndex > 0}
         canNextPage={safePageIndex < pageCount - 1}
         paginationItems={paginationItems}
         startItem={startItem}
         endItem={endItem}
         totalCount={totalCount}
-        onPreviousPage={() => setPageIndex((page) => Math.max(0, page - 1))}
-        onSelectPage={(page) => setPageIndex(Math.min(Math.max(page - 1, 0), pageCount - 1))}
-        onNextPage={() => setPageIndex((page) => Math.min(pageCount - 1, page + 1))}
-        onLoadMore={onLoadMore}
+        onPreviousPage={() => onPageChange(Math.max(1, currentPage - 1))}
+        onSelectPage={(page) => onPageChange(Math.min(Math.max(page, 1), pageCount))}
+        onNextPage={() => onPageChange(Math.min(pageCount, currentPage + 1))}
+        onPageSizeChange={onPageSizeChange}
       />
 
       <ShareOfferDialog

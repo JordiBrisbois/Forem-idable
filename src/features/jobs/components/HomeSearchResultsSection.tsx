@@ -1,27 +1,34 @@
 "use client";
 
 import { Job } from "@/types/job";
+import type { SearchFilters, SearchSort } from "@/types/search";
 import { JobTable } from "@/components/jobs/JobTable";
 import { ForemDataAttribution } from "@/features/jobs/components/ForemDataAttribution";
 import { ResultsToolbar } from "@/features/jobs/components/ResultsToolbar";
+import { SearchFiltersBar } from "@/features/jobs/components/SearchFiltersBar";
 import { SelectionPanel } from "@/features/jobs/components/SelectionPanel";
 
 interface HomeSearchResultsSectionProps {
   jobs: Job[];
+  total: number;
+  page: number;
+  pageSize: number;
+  sort: SearchSort;
+  filters: SearchFilters;
   selectedJobs: Job[];
   selectedJobIds: Set<string>;
   hasSearched: boolean;
   isSearching: boolean;
-  isLoadingMore: boolean;
-  hasMoreResults: boolean;
-  searchSessionId: number;
   isAuthenticated: boolean;
   isApplicationsLoaded: boolean;
-  jobsCount: number;
   selectedCount: number;
   canCopySearchLink: boolean;
+  hasKeywords: boolean;
   isApplied: (jobId: string) => boolean;
-  onLoadMore: () => void;
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
+  onSortChange: (sort: SearchSort) => void;
+  onFiltersChange: (filters: SearchFilters) => void;
   onOpenDetails: (job: Job) => void;
   onToggleSelection: (job: Job) => void;
   onResetSelection: () => void;
@@ -36,20 +43,25 @@ interface HomeSearchResultsSectionProps {
 
 export function HomeSearchResultsSection({
   jobs,
+  total,
+  page,
+  pageSize,
+  sort,
+  filters,
   selectedJobs,
   selectedJobIds,
   hasSearched,
   isSearching,
-  isLoadingMore,
-  hasMoreResults,
-  searchSessionId,
   isAuthenticated,
   isApplicationsLoaded,
-  jobsCount,
   selectedCount,
   canCopySearchLink,
+  hasKeywords,
   isApplied,
-  onLoadMore,
+  onPageChange,
+  onPageSizeChange,
+  onSortChange,
+  onFiltersChange,
   onOpenDetails,
   onToggleSelection,
   onResetSelection,
@@ -78,7 +90,7 @@ export function HomeSearchResultsSection({
 
       <div className="overflow-hidden rounded-[24px] border border-border/60 bg-card shadow-sm">
         <ResultsToolbar
-          jobsCount={jobsCount}
+          jobsCount={total}
           selectedCount={selectedCount}
           isSearching={isSearching}
           onExportAll={onExportAll}
@@ -86,6 +98,17 @@ export function HomeSearchResultsSection({
           onCopySearchLink={onCopySearchLink}
           canCopySearchLink={canCopySearchLink}
         />
+
+        <div className="flex flex-col gap-3 px-4 pt-3 sm:px-5">
+          <SearchFiltersBar
+            sort={sort}
+            onSortChange={onSortChange}
+            filters={filters}
+            onFiltersChange={onFiltersChange}
+            hasKeywords={hasKeywords}
+            disabled={isSearching}
+          />
+        </div>
 
         <div className="p-4 sm:p-5">
           {isSearching ? (
@@ -98,10 +121,12 @@ export function HomeSearchResultsSection({
           ) : (
             <JobTable
               data={jobs}
-              resetPaginationToken={searchSessionId}
-              isLoadingMore={isLoadingMore}
-              hasMoreResults={hasMoreResults}
-              onLoadMore={onLoadMore}
+              totalCount={total}
+              pageIndex={page}
+              pageSize={pageSize}
+              onPageChange={onPageChange}
+              onPageSizeChange={onPageSizeChange}
+              isLoading={isSearching}
               selectedJobIds={selectedJobIds}
               onToggleSelection={onToggleSelection}
               onOpenDetails={onOpenDetails}

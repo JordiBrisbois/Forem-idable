@@ -130,3 +130,27 @@ describe("datasetRegionLabel", () => {
     expect(datasetRegionLabel("Province de Namur")).toBe("province de namur");
   });
 });
+
+describe("new filter criteria", () => {
+  it("filters on the published work regime", () => {
+    const query = compile({ ...emptyCriteria, regimes: ["Temps plein"] });
+
+    expect(query?.sql).toContain("in (");
+    expect(query?.params).toContain("Temps plein");
+  });
+
+  it("filters sectors and languages with array overlap", () => {
+    const sectors = compile({ ...emptyCriteria, sectors: ["informatique"] });
+    const languages = compile({ ...emptyCriteria, languages: ["francais"] });
+
+    expect(sectors?.sql).toContain("&&");
+    expect(sectors?.params).toContain('{"informatique"}');
+    expect(languages?.params).toContain('{"francais"}');
+  });
+
+  it("ignores empty filter arrays", () => {
+    expect(
+      buildOfferFilters({ ...emptyCriteria, regimes: [], sectors: [], languages: [] })
+    ).toBeUndefined();
+  });
+});
