@@ -11,18 +11,21 @@ function encodeSseMessage(event: MessageStreamEvent) {
 }
 
 export async function GET(request: Request) {
-  const rateLimit = await checkRateLimit({
-    scope: "message-stream",
-    limit: 5,
-    windowMs: 60 * 1000,
-  });
-  if (!rateLimit.allowed) {
-    return new Response("Too Many Requests", { status: 429 });
-  }
-
   const user = await getCurrentUser();
   if (!user) {
     return new Response("Forbidden", { status: 403 });
+  }
+
+  // Keyed by user: several people behind one NAT (or the E2E suite) must not
+  // exhaust each other's reconnection budget. 30/min still stops a runaway loop.
+  const rateLimit = await checkRateLimit({
+    scope: "message-stream",
+    limit: 30,
+    windowMs: 60 * 1000,
+    identifier: `user:${user.id}`,
+  });
+  if (!rateLimit.allowed) {
+    return new Response("Too Many Requests", { status: 429 });
   }
 
   const encoder = new TextEncoder();
