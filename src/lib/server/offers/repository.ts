@@ -1,7 +1,8 @@
 import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import type { ContractType } from "@/lib/contractType";
+import type { OfferDetails } from "@/types/offerDetails";
 import { ensureDatabase, orm } from "@/lib/server/db";
-import { foremOffers, foremOffersSyncState } from "@/lib/server/schema";
+import { foremOfferDetails, foremOffers, foremOffersSyncState } from "@/lib/server/schema";
 import type { Job } from "@/types/job";
 import { buildOfferFilters, distanceKmSql, type OfferSearchCriteria } from "./filters";
 import { toJob, type NormalizedOffer } from "./normalize";
@@ -445,4 +446,32 @@ export async function getLocationCentroid(input: {
   if (!row || !row.lat || !row.lon || row.offers === 0) return null;
 
   return { lat: Number(row.lat), lon: Number(row.lon), offers: row.offers };
+}
+/** Cached, normalised detail of one offer, if it is still fresh. */
+export async function getCachedOfferDetail(
+  offerId: string,
+  maxAgeMs: number
+): Promise<OfferDetails | null> {
+  const db = await database();
+  const [row] = await db
+    .select({ detail: foremOfferDetails.detail, fetchedAt: foremOfferDetails.fetchedAt })
+    .from(foremOfferDetails)
+    .where(eq(foremOfferDetails.offerId, offerId));
+
+  if (!row) return null;
+  if (Date.now() - new Date(row.fetchedAt).getTime() > maxAgeMs) return null;
+
+  return row.detail as OfferDetails;
+}
+
+/** Stores the detail fetched from Forem (upsert: a refresh replaces it). */
+export async function saveOfferDetail(offerId: string, detail: OfferDetails): Promise<void> {
+  const db = await database();
+  await db
+    .insert(foremOfferDetails)
+    .values({ offerId, detail, fetchedAt: new Date() })
+    .onConflictDoUpdate({
+      target: foremOfferDetails.offerId,
+      set: { detail, fetchedAt: new Date() },
+    });
 }

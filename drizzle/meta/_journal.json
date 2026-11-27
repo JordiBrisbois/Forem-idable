@@ -57,6 +57,13 @@
       "when": 1795793592308,
       "tag": "0007_backfill_offer_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795809503868,
+      "tag": "0008_offer_details_cache",
+      "breakpoints": true
     }
   ]
 }

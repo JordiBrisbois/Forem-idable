@@ -839,3 +839,19 @@ export const jobAlerts = pgTable(
     activeIdx: index("job_alerts_active_idx").on(table.isActive, table.frequency),
   })
 );
+
+/**
+ * On-demand detail of one offer, cached after the first visit.
+ *
+ * The ODWB dataset only carries the structured summary; the full text lives
+ * behind the Forem front-end endpoint. Fetching it per visit would hammer a
+ * third party, so the normalised result (a few KB, no logo) is kept here and
+ * refreshed when it gets old.
+ */
+export const foremOfferDetails = pgTable("forem_offer_details", {
+  offerId: text("offer_id")
+    .primaryKey()
+    .references(() => foremOffers.offerId, { onDelete: "cascade" }),
+  detail: jsonb("detail").notNull(),
+  fetchedAt: timestamp("fetched_at", { withTimezone: true }).notNull().defaultNow(),
+});
