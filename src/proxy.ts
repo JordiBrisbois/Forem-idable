@@ -14,6 +14,8 @@ const PUBLIC_EXACT = [
   "/robots.txt",
 ];
 const PUBLIC_PREFIXES = [
+  // Public offer pages: shareable, indexable, usable without an account.
+  "/offres",
   "/api/health",
   "/api/auth/",
   "/api/setup",
