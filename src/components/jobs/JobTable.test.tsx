@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { JobTable } from "@/components/jobs/JobTable";
@@ -45,5 +45,41 @@ describe("JobTable pagination", () => {
     render(<JobTable data={[]} />);
 
     expect(screen.queryByText(/Offre \d+/)).toBeNull();
+  });
+});
+describe("JobTable page navigation", () => {
+  it("shows the next page when a page number is clicked", () => {
+    render(<JobTable data={buildJobs(40)} />);
+
+    expect(screen.getAllByText("Offre 1").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+
+    // Row 16 is the first of page 2 (page size 15); both the mobile card and
+    // the table body render it, hence getAllByText.
+    expect(screen.getAllByText("Offre 16").length).toBeGreaterThan(0);
+    expect(screen.queryAllByText("Offre 1")).toHaveLength(0);
+  });
+
+  it("returns to the first page when a new search starts", () => {
+    const { rerender } = render(<JobTable data={buildJobs(40)} resetPaginationToken={1} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    expect(screen.getAllByText("Offre 16").length).toBeGreaterThan(0);
+
+    rerender(<JobTable data={buildJobs(40)} resetPaginationToken={2} />);
+
+    expect(screen.getAllByText("Offre 1").length).toBeGreaterThan(0);
+    expect(screen.queryAllByText("Offre 16")).toHaveLength(0);
+  });
+
+  it("goes back to the previous page", () => {
+    render(<JobTable data={buildJobs(40)} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /suivante/i }));
+    expect(screen.getAllByText("Offre 16").length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: /précédente/i }));
+    expect(screen.getAllByText("Offre 1").length).toBeGreaterThan(0);
   });
 });

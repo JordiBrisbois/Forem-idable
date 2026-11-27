@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  createPaginatedRowModel,
   flexRender,
   stockFeatures,
   tableFeatures,
@@ -41,10 +40,10 @@ import {
  * the pagination row model has to be registered on top, because `stockFeatures`
  * only lists features.
  */
-const jobTableFeatures = tableFeatures({
-  ...stockFeatures,
-  paginatedRowModel: createPaginatedRowModel(),
-});
+const jobTableFeatures = tableFeatures({ ...stockFeatures });
+
+/** Rows per page. Pagination is applied by slicing `data` (see JobTable). */
+const PAGE_SIZE = 15;
 
 interface JobTableProps {
   data: Job[];
@@ -243,28 +242,41 @@ export function JobTable({
     ]
   );
 
+  // Pagination is sliced here rather than by TanStack: in v9 the pagination
+  // state lives in the table store and `setPageIndex` did not reach the rendered
+  // rows, so the pager looked dead. Slicing keeps one source of truth (React
+  // state) and the table only renders what it is given.
+  const [pageIndex, setPageIndex] = useState(0);
+  const pageCount = Math.max(1, Math.ceil(data.length / PAGE_SIZE));
+  const safePageIndex = Math.min(pageIndex, pageCount - 1);
+  const pageData = useMemo(
+    () => data.slice(safePageIndex * PAGE_SIZE, (safePageIndex + 1) * PAGE_SIZE),
+    [data, safePageIndex]
+  );
+
   // v9 keeps its state in a TanStack Store, so the React Compiler lint rule that
   // required an eslint-disable around the v8 `useReactTable` no longer fires.
   const table = useTable({
-    // v9 requires an explicit feature set; `jobTableFeatures` registers the
-    // pagination feature and its row model, which is all this table uses.
     features: jobTableFeatures,
-    data,
+    data: pageData,
     columns,
     autoResetPageIndex: false,
-    initialState: {
-      pagination: { pageIndex: 0, pageSize: 15 },
-    },
   });
 
+  // A new search starts on the first page, and a shrinking result set must not
+  // leave the user on a page that no longer exists.
   useEffect(() => {
-    table.setPageIndex(0);
-  }, [resetPaginationToken, table]);
+    setPageIndex(0);
+  }, [resetPaginationToken]);
 
-  // v9 exposes state through the store-backed `table.state`; `getState()` is gone.
-  const currentPage = table.state.pagination.pageIndex + 1;
-  const pageSize = table.state.pagination.pageSize;
-  const pageCount = table.getPageCount();
+  useEffect(() => {
+    if (pageIndex > pageCount - 1) {
+      setPageIndex(pageCount - 1);
+    }
+  }, [pageCount, pageIndex]);
+
+  const currentPage = safePageIndex + 1;
+  const pageSize = PAGE_SIZE;
   const totalCount = data.length;
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalCount);
@@ -386,15 +398,15 @@ export function JobTable({
         pageCount={pageCount}
         isLoadingMore={isLoadingMore}
         hasMoreResults={hasMoreResults}
-        canPreviousPage={table.getCanPreviousPage()}
-        canNextPage={table.getCanNextPage()}
+        canPreviousPage={safePageIndex > 0}
+        canNextPage={safePageIndex < pageCount - 1}
         paginationItems={paginationItems}
         startItem={startItem}
         endItem={endItem}
         totalCount={totalCount}
-        onPreviousPage={() => table.previousPage()}
-        onSelectPage={(page) => table.setPageIndex(page - 1)}
-        onNextPage={() => table.nextPage()}
+        onPreviousPage={() => setPageIndex((page) => Math.max(0, page - 1))}
+        onSelectPage={(page) => setPageIndex(Math.min(Math.max(page - 1, 0), pageCount - 1))}
+        onNextPage={() => setPageIndex((page) => Math.min(pageCount - 1, page + 1))}
         onLoadMore={onLoadMore}
       />
 
