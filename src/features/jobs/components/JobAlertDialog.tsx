@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Bell, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -154,6 +155,14 @@ export function JobAlertDialog({
             </section>
 
             <Separator />
+
+            <p className="text-xs text-muted-foreground">
+              Tout gérer depuis{" "}
+              <Link href="/account#alertes" className="underline underline-offset-2">
+                mon compte
+              </Link>
+              .
+            </p>
 
             <section className="flex flex-col gap-3">
               <div className="flex flex-col gap-1">

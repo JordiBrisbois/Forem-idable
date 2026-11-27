@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { jobAlerts } from "@/lib/server/schema";
 import type { ContractType } from "@/lib/contractType";
@@ -184,4 +184,42 @@ export async function markJobAlertSent(alertId: number, at: Date): Promise<void>
     .update(jobAlerts)
     .set({ lastSentAt: at, updatedAt: at })
     .where(eq(jobAlerts.id, alertId));
+}
+
+/** Removes every alert of a user (GDPR: deleting the alert deletes the data). */
+export async function deleteAllJobAlerts(userId: number): Promise<number> {
+  const db = await database();
+  const deleted = await db
+    .delete(jobAlerts)
+    .where(eq(jobAlerts.userId, userId))
+    .returning({ id: jobAlerts.id });
+
+  return deleted.length;
+}
+
+/** Turns emailing on or off for one alert, scoped to its owner. */
+export async function setJobAlertActive(
+  userId: number,
+  alertId: number,
+  isActive: boolean
+): Promise<boolean> {
+  const db = await database();
+  const updated = await db
+    .update(jobAlerts)
+    .set({ isActive, updatedAt: new Date() })
+    .where(and(eq(jobAlerts.id, alertId), eq(jobAlerts.userId, userId)))
+    .returning({ id: jobAlerts.id });
+
+  return updated.length > 0;
+}
+
+/** Marks several alerts as sent in one statement (grouped digest). */
+export async function markJobAlertsSent(alertIds: number[], at: Date): Promise<void> {
+  if (alertIds.length === 0) return;
+
+  const db = await database();
+  await db
+    .update(jobAlerts)
+    .set({ lastSentAt: at, updatedAt: at })
+    .where(inArray(jobAlerts.id, alertIds));
 }

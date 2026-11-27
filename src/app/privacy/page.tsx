@@ -49,6 +49,10 @@ const DATA_CATEGORIES: TextItem[] = [
     title: "Emails transactionnels",
     text: "Si la fonction de réinitialisation de mot de passe est activée, votre adresse email peut être utilisée pour vous envoyer un lien de changement de mot de passe via le prestataire technique Resend.",
   },
+  {
+    title: "Alertes de recherche",
+    text: "Si vous créez une alerte, votre adresse email reçoit au plus un message par jour regroupant les nouvelles offres de toutes vos alertes. Chaque message contient un lien de désinscription ; la page Mon compte permet de mettre une alerte en pause ou de les supprimer toutes. Supprimer une alerte supprime ses critères.",
+  },
 ];
 
 const LEGAL_BASIS: TextItem[] = [
@@ -67,6 +71,10 @@ const LEGAL_BASIS: TextItem[] = [
   {
     title: "Réinitialisation de mot de passe",
     text: "Envoi d'un email contenant un lien temporaire lorsque vous demandez explicitement un changement de mot de passe. Base juridique principale: exécution du service demandé et sécurisation de l'accès à votre compte.",
+  },
+  {
+    title: "Alertes de recherche",
+    text: "Envoi d'un email quotidien regroupant les nouvelles offres correspondant aux recherches que vous avez enregistrées. Base juridique principale: votre consentement, recueilli par une case à cocher explicite et horodaté. Vous pouvez le retirer à tout moment depuis chaque email ou depuis Mon compte.",
   },
   {
     title: "Statistiques facultatives",

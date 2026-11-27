@@ -110,6 +110,35 @@ export function useJobAlerts({ enabled }: { enabled: boolean }) {
     [refresh]
   );
 
+  const setActive = useCallback(
+    async (alertId: number, isActive: boolean): Promise<boolean> => {
+      try {
+        const response = await fetch(`/api/alerts/${alertId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ isActive }),
+        });
+        if (!response.ok) return false;
+        await refresh();
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [refresh]
+  );
+
+  const removeAll = useCallback(async (): Promise<boolean> => {
+    try {
+      const response = await fetch("/api/alerts", { method: "DELETE" });
+      if (!response.ok) return false;
+      await refresh();
+      return true;
+    } catch {
+      return false;
+    }
+  }, [refresh]);
+
   const remove = useCallback(
     async (alertId: number): Promise<boolean> => {
       setDeletingId(alertId);
@@ -134,6 +163,8 @@ export function useJobAlerts({ enabled }: { enabled: boolean }) {
     deletingId,
     create,
     remove,
+    removeAll,
+    setActive,
     refresh,
   };
 }

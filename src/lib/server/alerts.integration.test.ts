@@ -2,7 +2,9 @@ import { beforeEach, expect, it } from "vitest";
 import { createUser, describeWithDatabase, resetDatabase } from "@/lib/server/testFixtures";
 import {
   createJobAlert,
+  deleteAllJobAlerts,
   deleteJobAlert,
+  setJobAlertActive,
   listDueAlerts,
   listJobAlerts,
   markJobAlertSent,
@@ -84,5 +86,40 @@ describeWithDatabase("job alerts (integration)", () => {
     await unsubscribeJobAlert(alert.unsubscribeToken);
 
     expect(await listDueAlerts(new Date("2026-03-02T08:00:00Z"))).toHaveLength(0);
+  });
+});
+
+describeWithDatabase("alert management (integration)", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  it("pauses and resumes one alert, scoped to its owner", async () => {
+    const alice = await createUser();
+    const bob = await createUser();
+    const alert = await createJobAlert(alice.id, input);
+
+    expect(await setJobAlertActive(bob.id, alert.id, false)).toBe(false);
+    expect(await setJobAlertActive(alice.id, alert.id, false)).toBe(true);
+
+    const [paused] = await listJobAlerts(alice.id);
+    expect(paused.isActive).toBe(false);
+
+    expect(await setJobAlertActive(alice.id, alert.id, true)).toBe(true);
+    const [resumed] = await listJobAlerts(alice.id);
+    expect(resumed.isActive).toBe(true);
+  });
+
+  it("deletes every alert of one user and nothing else", async () => {
+    const alice = await createUser();
+    const bob = await createUser();
+    await createJobAlert(alice.id, input);
+    await createJobAlert(alice.id, { ...input, name: "Deuxième" });
+    await createJobAlert(bob.id, { ...input, name: "Bobby" });
+
+    expect(await deleteAllJobAlerts(alice.id)).toBe(2);
+    expect(await listJobAlerts(alice.id)).toHaveLength(0);
+    expect(await listJobAlerts(bob.id)).toHaveLength(1);
+    expect(await deleteAllJobAlerts(alice.id)).toBe(0);
   });
 });

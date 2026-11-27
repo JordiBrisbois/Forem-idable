@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { withSessionHandler } from "@/lib/server/apiHandler";
 import { contractTypeSchema } from "@/lib/contractType";
-import { createJobAlert, listJobAlerts } from "@/lib/server/alerts/repository";
+import { createJobAlert, deleteAllJobAlerts, listJobAlerts } from "@/lib/server/alerts/repository";
 
 function publicAlert(alert: Awaited<ReturnType<typeof createJobAlert>>) {
   return {
@@ -110,3 +110,16 @@ function defaultAlertName(body: { keywords: string[]; locations: { name: string 
   const parts = [keywords, places].filter(Boolean);
   return parts.length > 0 ? parts.join(" · ").slice(0, 120) : "Ma recherche d'offres";
 }
+/**
+ * Removes every alert of the signed-in user ("me désinscrire de tout").
+ *
+ * Deletion rather than deactivation: the GDPR expectation is that withdrawing
+ * consent removes the data, not just a flag.
+ */
+export const DELETE = withSessionHandler(
+  { access: "user", fallbackMessage: "Impossible de supprimer vos alertes." },
+  async ({ user }) => {
+    const deleted = await deleteAllJobAlerts(user.id);
+    return NextResponse.json({ success: true, deleted });
+  }
+);

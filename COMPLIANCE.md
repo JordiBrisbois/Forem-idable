@@ -61,7 +61,11 @@ fonctionnelle, fondé sur le **consentement** de la personne :
   transmise pour calculer les « nouveautés » ;
 - **Droit de retrait** : lien de désinscription en un clic dans chaque email,
   sans authentification, avec un token dédié ; l'alerte passe en inactif
-  immédiatement ;
+  immédiatement. La page `/account#alertes` permet en plus de mettre une alerte
+  en pause ou de supprimer toutes les alertes ;
+- **Un seul email par jour et par personne**, quel que soit le nombre d'alertes
+  (elles sont regroupées en sections) : limitation du volume d'envoi et du
+  quota ;
 - **Effacement** : supprimer une alerte supprime ses données, supprimer le
   compte les supprime en cascade ; aucune copie n'est conservée ;
 - **Information** : chaque email rappelle la raison de l'envoi, le responsable de

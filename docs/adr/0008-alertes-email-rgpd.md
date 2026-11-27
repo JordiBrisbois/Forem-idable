@@ -34,11 +34,18 @@ Règles :
 
 - **Opt-in explicite** : l'API refuse un corps sans `consent: true`, et la ligne
   conserve `consent_at`. Maximum 5 alertes par compte (protection du quota).
-- **Un email par jour au maximum**, et seulement s'il existe des offres
-  ingérées depuis le dernier envoi (`first_seen_at > last_sent_at`). Une alerte
-  sans nouveauté n'est pas marquée comme envoyée, elle reste silencieuse.
+- **Un seul email par personne et par jour**, même avec plusieurs alertes : les
+  alertes sont regroupées en sections, une par recherche. C'est ce qui protège
+  le quota Resend (100 emails/jour) et la boîte de réception. Envoi uniquement
+  s'il existe des offres ingérées depuis le dernier envoi
+  (`first_seen_at > last_sent_at`) ; une alerte sans nouveauté n'est pas marquée
+  comme envoyée et reste silencieuse.
 - **Désinscription en un clic**, sans session : le token est la capacité
-  (`/api/alerts/unsubscribe?token=…`), l'action est idempotente.
+  (`/api/alerts/unsubscribe?token=…`), l'action est idempotente. Chaque email
+  porte un lien par alerte **et** un lien « gérer toutes mes alertes ».
+- **Gestion dans le compte** : la section `#alertes` de `/account` liste les
+  alertes, permet de mettre en pause une alerte et de tout supprimer
+  (« me désinscrire de tout »).
 - **RGPD** : le message indique la raison de l'envoi, le responsable de
   traitement et le contact ; supprimer l'alerte supprime les données, et la
   suppression du compte les supprime en cascade.
@@ -61,7 +68,7 @@ Règles :
 jours, le coût d'envoi reste borné, et la conformité est vérifiable (consentement
 horodaté, retrait en un clic, mentions obligatoires).
 
-**Négatives / assumées** : un email par alerte et par jour, donc pas de
+**Négatives / assumées** : un email par personne et par jour, donc pas de
 fréquence « instantanée » ; le digest dépend de la fraîcheur du miroir (12 h par
 défaut) ; Resend reste un dépendance externe, et l'absence de clé désactive
 proprement l'envoi (log `digest_skipped`).

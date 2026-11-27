@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { UserRound } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
 import { AccountAccessPrompt } from "@/components/auth/AccountAccessPrompt";
+import { runtimeConfig } from "@/config/runtime";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { usePasswordForm } from "./hooks/usePasswordForm";
 import { useDataExports } from "./hooks/useDataExports";
 import { useAccountDeletion } from "./hooks/useAccountDeletion";
 import { AccountDeletionSection } from "./components/AccountDeletionSection";
+import { JobAlertsSection } from "./components/JobAlertsSection";
 import { ApiKeysSection } from "./components/ApiKeysSection";
 import { DataExportSection } from "./components/DataExportSection";
 import { PasswordSection } from "./components/PasswordSection";
@@ -193,6 +195,8 @@ export default function AccountPage() {
             />
           </CardContent>
         </Card>
+
+        {runtimeConfig.features.jobSearch ? <JobAlertsSection enabled={Boolean(user)} /> : null}
 
         {canManageApiKeys ? (
           <ApiKeysSection

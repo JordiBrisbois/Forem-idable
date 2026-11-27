@@ -58,8 +58,9 @@ Les captures sont générées depuis l'instance déployée avec
   **secteur** et **langue**, tri par date ou pertinence, pagination serveur, recherche
   **autour d'un lieu** (le lieu déjà saisi, sinon la position du navigateur), recherche
   partageable par URL.
-- **Alertes email** : une recherche enregistrée peut envoyer **un email par jour** avec les
-  nouvelles offres (opt-in, désinscription en un clic, RGPD — voir [COMPLIANCE.md](COMPLIANCE.md)).
+- **Alertes email** : une recherche enregistrée peut envoyer **un seul email par jour**, toutes
+  alertes regroupées (opt-in, désinscription en un clic ou en bloc depuis `/account`, RGPD —
+  voir [COMPLIANCE.md](COMPLIANCE.md)).
 - **API externe** : endpoints JSON/CSV pour reporting (coach/admin).
 
 ## Préparation d'une instance

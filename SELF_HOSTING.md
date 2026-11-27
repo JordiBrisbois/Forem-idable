@@ -149,14 +149,16 @@ node scripts/reset-demo.mjs
 
 ## 9. Alertes email (recherches enregistrées)
 
-Un utilisateur connecté peut enregistrer une recherche et recevoir **un email
-par jour** listant les offres parues depuis l'envoi précédent. Le digest est
-calculé à partir du miroir local (`first_seen_at`), donc sans appel
-supplémentaire à ODWB.
+Un utilisateur connecté peut enregistrer une recherche et recevoir **un seul
+email par jour**, quel que soit le nombre d'alertes : elles sont regroupées en
+sections, une par recherche, avec un lien de désinscription sur chacune. Le
+digest est calculé à partir du miroir local (`first_seen_at`), donc sans appel
+supplémentaire à ODWB. La page `/account#alertes` permet de mettre une alerte en
+pause ou de tout supprimer.
 
 Prérequis : `RESEND_API_KEY` (et idéalement un domaine vérifié dans Resend pour
 `RESEND_FROM_EMAIL`). L'offre gratuite de Resend plafonne à **100 emails/jour** :
-avec quelques testeurs, un envoi quotidien par alerte reste très en dessous.
+avec quelques testeurs, un envoi quotidien par personne reste très en dessous.
 `JOB_ALERTS_ENABLED=0` désactive le worker, et l'heure d'envoi se règle avec
 `JOB_ALERTS_UTC_HOUR` (8 par défaut).
 
