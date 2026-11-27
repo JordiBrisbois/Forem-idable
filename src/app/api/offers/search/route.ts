@@ -26,6 +26,13 @@ const searchBodySchema = z.object({
   sectors: z.array(z.string().min(1).max(120)).max(5).optional(),
   languages: z.array(z.string().min(1).max(40)).max(5).optional(),
   sort: z.enum(["date", "relevance"]).optional(),
+  near: z
+    .object({
+      lat: z.number().min(-90).max(90),
+      lon: z.number().min(-180).max(180),
+      radiusKm: z.number().min(1).max(200),
+    })
+    .optional(),
   goal: z.enum(["job", "internship"]).optional(),
   limit: z.number().int().min(1).max(MAX_RESULTS_PER_PAGE).optional(),
   offset: z.number().int().min(0).max(MAX_OFFSET).optional(),
@@ -75,6 +82,7 @@ export async function POST(request: Request) {
       sectors: parsed.data.sectors,
       languages: parsed.data.languages,
       sort: parsed.data.sort,
+      near: parsed.data.near,
       goal: parsed.data.goal,
       limit: parsed.data.limit ?? MAX_RESULTS_PER_PAGE,
       offset: parsed.data.offset ?? 0,

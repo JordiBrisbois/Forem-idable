@@ -27,6 +27,8 @@ export interface OfferSearchCriteria {
   sort?: "date" | "relevance";
   /** Only offers ingested after this instant (used by the alert digest). */
   firstSeenAfter?: Date;
+  /** Distance sort/filter around a point (browser geolocation). */
+  near?: { lat: number; lon: number; radiusKm: number };
   /** Beneficiary preference: stages lead when searching for an internship. */
   goal?: "job" | "internship";
   limit: number;
@@ -187,6 +189,10 @@ export function buildOfferFilters(criteria: OfferSearchCriteria): SQL | undefine
     );
   }
 
+  if (criteria.near) {
+    clauses.push(nearCondition(criteria.near));
+  }
+
   if (criteria.firstSeenAfter) {
     clauses.push(sql`${foremOffers.firstSeenAt} > ${criteria.firstSeenAfter}`);
   }
@@ -209,4 +215,19 @@ export function buildOfferFilters(criteria: OfferSearchCriteria): SQL | undefine
 
   if (clauses.length === 0) return undefined;
   return and(...clauses) as SQL;
+}
+
+/** Haversine distance in kilometres between the offer and the given point. */
+export function distanceKmSql(lat: number, lon: number) {
+  return sql`(6371 * acos(least(1, greatest(-1,
+    sin(radians(${lat})) * sin(radians(${foremOffers.latitude}))
+    + cos(radians(${lat})) * cos(radians(${foremOffers.latitude}))
+      * cos(radians(${foremOffers.longitude} - ${lon}))
+  ))))`;
+}
+
+/** Restricts to offers with coordinates inside the requested radius. */
+export function nearCondition(near: { lat: number; lon: number; radiusKm: number }): SQL {
+  return sql`${foremOffers.latitude} IS NOT NULL AND ${foremOffers.longitude} IS NOT NULL
+    AND ${distanceKmSql(near.lat, near.lon)} <= ${near.radiusKm}`;
 }

@@ -153,6 +153,7 @@ export function toJob(row: {
   publicationDate: Date | null;
   url: string;
   metier: string | null;
+  distanceKm?: number | null;
 }): Job {
   return {
     id: row.offerId,
@@ -164,6 +165,7 @@ export function toJob(row: {
     publicationDate: (row.publicationDate ?? new Date()).toISOString(),
     url: row.url,
     description: row.metier ?? "",
+    distanceKm: row.distanceKm === null || row.distanceKm === undefined ? undefined : row.distanceKm,
     source: "forem",
     pdfUrl: undefined,
   };

@@ -1,7 +1,7 @@
 import type { ContractType } from "@/lib/contractType";
 import type { LocationEntry } from "@/services/location/locationCache";
 import type { SearchGoal } from "@/types/preferences";
-import type { SearchSort } from "@/types/search";
+import type { NearPoint, SearchSort } from "@/types/search";
 
 /**
  * Provider-agnostic search input. Each provider translates it into its own
@@ -19,4 +19,5 @@ export interface JobSearchParams {
   sectors?: string[];
   languages?: string[];
   sort?: SearchSort;
+  near?: NearPoint;
 }

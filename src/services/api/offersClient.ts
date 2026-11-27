@@ -36,6 +36,7 @@ export async function searchOffers(params: JobSearchParams): Promise<OffersSearc
         sectors: params.sectors,
         languages: params.languages,
         sort: params.sort,
+        near: params.near,
         goal: params.goal,
         limit: params.limit,
         offset: params.offset,

@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Filter, RotateCcw } from "lucide-react";
+import { toast } from "sonner";
+import { Filter, LocateFixed, RotateCcw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -17,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { useOfferFacets, type OfferFacetValue } from "@/features/jobs/hooks/useOfferFacets";
 import { formatFreshness, useMirrorStatus } from "@/features/jobs/hooks/useMirrorStatus";
-import type { SearchFilters, SearchSort } from "@/types/search";
+import type { NearPoint, SearchFilters, SearchSort } from "@/types/search";
 
 interface SearchFiltersBarProps {
   sort: SearchSort;
@@ -26,6 +27,8 @@ interface SearchFiltersBarProps {
   onFiltersChange: (filters: SearchFilters) => void;
   hasKeywords: boolean;
   disabled?: boolean;
+  near?: NearPoint;
+  onNearChange?: (near: NearPoint | undefined) => void;
 }
 
 function toggleValue(values: string[], value: string): string[] {
@@ -85,6 +88,8 @@ export function SearchFiltersBar({
   onFiltersChange,
   hasKeywords,
   disabled = false,
+  near,
+  onNearChange,
 }: SearchFiltersBarProps) {
   const { facets, isLoading } = useOfferFacets();
   const mirror = useMirrorStatus();
@@ -100,6 +105,28 @@ export function SearchFiltersBar({
     ],
     []
   );
+
+  const locate = () => {
+    if (near) {
+      onNearChange?.(undefined);
+      return;
+    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      toast.error("La géolocalisation n'est pas disponible sur cet appareil.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        onNearChange?.({
+          lat: position.coords.latitude,
+          lon: position.coords.longitude,
+          radiusKm: 25,
+        }),
+      () => toast.error("Position indisponible. Autorisez la géolocalisation pour trier par distance."),
+      { timeout: 8000 }
+    );
+  };
 
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -131,6 +158,37 @@ export function SearchFiltersBar({
           ))}
         </SelectContent>
       </Select>
+
+      <Button
+        variant={near ? "secondary" : "outline"}
+        size="sm"
+        className="h-9 rounded-full"
+        onClick={locate}
+        disabled={disabled || !onNearChange}
+        aria-pressed={Boolean(near)}
+      >
+        <LocateFixed data-icon="inline-start" />
+        Autour de moi
+      </Button>
+
+      {near ? (
+        <Select
+          value={String(near.radiusKm)}
+          onValueChange={(value) => onNearChange?.({ ...near, radiusKm: Number(value) })}
+          disabled={disabled}
+        >
+          <SelectTrigger className="h-9 w-[110px] rounded-full" aria-label="Rayon de recherche">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[10, 25, 50, 100].map((radius) => (
+              <SelectItem key={radius} value={String(radius)}>
+                {radius} km
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      ) : null}
 
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>

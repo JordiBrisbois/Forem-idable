@@ -3,7 +3,7 @@ import type { ContractType } from "@/lib/contractType";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { foremOffers, foremOffersSyncState } from "@/lib/server/schema";
 import type { Job } from "@/types/job";
-import { buildOfferFilters, type OfferSearchCriteria } from "./filters";
+import { buildOfferFilters, distanceKmSql, type OfferSearchCriteria } from "./filters";
 import { toJob, type NormalizedOffer } from "./normalize";
 
 const SYNC_STATE_ID = "forem-offers";
@@ -38,6 +38,9 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
       publicationDate: foremOffers.publicationDate,
       url: foremOffers.url,
       metier: foremOffers.metier,
+      distanceKm: criteria.near
+        ? distanceKmSql(criteria.near.lat, criteria.near.lon)
+        : sql<number | null>`NULL`,
     })
     .from(foremOffers)
     .where(where)
@@ -51,7 +54,12 @@ export async function searchOffers(criteria: OfferSearchCriteria): Promise<Offer
     .where(where);
 
   return {
-    jobs: rows.map(toJob),
+    jobs: rows.map((row) =>
+      toJob({
+        ...row,
+        distanceKm: row.distanceKm === null ? null : Number(row.distanceKm),
+      })
+    ),
     total: countRow?.total ?? rows.length,
   };
 }
@@ -72,6 +80,10 @@ function orderClauses(criteria: OfferSearchCriteria): SQL[] {
     clauses.push(
       sql`ts_rank(to_tsvector('french', ${foremOffers.searchText}), websearch_to_tsquery('french', ${query})) DESC`
     );
+  }
+
+  if (criteria.near) {
+    clauses.push(distanceKmSql(criteria.near.lat, criteria.near.lon));
   }
 
   if (criteria.goal === "internship") {

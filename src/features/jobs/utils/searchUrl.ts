@@ -106,6 +106,11 @@ export function toSearchParams(query: SearchQuery, view?: SearchView): URLSearch
     if (view.filters.languages.length > 0) {
       params.set("langue", view.filters.languages.join(","));
     }
+    if (view.near) {
+      params.set("lat", String(view.near.lat));
+      params.set("lon", String(view.near.lon));
+      params.set("rayon", String(view.near.radiusKm));
+    }
   }
 
   return params;
@@ -188,11 +193,24 @@ export function parseSearchView(params: SearchParamsLike): SearchView {
     languages: parseList(params.get("langue")),
   };
 
+  const lat = Number(params.get("lat"));
+  const lon = Number(params.get("lon"));
+  const radiusKm = Number(params.get("rayon"));
+  const near =
+    Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    Number.isFinite(radiusKm) &&
+    radiusKm > 0 &&
+    radiusKm <= 200
+      ? { lat, lon, radiusKm }
+      : undefined;
+
   return {
     sort: parseSort(params.get("tri")),
     page: parsePage(params.get("page")),
     pageSize: parsePageSize(params.get("taille")),
     filters,
+    near,
   };
 }
 

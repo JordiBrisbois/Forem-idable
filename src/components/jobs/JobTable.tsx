@@ -182,14 +182,24 @@ export function JobTable({
         header: "Lieu",
         cell: ({ row }) => {
           const location = row.getValue("location") as string;
+          const distance = row.original.distanceKm;
           return (
             <div className="flex items-start gap-2 pt-0.5 text-sm text-foreground">
               <MapPin className="mt-0.5 size-3.5 text-muted-foreground" />
               <span
-                className="max-w-[10ch] truncate"
-                title={location || "Lieu non précisé"}
+                className="max-w-[12ch] truncate"
+                title={
+                  distance !== undefined
+                    ? `${location || "Lieu non précisé"} · à ${Math.round(distance)} km`
+                    : location || "Lieu non précisé"
+                }
               >
                 {location || "Lieu non précisé"}
+                {distance !== undefined ? (
+                  <span className="block text-[11px] text-muted-foreground">
+                    à {Math.round(distance)} km
+                  </span>
+                ) : null}
               </span>
             </div>
           );

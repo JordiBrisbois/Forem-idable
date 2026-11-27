@@ -154,3 +154,13 @@ describe("new filter criteria", () => {
     ).toBeUndefined();
   });
 });
+
+describe("around me", () => {
+  it("compiles a haversine radius condition", () => {
+    const query = compile({ ...emptyCriteria, near: { lat: 50.47, lon: 4.87, radiusKm: 25 } });
+
+    expect(query?.sql).toContain("<= ");
+    expect(query?.sql).toContain("radians");
+    expect(query?.params).toEqual(expect.arrayContaining([50.47, 4.87, 25]));
+  });
+});

@@ -17,6 +17,13 @@ export interface SearchQuery {
 /** Result ordering the user can pick. */
 export type SearchSort = "date" | "relevance";
 
+/** Point used by the round me search. */
+export interface NearPoint {
+  lat: number;
+  lon: number;
+  radiusKm: number;
+}
+
 /** Filters applied on top of the query, from the mirror's own values. */
 export interface SearchFilters {
   /** Published work regime labels ("Temps plein", …). */
@@ -36,6 +43,8 @@ export interface SearchView {
   page: number;
   pageSize: PageSize;
   filters: SearchFilters;
+  /** Set when the visitor asked for offers around their position. */
+  near?: NearPoint;
 }
 
 export const DEFAULT_SEARCH_VIEW: SearchView = {

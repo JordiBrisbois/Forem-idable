@@ -10,5 +10,7 @@ export interface Job {
   url: string;
   description?: string;
   source: 'forem' | 'linkedin' | 'indeed' | 'adzuna';
+  /** Distance to the searched point, when a "around me" search is active. */
+  distanceKm?: number;
   pdfUrl?: string;
 }

@@ -149,6 +149,8 @@ function DashboardPageContent() {
             sort={page.sort}
             filters={page.filters}
             query={page.lastSearchQuery}
+            near={page.near}
+            onNearChange={(nextNear) => void page.setNear(nextNear)}
             selectedJobs={page.selectedJobs}
             selectedJobIds={page.selectedJobIds}
             hasSearched={page.hasSearched}

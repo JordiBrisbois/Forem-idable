@@ -98,3 +98,28 @@ describe("search view in the URL", () => {
     expect(view.pageSize).toBe(15);
   });
 });
+
+describe("around me in the URL", () => {
+  it("round-trips the point and radius", () => {
+    const query: SearchQuery = { keywords: [], locations: [], booleanMode: "OR", goal: "job" };
+    const view: SearchView = {
+      sort: "date",
+      page: 1,
+      pageSize: 15,
+      filters: { regimes: [], sectors: [], languages: [] },
+      near: { lat: 50.47, lon: 4.87, radiusKm: 25 },
+    };
+
+    const path = toSearchPath("/", query, view);
+    const params = new URLSearchParams(path.split("?")[1]);
+
+    expect(params.get("lat")).toBe("50.47");
+    expect(params.get("rayon")).toBe("25");
+  });
+
+  it("ignores an out-of-range radius", () => {
+    const view = parseSearchView(new URLSearchParams("lat=50&lon=4&rayon=999"));
+
+    expect(view.near).toBeUndefined();
+  });
+});

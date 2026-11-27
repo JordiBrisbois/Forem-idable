@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Job } from "@/types/job";
-import { DEFAULT_SEARCH_VIEW, PageSize, SearchFilters, SearchQuery, SearchSort, SearchView } from "@/types/search";
+import { DEFAULT_SEARCH_VIEW, NearPoint, PageSize, SearchFilters, SearchQuery, SearchSort, SearchView } from "@/types/search";
 import { jobService } from "@/services/jobs/jobService";
 import { OffersUnavailableError } from "@/services/api/offersClient";
 import { useSearchHistory } from "@/hooks/useSearchHistory";
@@ -67,6 +67,7 @@ export function useJobSearch() {
         sectors: nextView.filters.sectors,
         languages: nextView.filters.languages,
         sort: nextView.sort,
+        near: nextView.near,
         limit: nextView.pageSize,
         offset: (nextView.page - 1) * nextView.pageSize,
       });
@@ -109,6 +110,7 @@ export function useJobSearch() {
         view: options?.view ?? {
           ...DEFAULT_SEARCH_VIEW,
           filters: view.filters,
+    near: view.near,
         },
       };
       requestRef.current = request;
@@ -156,6 +158,10 @@ export function useJobSearch() {
     (filters: SearchFilters) => void applyView({ filters }),
     [applyView]
   );
+  const setNear = useCallback(
+    (near: NearPoint | undefined) => void applyView({ near }),
+    [applyView]
+  );
 
   return {
     jobs,
@@ -164,6 +170,7 @@ export function useJobSearch() {
     pageSize: view.pageSize,
     sort: view.sort,
     filters: view.filters,
+    near: view.near,
     isSearching,
     searchError,
     searchSessionId,
@@ -174,6 +181,7 @@ export function useJobSearch() {
     setSort,
     setPageSize,
     setFilters,
+    setNear,
     history,
     clearHistory,
     isHistoryLoaded,

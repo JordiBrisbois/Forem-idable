@@ -1,7 +1,7 @@
 "use client";
 
 import { Job } from "@/types/job";
-import type { SearchFilters, SearchQuery, SearchSort } from "@/types/search";
+import type { NearPoint, SearchFilters, SearchQuery, SearchSort } from "@/types/search";
 import { JobTable } from "@/components/jobs/JobTable";
 import { ForemDataAttribution } from "@/features/jobs/components/ForemDataAttribution";
 import { ResultsToolbar } from "@/features/jobs/components/ResultsToolbar";
@@ -17,6 +17,8 @@ interface HomeSearchResultsSectionProps {
   sort: SearchSort;
   filters: SearchFilters;
   query: SearchQuery | null;
+  near?: NearPoint;
+  onNearChange?: (near: NearPoint | undefined) => void;
   selectedJobs: Job[];
   selectedJobIds: Set<string>;
   hasSearched: boolean;
@@ -51,6 +53,8 @@ export function HomeSearchResultsSection({
   sort,
   filters,
   query,
+  near,
+  onNearChange,
   selectedJobs,
   selectedJobIds,
   hasSearched,
@@ -110,6 +114,8 @@ export function HomeSearchResultsSection({
             onFiltersChange={onFiltersChange}
             hasKeywords={hasKeywords}
             disabled={isSearching}
+            near={near}
+            onNearChange={onNearChange}
           />
           <div className="flex flex-wrap items-center gap-2">
             <JobAlertDialog
