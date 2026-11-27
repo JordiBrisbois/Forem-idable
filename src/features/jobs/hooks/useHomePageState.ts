@@ -86,10 +86,13 @@ export function useHomePageState() {
   }, []);
 
   useEffect(() => {
+    // Wait for the params to be available: on the first client render
+    // `useSearchParams` can still be empty, and arming the guard before that
+    // meant a shared search URL never ran (the empty state was shown instead).
     if (hasAppliedInitialUrlQuery.current) return;
-    hasAppliedInitialUrlQuery.current = true;
-
     if (!urlQuery) return;
+
+    hasAppliedInitialUrlQuery.current = true;
 
     void jobSearch.executeSearch(urlQuery, {
       persistInHistory: false,
