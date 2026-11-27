@@ -100,26 +100,6 @@ export function useHomePageState() {
     });
   }, [jobSearch, urlQuery, location.view]);
 
-  // Keep the URL in step with the view (page, sort, filters) so a copied link
-  // reproduces the exact screen the user is looking at.
-  useEffect(() => {
-    if (!jobSearch.lastSearchQuery || !jobSearch.hasSearched) return;
-
-    const nextPath = toSearchPath(pathname, jobSearch.lastSearchQuery, currentView);
-    if (lastSyncedUrl.current === nextPath) return;
-    lastSyncedUrl.current = nextPath;
-    router.replace(nextPath, { scroll: false });
-  }, [
-    jobSearch.lastSearchQuery,
-    jobSearch.hasSearched,
-    jobSearch.page,
-    jobSearch.pageSize,
-    jobSearch.sort,
-    jobSearch.filters,
-    pathname,
-    router,
-  ]);
-
   const handleSearch = async (state: SearchQuery) => {
     selection.resetSelection();
     updateUrlFromQuery(state);
@@ -150,11 +130,59 @@ export function useHomePageState() {
     setIsDetailsOpen(true);
   };
 
+  /**
+   * Applies a view change (page, sort, filters, location) and writes it to the
+   * URL in one place, so a copied link reproduces the exact screen without an
+   * effect that could race the initial-URL restore.
+   */
+  const applyView = (
+    patch: Partial<Omit<SearchView, "filters">> & {
+      filters?: typeof jobSearch.filters;
+      near?: SearchView["near"];
+    }
+  ) => {
+    if (!jobSearch.lastSearchQuery) return;
+
+    const nextView: SearchView = {
+      sort: patch.sort ?? jobSearch.sort,
+      page: patch.page ?? jobSearch.page,
+      pageSize: patch.pageSize ?? jobSearch.pageSize,
+      filters: patch.filters ?? jobSearch.filters,
+      near: "near" in patch ? patch.near : jobSearch.near,
+    };
+    updateUrlFromQuery(jobSearch.lastSearchQuery, nextView);
+  };
+
   const runFeaturedSearch = async (featuredSearch: FeaturedSearch) => {
     const query = featuredSearch.query;
     selection.resetSelection();
     updateUrlFromQuery(query);
     await jobSearch.executeSearch(query);
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    applyView({ page: nextPage });
+    void jobSearch.goToPage(nextPage);
+  };
+
+  const handlePageSizeChange = (nextPageSize: SearchView["pageSize"]) => {
+    applyView({ pageSize: nextPageSize });
+    void jobSearch.setPageSize(nextPageSize);
+  };
+
+  const handleSortChange = (nextSort: SearchView["sort"]) => {
+    applyView({ sort: nextSort });
+    void jobSearch.setSort(nextSort);
+  };
+
+  const handleFiltersChange = (nextFilters: SearchView["filters"]) => {
+    applyView({ filters: nextFilters });
+    void jobSearch.setFilters(nextFilters);
+  };
+
+  const handleNearChange = (nextNear: SearchView["near"]) => {
+    applyView({ near: nextNear });
+    void jobSearch.setNear(nextNear);
   };
 
   return {
@@ -177,6 +205,11 @@ export function useHomePageState() {
     setIsAuthRequiredOpen,
     handleSearch,
     handleCopySearchLink,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSortChange,
+    handleFiltersChange,
+    handleNearChange,
     requestAuthForApplications,
     replayPendingApplications,
     updateUrlFromQuery,

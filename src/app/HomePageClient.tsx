@@ -150,7 +150,7 @@ function DashboardPageContent() {
             filters={page.filters}
             query={page.lastSearchQuery}
             near={page.near}
-            onNearChange={(nextNear) => void page.setNear(nextNear)}
+            onNearChange={page.handleNearChange}
             selectedJobs={page.selectedJobs}
             selectedJobIds={page.selectedJobIds}
             hasSearched={page.hasSearched}
@@ -161,10 +161,10 @@ function DashboardPageContent() {
             canCopySearchLink={Boolean(page.lastSearchQuery)}
             hasKeywords={(page.lastSearchQuery?.keywords.length ?? 0) > 0}
             isApplied={page.isApplied}
-            onPageChange={(nextPage) => void page.goToPage(nextPage)}
-            onPageSizeChange={(size) => void page.setPageSize(size as PageSize)}
-            onSortChange={(nextSort) => void page.setSort(nextSort)}
-            onFiltersChange={(nextFilters) => void page.setFilters(nextFilters)}
+            onPageChange={page.handlePageChange}
+            onPageSizeChange={(size) => page.handlePageSizeChange(size as PageSize)}
+            onSortChange={page.handleSortChange}
+            onFiltersChange={page.handleFiltersChange}
             onOpenDetails={page.openJobDetails}
             onToggleSelection={page.toggleSelection}
             onResetSelection={page.resetSelection}
