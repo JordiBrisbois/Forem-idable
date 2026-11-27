@@ -1,4 +1,4 @@
-import { desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, desc, eq, or, sql, type SQL } from "drizzle-orm";
 import type { ContractType } from "@/lib/contractType";
 import { ensureDatabase, orm } from "@/lib/server/db";
 import { foremOffers, foremOffersSyncState } from "@/lib/server/schema";
@@ -396,4 +396,53 @@ export async function countOffersFirstSeenSince(since: Date): Promise<number> {
     .from(foremOffers)
     .where(sql`${foremOffers.firstSeenAt} > ${since}`);
   return row?.total ?? 0;
+}
+
+export interface LocationCentroid {
+  lat: number;
+  lon: number;
+  offers: number;
+}
+
+/**
+ * Average position of the mirrored offers in a place.
+ *
+ * Used by "around me" when the visitor already typed a location: centring on
+ * the place they asked for is what they mean, and it needs no geocoding service
+ * (the coordinates come from the offers themselves).
+ */
+export async function getLocationCentroid(input: {
+  postalCode?: string;
+  name?: string;
+}): Promise<LocationCentroid | null> {
+  const conditions = [];
+
+  if (input.postalCode) {
+    conditions.push(sql`${foremOffers.postalCodes} && ARRAY[${input.postalCode}]::text[]`);
+  }
+  if (input.name) {
+    conditions.push(sql`${foremOffers.locationLabel} ILIKE ${input.name}`);
+  }
+
+  if (conditions.length === 0) return null;
+
+  const db = await database();
+  const [row] = await db
+    .select({
+      lat: sql<number | null>`avg(${foremOffers.latitude})`,
+      lon: sql<number | null>`avg(${foremOffers.longitude})`,
+      offers: sql<number>`count(*)::int`,
+    })
+    .from(foremOffers)
+    .where(
+      and(
+        or(...conditions),
+        sql`${foremOffers.latitude} IS NOT NULL`,
+        sql`${foremOffers.longitude} IS NOT NULL`
+      )
+    );
+
+  if (!row || !row.lat || !row.lon || row.offers === 0) return null;
+
+  return { lat: Number(row.lat), lon: Number(row.lon), offers: row.offers };
 }

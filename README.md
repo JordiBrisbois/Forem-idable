@@ -56,6 +56,7 @@ Les captures sont générées depuis l'instance déployée avec
 - **Recherche d'offres** (optionnelle) : module activable via `FEATURE_JOB_SEARCH`, miroir local
   du jeu Forem (recherche servie par PostgreSQL), filtres par **type de contrat**, **régime**,
   **secteur** et **langue**, tri par date ou pertinence, pagination serveur, recherche
+  **autour d'un lieu** (le lieu déjà saisi, sinon la position du navigateur), recherche
   partageable par URL.
 - **Alertes email** : une recherche enregistrée peut envoyer **un email par jour** avec les
   nouvelles offres (opt-in, désinscription en un clic, RGPD — voir [COMPLIANCE.md](COMPLIANCE.md)).

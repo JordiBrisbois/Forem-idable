@@ -116,6 +116,7 @@ export function HomeSearchResultsSection({
             disabled={isSearching}
             near={near}
             onNearChange={onNearChange}
+            locations={query?.locations}
           />
           <div className="flex flex-wrap items-center gap-2">
             <JobAlertDialog

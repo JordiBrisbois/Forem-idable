@@ -4,6 +4,7 @@ import { normalizeOffer, type NormalizedOffer } from "./offers/normalize";
 import {
   countOffers,
   countOffersByContractType,
+  getLocationCentroid,
   getOfferFacets,
   deleteOffersSyncedBefore,
   getOfferJob,
@@ -278,5 +279,65 @@ describeWithDatabase("offers search refinements (integration)", () => {
     expect(facets.regimes).toEqual([{ value: "Temps plein", count: 2 }]);
     expect(facets.sectors).toEqual([{ value: "informatique", count: 2 }]);
     expect(facets.languages).toEqual([{ value: "francais", count: 2 }]);
+  });
+});
+
+describeWithDatabase("location centroid (integration)", () => {
+  beforeEach(async () => {
+    await resetDatabase();
+  });
+
+  it("averages the offers of a postal code", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "1", title: "Namur 1", localities: ["Namur"], postalCodes: ["5000"] }),
+        offer({ id: "2", title: "Namur 2", localities: ["Namur"], postalCodes: ["5000"] }),
+        offer({ id: "3", title: "Liège", localities: ["Liège"], postalCodes: ["4000"] }),
+      ],
+      syncedAt
+    );
+
+    const db = (await import("@/lib/server/db")).db;
+    await db.query(
+      `UPDATE forem_offers SET latitude = 50.46, longitude = 4.86 WHERE offer_id = '1'`
+    );
+    await db.query(
+      `UPDATE forem_offers SET latitude = 50.48, longitude = 4.88 WHERE offer_id = '2'`
+    );
+    await db.query(
+      `UPDATE forem_offers SET latitude = 50.63, longitude = 5.57 WHERE offer_id = '3'`
+    );
+
+    const centroid = await getLocationCentroid({ postalCode: "5000" });
+
+    expect(centroid?.offers).toBe(2);
+    expect(centroid?.lat).toBeCloseTo(50.47, 2);
+    expect(centroid?.lon).toBeCloseTo(4.87, 2);
+  });
+
+  it("finds a place by name and ignores offers without coordinates", async () => {
+    await upsertOffers(
+      [
+        offer({ id: "1", title: "Namur", localities: ["Namur"], postalCodes: ["5000"] }),
+        offer({ id: "2", title: "Namur sans geo", localities: ["Namur"], postalCodes: ["5001"] }),
+      ],
+      syncedAt
+    );
+
+    const db = (await import("@/lib/server/db")).db;
+    await db.query(
+      `UPDATE forem_offers SET latitude = 50.46, longitude = 4.86 WHERE offer_id = '1'`
+    );
+
+    const centroid = await getLocationCentroid({ name: "Namur" });
+
+    expect(centroid).toMatchObject({ offers: 1 });
+    expect(centroid?.lat).toBeCloseTo(50.46, 2);
+  });
+
+  it("returns null when no offer matches", async () => {
+    await upsertOffers([offer({ id: "1", localities: ["Namur"], postalCodes: ["5000"] })], syncedAt);
+
+    expect(await getLocationCentroid({ postalCode: "9999" })).toBeNull();
   });
 });
