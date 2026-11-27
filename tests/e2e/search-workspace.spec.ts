@@ -33,6 +33,11 @@ test("shows the search workspace and a collapsed recent history for authenticate
 test("shares an offer in direct message from the search table", async ({ page }) => {
   let sharedPayload: { targetUserId: number; content: string } | null = null;
 
+  page.on("console", (message) => {
+    if (message.type() === "error") console.log("[browser error]", message.text());
+  });
+  page.on("pageerror", (error) => console.log("[pageerror]", error.message));
+
   await mockSearchWorkspace(page);
 
   await page.route("**/api/messages/conversations", async (route: Route) => {
