@@ -17,19 +17,19 @@ test.describe("search against the local mirror", () => {
     await page.goto("/?kw=E2E&bm=OR&goal=job");
 
     await expect(page.getByText("40 offres trouvées")).toBeVisible();
-    await expect(page.getByText("E2E Offre 40").first()).toBeVisible();
+    await expect(page.locator("tbody").getByText("E2E Offre 40").first()).toBeVisible();
     await expect(page.getByText(/1-15 sur 40 offres/)).toBeVisible();
 
     await page.getByRole("button", { name: "2", exact: true }).click();
 
     // Page 2 starts at the 16th row, i.e. offer 25 in descending order.
-    await expect(page.getByText("E2E Offre 25").first()).toBeVisible();
+    await expect(page.locator("tbody").getByText("E2E Offre 25").first()).toBeVisible();
     await expect(page.getByText(/16-30 sur 40 offres/)).toBeVisible();
   });
 
   test("filters by work regime from the mirror facets", async ({ page }) => {
     await page.goto("/?kw=E2E&bm=OR&goal=job");
-    await expect(page.getByText("E2E Offre 40").first()).toBeVisible();
+    await expect(page.locator("tbody").getByText("E2E Offre 40").first()).toBeVisible();
 
     await page.getByRole("button", { name: /filtres/i }).click();
     await page.getByLabel("Temps plein").check();
@@ -37,13 +37,13 @@ test.describe("search against the local mirror", () => {
 
     // Full-time offers are the odd numbers: 20 of them, newest is 39.
     await expect(page.getByText("20 offres trouvées")).toBeVisible();
-    await expect(page.getByText("E2E Offre 39").first()).toBeVisible();
-    await expect(page.getByText("E2E Offre 40")).toHaveCount(0);
+    await expect(page.locator("tbody").getByText("E2E Offre 39").first()).toBeVisible();
+    await expect(page.locator("tbody").getByText("E2E Offre 40")).toHaveCount(0);
   });
 
   test("keeps the page in the URL so a copied search reproduces it", async ({ page }) => {
     await page.goto("/?kw=E2E&bm=OR&goal=job");
-    await expect(page.getByText("E2E Offre 40").first()).toBeVisible();
+    await expect(page.locator("tbody").getByText("E2E Offre 40").first()).toBeVisible();
 
     await page.getByRole("button", { name: "2", exact: true }).click();
     await expect(page).toHaveURL(/page=2/);
