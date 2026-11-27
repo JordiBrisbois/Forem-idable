@@ -37,6 +37,12 @@ test("shares an offer in direct message from the search table", async ({ page })
     if (message.type() === "error") console.log("[browser error]", message.text());
   });
   page.on("pageerror", (error) => console.log("[pageerror]", error.message));
+  page.on("response", (response) => {
+    if (response.status() === 429) console.log("[429]", response.url());
+  });
+  page.on("requestfailed", (request) =>
+    console.log("[requestfailed]", request.url(), request.failure()?.errorText)
+  );
 
   await mockSearchWorkspace(page);
 
