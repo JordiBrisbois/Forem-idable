@@ -73,8 +73,10 @@ export function useApplications() {
   }, []);
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    void refresh();
+    void (async () => {
+      if (isAuthLoading) return;
+      await refresh();
+    })();
   }, [isAuthLoading, refresh]);
 
   const createApplication = useCallback(

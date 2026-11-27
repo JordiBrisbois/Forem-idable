@@ -30,8 +30,8 @@ const foremJobs = [
   },
 ] as unknown as Job[];
 
-const foremSearch = vi.fn(async (_params?: unknown) => ({ jobs: foremJobs, total: 42 }));
-const adzunaSearch = vi.fn(async (_params?: unknown) => ({
+const foremSearch = vi.fn(async () => ({ jobs: foremJobs, total: 42 }));
+const adzunaSearch = vi.fn(async () => ({
   jobs: [
     {
       id: "adzuna-1",
@@ -49,11 +49,11 @@ const adzunaSearch = vi.fn(async (_params?: unknown) => ({
 }));
 
 vi.mock("./providers/foremProvider", () => ({
-  foremProvider: { id: "forem", search: (params: unknown) => foremSearch(params as never) },
+  foremProvider: { id: "forem", search: () => foremSearch() },
 }));
 
 vi.mock("./providers/adzunaProvider", () => ({
-  adzunaProvider: { id: "adzuna", search: (params: unknown) => adzunaSearch(params as never) },
+  adzunaProvider: { id: "adzuna", search: () => adzunaSearch() },
 }));
 
 import { jobService } from "./jobService";

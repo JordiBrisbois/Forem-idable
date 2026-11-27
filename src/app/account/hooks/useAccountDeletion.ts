@@ -31,11 +31,13 @@ export function useAccountDeletion() {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setRequests([]);
-      return;
-    }
-    void load();
+    void (async () => {
+      if (!user) {
+        setRequests([]);
+        return;
+      }
+      await load();
+    })();
   }, [user, load]);
 
   const submit = useCallback(async (reason: string) => {

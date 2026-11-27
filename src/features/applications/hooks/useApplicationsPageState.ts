@@ -97,15 +97,18 @@ export function useApplicationsPageState() {
     const location = params.get("location");
 
     if (company || url || location) {
-      setManualForm((prev) => ({
-        ...prev,
-        company: company ?? prev.company,
-        url: url ?? prev.url,
-        location: location ?? prev.location,
-      }));
-      dialogs.openCreate();
-      // Clean query params so refresh doesn't reopen the dialog
+      // Clean query params first so a refresh does not reopen the dialog.
       window.history.replaceState({}, "", window.location.pathname);
+
+      void (async () => {
+        setManualForm((prev) => ({
+          ...prev,
+          company: company ?? prev.company,
+          url: url ?? prev.url,
+          location: location ?? prev.location,
+        }));
+        dialogs.openCreate();
+      })();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

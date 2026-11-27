@@ -31,7 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    void refresh();
+    void (async () => {
+      await refresh();
+    })();
   }, []);
 
   return (

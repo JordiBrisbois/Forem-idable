@@ -30,11 +30,13 @@ export function useDataExports() {
   }, []);
 
   useEffect(() => {
-    if (!user) {
-      setRequests([]);
-      return;
-    }
-    void load();
+    void (async () => {
+      if (!user) {
+        setRequests([]);
+        return;
+      }
+      await load();
+    })();
   }, [user, load]);
 
   const generate = useCallback(async () => {

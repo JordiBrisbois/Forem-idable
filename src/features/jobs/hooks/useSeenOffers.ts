@@ -1,27 +1,21 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useMemo } from "react";
+import { createBrowserStore } from "@/lib/browserStore";
 
 const STORAGE_KEY = "forem_idable_seen_offers";
 const MAX_ENTRIES = 500;
 
-function read(): string[] {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? (JSON.parse(raw) as unknown) : [];
-    return Array.isArray(parsed) ? parsed.filter((id): id is string => typeof id === "string") : [];
-  } catch {
-    return [];
-  }
-}
-
-function write(ids: string[]) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids.slice(-MAX_ENTRIES)));
-  } catch {
-    // Private mode / quota: the feature degrades to "nothing seen".
-  }
-}
+const seenStore = createBrowserStore<string[]>({
+  key: STORAGE_KEY,
+  defaultValue: [],
+  parse: (raw) => {
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string")
+      : [];
+  },
+});
 
 /**
  * Offers the visitor already opened, kept locally.
@@ -30,21 +24,19 @@ function write(ids: string[]) {
  * what a visitor looked at.
  */
 export function useSeenOffers() {
-  const [seen, setSeen] = useState<Set<string>>(new Set());
+  const seenIds = seenStore.useValue();
+  const seen = useMemo(() => new Set(seenIds), [seenIds]);
 
-  useEffect(() => {
-    setSeen(new Set(read()));
-  }, []);
-
-  const markSeen = useCallback((offerId: string) => {
-    setSeen((current) => {
-      if (current.has(offerId)) return current;
-      const next = new Set(current);
-      next.add(offerId);
-      write([...next]);
-      return next;
-    });
-  }, []);
+  const markSeen = (offerId: string) => {
+    seenStore.update((current) =>
+      current.includes(offerId) ? current : [...current, offerId].slice(-MAX_ENTRIES)
+    );
+  };
 
   return { seen, markSeen };
+}
+
+/** Test helper: drop the cached snapshot between tests. */
+export function resetSeenOffersForTests() {
+  seenStore.resetForTests();
 }

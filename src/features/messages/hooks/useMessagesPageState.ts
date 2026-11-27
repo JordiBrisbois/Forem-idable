@@ -236,9 +236,12 @@ export function useMessagesPageState() {
     }
 
     const controller = new AbortController();
-    setContactsError(null);
-    setContactQuery("");
-    void loadContacts({ silent: false, signal: controller.signal });
+
+    void (async () => {
+      setContactsError(null);
+      setContactQuery("");
+      await loadContacts({ silent: false, signal: controller.signal });
+    })();
 
     return () => {
       controller.abort();
@@ -270,11 +273,9 @@ export function useMessagesPageState() {
     };
   }, [isMobileConversationOpen]);
 
-  useEffect(() => {
-    if (!selectedConversationId) {
-      setIsMobileConversationOpen(false);
-    }
-  }, [selectedConversationId]);
+  // The mobile conversation panel only exists while a conversation is selected,
+  // so its open flag is derived instead of being reset by an effect.
+  const isMobileConversationVisible = Boolean(selectedConversationId) && isMobileConversationOpen;
 
   return {
     contacts,
@@ -293,7 +294,7 @@ export function useMessagesPageState() {
     isDeletingMessage,
     isDirectDialogOpen,
     isLoading,
-    isMobileConversationOpen,
+    isMobileConversationOpen: isMobileConversationVisible,
     isSending,
     messagePendingDeletion,
     selectedConversation,

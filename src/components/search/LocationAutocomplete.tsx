@@ -190,22 +190,17 @@ function LocationCategoryGroup({
 
     // We keep the collapsible open automatically if there's a search, or if the category is "Localités" (by default open)
     const isDefaultOpen = category === "Localités";
-    const [isOpen, setIsOpen] = React.useState(isDefaultOpen);
-
-    React.useEffect(() => {
-        if (isSearching) {
-            setIsOpen(true);
-        } else {
-            setIsOpen(isDefaultOpen);
-        }
-    }, [isSearching, isDefaultOpen]);
+    // A search opens the group, a cleared search falls back to the default, and
+    // an explicit toggle wins over both: derived state, not an effect.
+    const [userOpen, setUserOpen] = React.useState<boolean | null>(null);
+    const isOpen = userOpen ?? (isSearching || isDefaultOpen);
 
     if (filteredItems.length === 0) return null;
 
     return (
         <Collapsible
             open={isOpen}
-            onOpenChange={setIsOpen}
+            onOpenChange={setUserOpen}
             className="border-b last:border-b-0"
         >
             <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-medium hover:bg-muted text-foreground transition-colors group">

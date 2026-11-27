@@ -41,44 +41,43 @@ export function ShareOfferDialog({
   const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
-    if (!open) {
-      setQuery("");
-      setError(null);
-      return;
-    }
-
     let isMounted = true;
-    setIsLoading(true);
-    setError(null);
 
-    void Promise.all([fetchConversations(), fetchMessageContacts()])
-      .then(([conversationResult, contactsResult]) => {
+    void (async () => {
+      if (!open) {
+        setQuery("");
+        setError(null);
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const [conversationResult, contactsResult] = await Promise.all([
+          fetchConversations(),
+          fetchMessageContacts(),
+        ]);
         if (!isMounted) return;
 
-        const nextConversations = Array.isArray(conversationResult.data?.conversations)
-          ? conversationResult.data.conversations
-          : [];
-        const nextContacts = Array.isArray(contactsResult.data?.contacts)
-          ? contactsResult.data.contacts
-          : [];
-
-        setConversations(nextConversations);
-        setContacts(nextContacts);
+        setConversations(
+          Array.isArray(conversationResult.data?.conversations)
+            ? conversationResult.data.conversations
+            : []
+        );
+        setContacts(
+          Array.isArray(contactsResult.data?.contacts) ? contactsResult.data.contacts : []
+        );
 
         if (!conversationResult.response.ok && !contactsResult.response.ok) {
           setError("Partage indisponible pour le moment.");
         }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setError("Partage indisponible pour le moment.");
-        }
-      })
-      .finally(() => {
-        if (isMounted) {
-          setIsLoading(false);
-        }
-      });
+      } catch {
+        if (isMounted) setError("Partage indisponible pour le moment.");
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    })();
 
     return () => {
       isMounted = false;

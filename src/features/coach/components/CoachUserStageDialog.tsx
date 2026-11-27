@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -42,10 +42,14 @@ export function CoachUserStageDialog({
 }: CoachUserStageDialogProps) {
   const [stage, setStage] = useState<BeneficiaryStage>(currentStage);
   const [reason, setReason] = useState("");
+  const [syncedStage, setSyncedStage] = useState(currentStage);
 
-  useEffect(() => {
+  // Reset local state when the prop changes, during render rather than in an
+  // effect: no extra pass, no flash of the previous stage.
+  if (syncedStage !== currentStage) {
+    setSyncedStage(currentStage);
     setStage(currentStage);
-  }, [currentStage]);
+  }
 
   const handleConfirm = () => {
     onConfirm(stage, reason.trim() || undefined);

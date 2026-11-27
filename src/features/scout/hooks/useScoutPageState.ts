@@ -108,7 +108,9 @@ export function useScoutPageState() {
   }, [activeJob]);
 
   useEffect(() => {
-    loadJobs();
+    void (async () => {
+      await loadJobs();
+    })();
   }, [loadJobs]);
 
   return {

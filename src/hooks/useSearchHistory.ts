@@ -39,8 +39,12 @@ export function useSearchHistory() {
   }, [user]);
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    void refresh();
+    // The load is asynchronous by nature: start it in a task so the effect
+    // itself does not schedule a synchronous state update.
+    void (async () => {
+      if (isAuthLoading) return;
+      await refresh();
+    })();
   }, [isAuthLoading, refresh]);
 
   const addEntry = async (state: SearchQuery) => {

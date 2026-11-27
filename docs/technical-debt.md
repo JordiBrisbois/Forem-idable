@@ -8,33 +8,32 @@ Règle : chaque entrée a un **impact** (ce que ça coûte aujourd'hui) et une
 **sortie** (ce qui permet de la fermer). Quand la sortie est atteinte, l'entrée
 disparaît du fichier en même temps que le code change.
 
-## 1. Avertissements `react-hooks/set-state-in-effect` (17)
+## 1. Avertissements `react-hooks/set-state-in-effect` (fermé)
 
-**Constat.** ESLint signale 17 appels à `setState` synchrones dans un `useEffect`
-(23 avertissements au total avec les derniers écrans, le chiffre de cette ligne
-reste le décompte de cette règle),
+**Constat initial.** 17 appels à `setState` synchrones dans un `useEffect`,
 répartis sur les hooks de chargement (`useApplications`, `useAccountApiKeys`,
-`useSearchHistory`, `AuthProvider`, …) et quelques dialogues qui recopient une
+`useSearchHistory`, `AuthProvider`, …) et quelques dialogues qui recopiaient une
 prop dans l'état local.
 
-**Pourquoi c'est laissé.** Ces hooks chargent leurs données côté client dans un
-effet : c'est le pattern historique du projet, il fonctionne, et le remplacer
-touche l'état de plusieurs pages sans test visuel automatisé. La règle est en
-`warn` (voir `eslint.config.mjs`) pour que la CI reste verte pendant la migration.
+**Traité.** Chaque site a été classé et corrigé par nature :
 
-**Impact.** Aucun en production aujourd'hui. Un rendu en cascade supplémentaire
-par montage, et du bruit dans `npm run lint`.
+| Nature | Correction | Exemples |
+|---|---|---|
+| Store externe (localStorage) | `useSyncExternalStore` via `src/lib/browserStore.ts` | `useSettings`, `useSeenOffers` |
+| Chargement asynchrone | démarré comme une tâche (`void (async () => { … })()`), l'état est posé dans la continuation | `useApplications`, `useSearchHistory`, `useAccountApiKeys`, `AuthProvider`, `useScoutPageState`, `useAdminDashboard`, `useCoachDashboard`, `AdminLegalHoldDialog`, `ShareOfferDialog`, `useAccountDeletion`, `useDataExports`, `useMessagesPageState` |
+| État dérivé d'une prop ou de l'URL | dérivé au rendu (plus d'effet) | `useMessagesPageState` (panneau mobile), `LocationAutocomplete` (ouverture) |
+| Réinitialisation sur changement de prop | ajustement pendant le rendu (pattern React documenté) | `CoachUserStageDialog` |
+| Initialisation depuis l'URL | `history.replaceState` puis tâche, une seule fois | `useApplicationsPageState` |
 
-**Sortie.** Deux chemins, à choisir par écran :
+**Condition de fermeture atteinte** : `npm run lint` ne rapporte plus aucun
+avertissement et `react-hooks/set-state-in-effect`, `react-hooks/refs` et
+`react-hooks/purity` sont passées de `warn` à **`error`** dans
+`eslint.config.mjs`, pour qu'aucune régression ne revienne en silence.
 
-1. extraire un hook `useInitialLoad(load, deps)` qui déclenche le chargement
-   après le montage, avec annulation — les 13 chargements se ramènent alors à
-   une ligne et la règle passe ;
-2. déplacer le chargement côté serveur (composant serveur / route handler) pour
-   les écrans qui n'ont pas besoin de rafraîchissement client.
-
-Une fois les 17 sites traités, passer la règle de `warn` à `error` dans
-`eslint.config.mjs` — c'est la vraie condition de fermeture.
+**Tests.** `src/lib/browserStore.test.ts` (snapshot stable, écriture, événement
+inter-onglets, JSON corrompu), `src/hooks/useSettings.test.tsx` et
+`src/features/jobs/hooks/useSeenOffers.test.tsx` (persistance, déduplication,
+relecture après montage).
 
 ## 2. Couverture des modules de données restants
 

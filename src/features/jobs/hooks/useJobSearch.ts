@@ -110,13 +110,13 @@ export function useJobSearch() {
         view: options?.view ?? {
           ...DEFAULT_SEARCH_VIEW,
           filters: view.filters,
-    near: view.near,
+          near: view.near,
         },
       };
       requestRef.current = request;
       return run(request);
     },
-    [addEntry, run, view.filters]
+    [addEntry, run, view.filters, view.near]
   );
 
   /** Fetches another page of the current search. */

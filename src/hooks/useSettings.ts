@@ -1,44 +1,49 @@
-import { STORAGE_KEYS } from "@/lib/storageKeys";
-import { useState, useEffect } from 'react';
+"use client";
 
-const SETTINGS_KEY = STORAGE_KEYS.settings;
+import { useSyncExternalStore } from "react";
+import { STORAGE_KEYS } from "@/lib/storageKeys";
+import { createBrowserStore } from "@/lib/browserStore";
 
 export interface UserSettings {
-    theme: 'light' | 'dark' | 'system';
-    defaultSearchMode: 'OR' | 'AND';
+  theme: "light" | "dark" | "system";
+  defaultSearchMode: "OR" | "AND";
 }
 
 const defaultSettings: UserSettings = {
-    theme: 'light',
-    defaultSearchMode: 'OR',
+  theme: "light",
+  defaultSearchMode: "OR",
 };
 
+const settingsStore = createBrowserStore<UserSettings>({
+  key: STORAGE_KEYS.settings,
+  defaultValue: defaultSettings,
+  parse: (raw) => ({ ...defaultSettings, ...(JSON.parse(raw) as Partial<UserSettings>) }),
+});
+
+const subscribeToNothing = () => () => {};
+
+/** True once the client has taken over (the server cannot know the settings). */
+function useIsHydrated(): boolean {
+  return useSyncExternalStore(
+    subscribeToNothing,
+    () => true,
+    () => false
+  );
+}
+
+/**
+ * User preferences, read from `localStorage` through an external store.
+ *
+ * The previous version hydrated with a `setState` inside an effect, which caused
+ * an extra render pass on every page and a flash of default settings.
+ */
 export function useSettings() {
-    const [settings, setSettings] = useState<UserSettings>(defaultSettings);
-    const [isLoaded, setIsLoaded] = useState(false);
+  const settings = settingsStore.useValue();
+  const isLoaded = useIsHydrated();
 
-    useEffect(() => {
-        try {
-            const stored = localStorage.getItem(SETTINGS_KEY);
-            if (stored) {
-                setSettings({ ...defaultSettings, ...JSON.parse(stored) });
-            }
-        } catch (e) {
-            console.error('Failed to load settings', e);
-        } finally {
-            setIsLoaded(true);
-        }
-    }, []);
+  const updateSettings = (newSettings: Partial<UserSettings>) => {
+    settingsStore.update((current) => ({ ...current, ...newSettings }));
+  };
 
-    useEffect(() => {
-        if (isLoaded) {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-        }
-    }, [settings, isLoaded]);
-
-    const updateSettings = (newSettings: Partial<UserSettings>) => {
-        setSettings((prev) => ({ ...prev, ...newSettings }));
-    };
-
-    return { settings, updateSettings, isLoaded };
+  return { settings, updateSettings, isLoaded };
 }

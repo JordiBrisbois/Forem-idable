@@ -57,7 +57,9 @@ export function useAccountApiKeys({ enabled }: UseAccountApiKeysOptions) {
   }, [enabled]);
 
   useEffect(() => {
-    void refresh();
+    void (async () => {
+      await refresh();
+    })();
   }, [refresh]);
 
   const createApiKey = useCallback(async (values: ApiKeyFormValues) => {

@@ -46,14 +46,16 @@ export function useAdminDashboard() {
   }, [isAuthorized]);
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    if (!isAuthorized) {
-      setDashboard(null);
-      setIsLoading(false);
-      return;
-    }
+    void (async () => {
+      if (isAuthLoading) return;
+      if (!isAuthorized) {
+        setDashboard(null);
+        setIsLoading(false);
+        return;
+      }
 
-    void loadDashboard();
+      await loadDashboard();
+    })();
   }, [isAuthLoading, isAuthorized, loadDashboard]);
 
   const promotableUsers = useMemo(

@@ -227,13 +227,15 @@ export function useCoachDashboard() {
   };
 
   useEffect(() => {
-    if (isAuthLoading) return;
-    if (!user || !canCoach(user.role)) {
-      setIsLoading(false);
-      return;
-    }
+    void (async () => {
+      if (isAuthLoading) return;
+      if (!user || !canCoach(user.role)) {
+        setIsLoading(false);
+        return;
+      }
 
-    void loadDashboard();
+      await loadDashboard();
+    })();
   }, [isAuthLoading, user]);
 
   const coachApplicationActions = useCoachApplicationActions({

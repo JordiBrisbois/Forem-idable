@@ -161,15 +161,15 @@ function useAdminLegalHoldAsyncOptions(
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!enabled) {
-      setOptions([]);
-      setIsLoading(false);
-      return;
-    }
-
     let cancelled = false;
 
     async function load() {
+      if (!enabled) {
+        setOptions([]);
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(true);
       try {
         const { data } = await fetchAdminLegalHoldTargetOptions(targetType, deferredSearch);
@@ -187,7 +187,10 @@ function useAdminLegalHoldAsyncOptions(
       }
     }
 
-    load();
+    void (async () => {
+      await load();
+    })();
+
     return () => {
       cancelled = true;
     };
