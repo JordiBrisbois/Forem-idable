@@ -14,6 +14,7 @@ const PUBLIC_EXACT = [
   "/robots.txt",
 ];
 const PUBLIC_PREFIXES = [
+  "/api/health",
   "/api/auth/",
   "/api/setup",
   "/api/locations",
