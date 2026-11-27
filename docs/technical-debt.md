@@ -10,7 +10,9 @@ disparaît du fichier en même temps que le code change.
 
 ## 1. Avertissements `react-hooks/set-state-in-effect` (17)
 
-**Constat.** ESLint signale 17 appels à `setState` synchrones dans un `useEffect`,
+**Constat.** ESLint signale 17 appels à `setState` synchrones dans un `useEffect`
+(23 avertissements au total avec les derniers écrans, le chiffre de cette ligne
+reste le décompte de cette règle),
 répartis sur les hooks de chargement (`useApplications`, `useAccountApiKeys`,
 `useSearchHistory`, `AuthProvider`, …) et quelques dialogues qui recopient une
 prop dans l'état local.
